@@ -21,7 +21,7 @@ export default defineConfig({
     },
     {
       command:
-        "API_URL=http://127.0.0.1:4100 pnpm --filter @stash/web exec next dev --hostname 127.0.0.1 --port 3100",
+        "NEXT_DIST_DIR=.next-verification API_URL=http://127.0.0.1:4100 pnpm --filter @stash/web exec next dev --hostname 127.0.0.1 --port 3100",
       url: "http://127.0.0.1:3100",
       reuseExistingServer: false,
       timeout: 60000,

@@ -6,10 +6,13 @@ const password = "Stash123";
 async function signup(page: Page) {
   const email = `browser-${randomUUID()}@example.test`;
   await page.goto("/");
+  await page.getByRole("link", { name: "Sign up", exact: true }).first().click();
+  await expect(page).toHaveURL(/\/signup$/);
   await page.getByLabel("Your name").fill("Browser Researcher");
   await page.getByLabel("Email address").fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
-  await page.getByRole("button", { name: "Create my Stash" }).click();
+  await page.getByRole("button", { name: "Create account" }).click();
+  await expect(page).toHaveURL(/\/$/);
   await expect(
     page.getByRole("heading", { name: "Your library." }),
   ).toBeVisible();
@@ -210,7 +213,7 @@ test("T15/E01/E06 complete account, library, organization, connections, import/e
     fullPage: true,
   });
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.getByRole("link", { name: "Sign in", exact: true }).click();
   await page.getByLabel("Email address").fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
@@ -237,7 +240,7 @@ test("T15/E01/E06 complete account, library, organization, connections, import/e
     .getByRole("button", { name: "Permanently delete account" })
     .click();
   await expect(
-    page.getByRole("button", { name: "Create my Stash" }),
+    page.getByRole("link", { name: "Sign up", exact: true }).first(),
   ).toBeVisible();
 });
 test("T15/E05 browser password recovery and invalid reused links", async ({
@@ -247,7 +250,7 @@ test("T15/E05 browser password recovery and invalid reused links", async ({
   await save(page, "Recovery guide");
   await page.getByRole("button", { name: "Open profile" }).click();
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.getByRole("link", { name: "Sign in", exact: true }).click();
   await page.getByRole("button", { name: "Forgot your password?" }).click();
   await page.getByLabel("Email address").fill(email);
   await page.getByRole("button", { name: "Send reset link" }).click();
@@ -260,7 +263,7 @@ test("T15/E05 browser password recovery and invalid reused links", async ({
     .click();
   await expect(page.getByText("Password changed.")).toBeVisible();
   await page.getByRole("button", { name: "Continue to Stash" }).click();
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.getByRole("link", { name: "Sign in", exact: true }).click();
   await page.getByLabel("Email address").fill(email);
   await page
     .getByLabel("Password", { exact: true })

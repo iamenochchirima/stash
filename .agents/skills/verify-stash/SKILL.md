@@ -11,7 +11,7 @@ The canonical feature map is [docs/features/README.md](../../../docs/features/RE
 
 From the repository root, run `pnpm install --frozen-lockfile`, `./scripts/postgres-local.sh start`, and `pnpm exec playwright install chromium`. Set `TEST_DATABASE_URL` if using an existing PostgreSQL test database. Its name must end in `_test`.
 
-Run `pnpm test:browser`. The harness launches an API on `127.0.0.1:4100` with a disposable PostgreSQL schema and a Next.js dashboard on `127.0.0.1:3100`. Development emails are captured in private `.data/verification-mail` files, never sent. This suite starts and cleans up its own instances; do not launch another suite on those ports simultaneously.
+Run `pnpm test:browser`. The harness uses `.next-verification` for isolated Next.js output so it can run alongside the local review server. It launches an API on `127.0.0.1:4100` with a disposable PostgreSQL schema and a Next.js dashboard on `127.0.0.1:3100`. Development emails are captured in private `.data/verification-mail` files, never sent. This suite starts and cleans up its own instances; do not launch another suite on those ports simultaneously.
 
 For normal manual use, run `pnpm db:migrate` then `pnpm dev` and open `http://127.0.0.1:3000`. Manual instances use the development library, so automated checks should use the isolated harness instead.
 
@@ -23,9 +23,9 @@ For the managed browser suite, Playwright checks the two readiness URLs before d
 
 ## Drive
 
-`tests/browser/journeys.spec.ts` is the canonical browser recipe. It uses stable accessible selectors such as `Your name`, `Email address`, `Password`, `Create my Stash`, `Save a resource`, `Link`, `Title`, `Why it matters`, `Search your library`, `Import / export`, and `Open profile`.
+`tests/browser/journeys.spec.ts` is the canonical browser recipe. It uses stable accessible selectors such as `Sign up`, `Your name`, `Email address`, `Password`, `Create account`, `Save a resource`, `Link`, `Title`, `Why it matters`, `Search your library`, `Import / export`, and `Open profile`.
 
-Drive the actual user path: create an account, save a resource, follow the locally captured verification email, edit collections and reading status, search, import/export, manage an agent key, update the profile, sign out/in, and delete the account with reauthentication. The recovery test requests and follows a real captured email, then rejects a reused link. Mobile tests drive saving and keyboard dialogs at 375 and 768 pixels; the desktop test uses 1440 pixels.
+Start at the public landing page, follow Sign up to `/signup`, and use `/signin` for returning users. The public page has a manually playable Save/Organize/Retrieve illustration that respects reduced motion. Drive the actual user path: create an account, save a resource, follow the locally captured verification email, edit collections and reading status, search, import/export, manage an agent key, update the profile, sign out/in, and delete the account with reauthentication. The recovery test requests and follows a real captured email, then rejects a reused link. Mobile tests drive saving and keyboard dialogs at 375 and 768 pixels; the desktop test uses 1440 pixels.
 
 `tests/browser/accessibility.spec.ts` checks signup, library, save dialog, and profile using axe. Keyboard focus, Escape, dialog focus return, and layout overflow have dedicated browser assertions.
 

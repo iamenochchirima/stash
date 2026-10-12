@@ -1,0 +1,33 @@
+import Link from "next/link";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { HeroIllustration, ProductStory } from "./product-illustration";
+
+export function Landing() {
+  return (
+    <div className="site-page">
+      <header className="site-header">
+        <Link className="site-brand" href="/" aria-label="Stash home"><img src="/stash.png" alt="" width={32} height={32} /><span>stash<span className="brand-dot">.</span></span></Link>
+        <nav aria-label="Main navigation">
+          <a className="site-about" href="#how-it-works">How it works</a>
+          <Link href="/signin">Sign in</Link>
+          <Link className="site-button" href="/signup">Sign up <ArrowUpRight size={15} /></Link>
+        </nav>
+      </header>
+      <main>
+        <section className="site-hero">
+          <div className="hero-copy">
+            <p className="site-kicker">Save as you go</p>
+            <h1>Stash it now.<br />Find it later.</h1>
+            <p className="hero-description">Save useful links and notes as you chat or research. Your agents can stash what matters and bring it back in the next conversation.</p>
+            <Link className="site-button hero-button" href="/signup">Sign up <ArrowRight size={17} /></Link>
+            <p className="hero-footnote">Your library is private. You choose which agents can access it.</p>
+          </div>
+          <HeroIllustration />
+        </section>
+        <ProductStory />
+        <section className="site-bottom"><div><h2>Keep your next good find.</h2><p>Create an account and save it to Stash.</p></div><Link href="/signup" className="site-button">Sign up <ArrowRight size={16} /></Link></section>
+      </main>
+      <footer className="site-footer"><span>Stash <span className="footer-divider">/</span> A <a href="https://kasitek.co.za">KasiTek</a> product</span><Link href="/help">Help & privacy <ArrowUpRight size={13} /></Link></footer>
+    </div>
+  );
+}

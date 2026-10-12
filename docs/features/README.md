@@ -4,6 +4,7 @@ This map records current user behavior, not future features. Use the [verificati
 
 | Feature | Entry and observable proof |
 | --- | --- |
+| [Public landing page](landing.md) | Local hero artwork, Save/Organize/Retrieve walkthrough, and direct signup/sign-in navigation |
 | [Accounts and profiles](accounts.md) | Signup/sign-in, recovery email links, profile, avatar, and reauthenticated deletion |
 | [Library and collections](library.md) | Save/search/edit, multiple collections, reading status, and user isolation |
 | [Agent connections](agents.md) | Email verification when enabled, scoped keys, actual MCP save/retrieve, and revocation |

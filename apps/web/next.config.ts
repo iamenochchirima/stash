@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 const config: NextConfig = {
+  devIndicators: false,
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   transpilePackages: ["@stash/shared"],
   async rewrites() {
     return [

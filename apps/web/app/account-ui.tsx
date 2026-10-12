@@ -1,12 +1,11 @@
 "use client";
 import { useState, useEffect, type FormEvent } from "react";
+import Link from "next/link";
 import {
   ArrowUpRight,
   ChevronRight,
   LoaderCircle,
   ShieldCheck,
-  Bookmark,
-  Sparkles,
   Trash2,
 } from "lucide-react";
 import type { Profile } from "@stash/shared";
@@ -28,8 +27,8 @@ function ErrorNote({ message }: { message: string }) {
     </p>
   ) : null;
 }
-export function Auth({ onUser }: { onUser: (user: Profile) => void }) {
-  const [mode, setMode] = useState<"signup" | "login" | "forgot">("signup"),
+export function Auth({ onUser, initialMode = "signup" }: { onUser: (user: Profile) => void; initialMode?: "signup" | "login" }) {
+  const [mode, setMode] = useState<"signup" | "login" | "forgot">(initialMode),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [message, setMessage] = useState("");
@@ -71,47 +70,15 @@ export function Auth({ onUser }: { onUser: (user: Profile) => void }) {
     setMessage("");
   }
   return (
-    <main className="auth-layout">
-      <div className="auth-story">
-        <Brand />
-        <div className="story-content">
-          <span className="eyebrow">
-            <Sparkles size={14} /> A HOME FOR YOUR CURIOSITY
-          </span>
-          <h1>
-            Good finds.
-            <br />
-            Always within
-            <br />
-            <em>reach.</em>
-          </h1>
-          <p>
-            Save the things worth coming back to. Find them in one private
-            library, from whichever AI agent you use next.
-          </p>
-          <div className="story-pill">
-            <Bookmark size={18} /> Save once. Pick up anywhere.
-          </div>
-        </div>
-        <small>YOUR RESEARCH. YOUR SPACE.</small>
-      </div>
-      <section className="auth-panel">
+    <main className="account-page">
+      <header className="account-header">
+        <Link href="/" aria-label="Stash home"><Brand /></Link>
+        <Link href="/" className="account-back">Back to home</Link>
+      </header>
+      <section className="account-panel">
         <div className="auth-card">
-          <span className="eyebrow">WELCOME TO STASH</span>
-          <h2>
-            {mode === "signup"
-              ? "Make yourself at home."
-              : mode === "login"
-                ? "Welcome back."
-                : "Get back to your library."}
-          </h2>
-          <p>
-            {mode === "signup"
-              ? "Create your profile and save your first find."
-              : mode === "login"
-                ? "Your next idea might already be in your library."
-                : "Enter your email to request a password reset link."}
-          </p>
+          <h1>{mode === "signup" ? "Create your account" : mode === "login" ? "Sign in to Stash" : "Reset your password"}</h1>
+          <p>{mode === "signup" ? "Save links, add notes, and connect your agents." : mode === "login" ? "Open your private research library." : "We'll email you a link to choose a new password."}</p>
           {!emailEnabled && <p className="muted">Email verification and password recovery are currently unavailable.</p>}
           <form onSubmit={submit}>
             {mode === "signup" && (
@@ -167,7 +134,7 @@ export function Auth({ onUser }: { onUser: (user: Profile) => void }) {
               {busy ? (
                 <LoaderCircle className="spin" size={18} />
               ) : mode === "signup" ? (
-                "Create my Stash"
+                "Create account"
               ) : mode === "login" ? (
                 "Sign in"
               ) : (
@@ -185,17 +152,7 @@ export function Auth({ onUser }: { onUser: (user: Profile) => void }) {
             </button>
           )}
           <p className="auth-switch">
-            {mode === "signup" ? "Already have a Stash?" : "New here?"}{" "}
-            <button
-              onClick={() => switchMode(mode === "signup" ? "login" : "signup")}
-            >
-              {mode === "signup" ? "Sign in" : "Create an account"}
-            </button>
-            {mode === "forgot" && (
-              <button onClick={() => switchMode("login")}>
-                Back to sign in
-              </button>
-            )}
+            {mode === "signup" ? <>Already have an account? <Link href="/signin">Sign in</Link></> : mode === "login" ? <>Don't have an account? <Link href="/signup">Sign up</Link></> : <button onClick={() => switchMode("login")}>Back to sign in</button>}
           </p>
           <div className="privacy-note">
             <ShieldCheck size={16} />

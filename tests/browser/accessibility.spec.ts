@@ -24,6 +24,10 @@ test("T16 accessibility of signup, library, save dialog, and profile", async ({
     ).toEqual([]);
   };
   await page.goto("/");
+  await check("landing");
+  await page.getByRole("link", { name: "Sign up", exact: true }).first().click();
+  await expect(page).toHaveTitle("Create your account · Stash");
+  await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
   await check("signup");
   await page.getByLabel("Your name").fill("Accessibility User");
   await page
@@ -32,7 +36,7 @@ test("T16 accessibility of signup, library, save dialog, and profile", async ({
   await page
     .getByLabel("Password", { exact: true })
     .fill("correct horse battery staple");
-  await page.getByRole("button", { name: "Create my Stash" }).click();
+  await page.getByRole("button", { name: "Create account" }).click();
   await expect(
     page.getByRole("heading", { name: "Your library." }),
   ).toBeVisible();

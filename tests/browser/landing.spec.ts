@@ -1,0 +1,46 @@
+import { test, expect } from "@playwright/test";
+import { mkdir } from "node:fs/promises";
+for (const width of [1440, 375]) {
+  test(`Landing and dedicated account pages at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Stash it now. Find it later." })).toBeVisible();
+    await expect(page.getByLabel("Your name")).toHaveCount(0);
+    await expect(page.getByText(/Codex|OpenCode/)).toHaveCount(0);
+    await page.getByRole("button", { name: "Organize", exact: false }).click();
+    await expect(page.getByRole("heading", { name: "Give it a place in your work." })).toBeVisible();
+    await page.getByRole("button", { name: "Retrieve", exact: false }).click();
+    await expect(page.getByRole("heading", { name: "Find it when you need it." })).toBeVisible();
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.getByRole("button", { name: "Replay walkthrough" }).click();
+    await expect(page.getByRole("heading", { name: "Find it when you need it." })).toBeVisible();
+    await page.getByRole("button", { name: "Save", exact: false }).click();
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.getByRole("button", { name: "Play walkthrough" }).click();
+    await expect(page.getByRole("button", { name: "Playing…" })).toBeDisabled();
+    await expect(page.getByRole("heading", { name: "Find it when you need it." })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Replay walkthrough" })).toBeEnabled();
+    await page.getByRole("button", { name: "Save", exact: false }).click();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await mkdir("docs/evidence/browser", { recursive: true });
+    await page.screenshot({ path: `docs/evidence/browser/landing-${width}.png`, fullPage: true, animations: "disabled" });
+    await page.getByRole("link", { name: "Sign up", exact: true }).first().click();
+    await expect(page).toHaveURL(/\/signup$/);
+    await expect(page).toHaveTitle("Create your account · Stash");
+    await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
+    await expect(page.getByLabel("Password", { exact: true })).toHaveAttribute("minlength", "8");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: `docs/evidence/browser/signup-${width}.png`, fullPage: true, animations: "disabled" });
+    await page.getByRole("link", { name: "Sign in", exact: true }).click();
+    await expect(page).toHaveURL(/\/signin$/);
+    await expect(page).toHaveTitle("Sign in · Stash");
+    await expect(page.getByRole("heading", { name: "Sign in to Stash" })).toBeVisible();
+    await page.getByRole("button", { name: "Forgot your password?" }).click();
+    await expect(page.getByRole("heading", { name: "Reset your password" })).toBeVisible();
+    await page.getByRole("button", { name: "Back to sign in" }).click();
+    await expect(page.getByRole("heading", { name: "Sign in to Stash" })).toBeVisible();
+    await page.getByRole("link", { name: "Back to home" }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole("heading", { name: "Stash it now. Find it later." })).toBeVisible();
+  });
+}

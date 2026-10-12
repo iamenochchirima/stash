@@ -5,6 +5,8 @@
 node_modules
 **/node_modules
 **/.next
+**/.next-verification
+**/.next-build-verification
 **/dist
 docs/evidence
 test-results
