@@ -18,7 +18,7 @@ export function Landing() {
           <div className="hero-copy">
             <p className="site-kicker">Save as you go</p>
             <h1>Stash it now.<br />Find it later.</h1>
-            <p className="hero-description">Save useful links and notes as you chat or research. Your agents can stash what matters and bring it back in the next conversation.</p>
+            <p className="hero-description">Ask your agent to save what’s useful without breaking your flow.</p>
             <Link className="site-button hero-button" href="/signup">Sign up <ArrowRight size={17} /></Link>
             <p className="hero-footnote">Your library is private. You choose which agents can access it.</p>
           </div>

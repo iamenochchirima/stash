@@ -108,3 +108,40 @@ Anonymous visitors see the landing page at `/`; signup and sign-in are `/signup`
 Initial checks exposed Next.js's one-development-server-per-output-directory restriction and an account-navigation remount that increased request traffic. The browser harness now uses `.next-verification`; production verification builds use `.next-build-verification`, leaving the review server's `.next` output independent. Authentication routes now mount only the form and navigate to the library after success, avoiding a transient dashboard on the signup route. An axe run started before streamed route metadata finished; the recipe now waits for the signup title and heading. The final full suite passes with production rate limits unchanged.
 
 The local review server remains on http://127.0.0.1:3000, with the existing local PostgreSQL API at 4000. Browser verification used a disposable schema at ports 3100/4100 and cleaned it up. No Railway or Vercel deployment was performed for these changes.
+
+## Illustrated agent-save demo, 12 October 2026
+
+The user requested a more compelling, video-like demonstration of typing a request to an agent, confirming a detailed preview, and saving it. The local implementation now has a 13.2-second animated conversation with thumbnail artwork, typed composer text, an agent confirmation preview, a simulated pointer click, and the same card moving to the reading list. Mobile changes scenes rather than shrinking two panes into unreadable columns. The shorter hero subtext discussed with the user is also applied. See [design and asset prompt](demo-design.md).
+
+The full 9-test browser suite passed after initial implementation, covering account/library/recovery journeys plus the new timed demo. Final visual refinement fixed saved-status opacity, aligned the simulated pointer with its confirmation button, retained the initial thumbnail, and removed a Next.js thumbnail sizing warning. The final focused set of 4 browser tests passed: accessibility, full typed playback/pause/replay, desktop navigation/chapter/confirmation controls, and mobile/reduced-motion behavior. The production build and type checks pass. Evidence: [full suite](evidence/demo-browser-tests.txt), [final focused checks](evidence/demo-focused-tests.txt), [build](evidence/demo-build.txt), [types](evidence/demo-typecheck.txt), [accessibility](evidence/accessibility.json), [confirmation frame](evidence/browser/demo-confirm-desktop.png), and [saved frame](evidence/browser/demo-saved-desktop.png).
+
+The illustration starts once on entering view, pauses when offscreen or the tab is hidden, and supports manual control. It is labelled Example workflow and makes no live save requests. The image and 8-minute reading badge belong to the fictional demo resource, not newly implemented persisted library fields. Account sessions, ownership, and backend behavior are unchanged. The local server remains available at port 3000; nothing was deployed or committed in this revision.
+
+## Demo chat and populated library revision, 12 October 2026
+
+The user requested a smaller Stash pane with existing saved resources and a ChatGPT-style left interface. The local demo now uses a 64/36 desktop split. Two saved cards are visible before saving; they shift down as the detailed new preview contracts into a third card. The final count is 3. Mobile preserves the populated library when changing scenes. The left uses neutral chat bubbles, a familiar toolbar, and a rounded composer with plus and circular send controls.
+
+The focused 4-test set passed: accessibility, timed demo playback/pause/confirmation/replay, desktop chapter/navigation checks, and mobile/reduced-motion checks. A composer placeholder contrast failure was fixed before the passing run. Existing demo tests now check that both previous cards remain and the resource count grows from 2 to 3. A final playback/layout run also passed after keeping the opening source thumbnail compact. The production build and type checks pass. Evidence: [playback/layout](evidence/demo-chat-layout-check.txt), [focused browser checks](evidence/demo-chat-revision-tests.txt), [build](evidence/demo-chat-revision-build.txt), [type checks](evidence/demo-chat-revision-types.txt), and [populated saved frame](evidence/browser/demo-saved-stage.png).
+
+The ChatGPT styling is a fictional visual example at the user's request. It does not establish a native ChatGPT integration; agent authentication and backend behavior are unchanged. This revision is local and uncommitted, with no deployment.
+
+
+## Automatic demo playback, 12 October 2026
+
+The demo starts when it enters view and repeats after a 1.8-second hold on the saved result. Offscreen and hidden-tab playback pauses; returning resumes it unless the user paused it manually. Reduced motion keeps the static saved result.
+
+All 5 focused browser tests passed, including automatic start without interaction, the count returning from 3 to 2 on the next cycle, offscreen pause/resume, and a manual pause surviving a scroll away and back. Accessibility and desktop/mobile landing checks also passed. Production build and type checks passed. Evidence: [browser checks](evidence/demo-autoplay-tests.txt), [build](evidence/demo-autoplay-build.txt), and [types](evidence/demo-autoplay-types.txt). The change remains local and uncommitted.
+
+
+## Demo without player chrome, 12 October 2026
+
+Removed the playback bar, elapsed time, restart button, chapter tabs, and caption beneath the demo at the user's request. Playback still starts and loops automatically. A small pause/resume button appears only on hover or keyboard focus. Reduced motion keeps a static saved result without that button.
+
+All 5 focused browser checks passed, including absent player chrome, typed playback and confirmation, automatic looping, offscreen pause/resume, manual pause persistence, and desktop/mobile account navigation. Accessibility, production build, and type checks passed. Evidence: [browser](evidence/demo-clean-tests.txt), [build](evidence/demo-clean-build.txt), [types](evidence/demo-clean-types.txt), and [saved desktop view](evidence/browser/demo-saved-desktop.png). The local preview responds on port 3000. Nothing was committed or deployed.
+
+
+## Phone library demo, 12 October 2026
+
+The Stash pane now sits inside a rounded phone frame with a status bar, camera island, and home indicator. The new card animates into the phone above the two existing resources. Narrow layouts transition from chat to the phone scene.
+
+All 5 focused browser tests passed, including card confirmation/count, continuous playback, desktop/mobile landing and account navigation, and accessibility. The production build and type checks passed. Reviewed the saved desktop phone screenshot and the 375px landing screenshot. Evidence: [browser](evidence/demo-phone-tests.txt), [build](evidence/demo-phone-build.txt), [types](evidence/demo-phone-types.txt), [desktop phone](evidence/browser/demo-saved-stage.png), and [mobile landing](evidence/browser/landing-375.png). Changes remain local and uncommitted.

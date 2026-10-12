@@ -1,0 +1,47 @@
+
+> stash@ build /home/enoch/aworkspace/agents/stash
+> pnpm --filter @stash/server build && pnpm --filter @stash/web build
+
+
+> @stash/server@ build /home/enoch/aworkspace/agents/stash/apps/server
+> tsup && cp -R ../../packages/db/migrations dist/migrations
+
+CLI Building entry: src/index.ts, src/migrate.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Using tsup config: /home/enoch/aworkspace/agents/stash/apps/server/tsup.config.ts
+CLI Target: es2022
+CLI Cleaning output folder
+ESM Build start
+ESM dist/migrate.js 8.87 KB
+ESM dist/index.js   59.22 KB
+ESM ⚡️ Build success in 56ms
+
+> @stash/web@ build /home/enoch/aworkspace/agents/stash/apps/web
+> next build
+
+▲ Next.js 16.4.0 (Turbopack)
+✓ Running next.config.ts took 43ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 415ms
+  Running TypeScript ...
+  Finished TypeScript in 4.3s ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/6) ...
+  Generating static pages using 7 workers (1/6) 
+  Generating static pages using 7 workers (2/6) 
+  Generating static pages using 7 workers (4/6) 
+✓ Generating static pages using 7 workers (6/6) in 1590ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /help
+├ ○ /signin
+└ ○ /signup
+
+
+○  (Static)  prerendered as static content
+

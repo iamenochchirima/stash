@@ -1,0 +1,34 @@
+
+> stash@ test:browser /home/enoch/aworkspace/agents/stash
+> playwright test
+
+[WebServer] (node:342357) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:342368) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:342384) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:342384) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:342422) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:342433) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:342449) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 9 tests using 1 worker
+
+(node:342485) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/browser/accessibility.spec.ts:5:1 › T16 accessibility of signup, library, save dialog, and profile (3.7s)
+  ✓  2 tests/browser/demo.spec.ts:4:1 › Agent save demo types, pauses, confirms, moves the card, and replays (14.9s)
+  ✓  3 tests/browser/journeys.spec.ts:77:1 › T15/E01/E06 complete account, library, organization, connections, import/export, and deletion journey (8.0s)
+  ✓  4 tests/browser/journeys.spec.ts:246:1 › T15/E05 browser password recovery and invalid reused links (5.3s)
+  ✓  5 tests/browser/journeys.spec.ts:285:3 › T16/E07 responsive layout and keyboard dialog at 375px (2.0s)
+  ✓  6 tests/browser/journeys.spec.ts:285:3 › T16/E07 responsive layout and keyboard dialog at 768px (2.0s)
+  ✓  7 tests/browser/journeys.spec.ts:321:1 › T12 older search responses cannot replace newer results (2.4s)
+  ✓  8 tests/browser/landing.spec.ts:4:3 › Landing and dedicated account pages at 1440px (2.3s)
+  ✓  9 tests/browser/landing.spec.ts:4:3 › Landing and dedicated account pages at 375px (2.3s)
+
+  9 passed (47.7s)
