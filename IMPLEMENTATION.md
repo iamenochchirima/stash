@@ -267,5 +267,5 @@ The original bearer-key release is retained. This follow-up adds OAuth alongside
 - [x] Both credential types share library ownership/scope rules and the connection/revocation screen.
 - [x] Access expiry, refresh rotation and replay revocation, password-reset revocation, and cascading account deletion.
 - [x] Protocol/security tests, official SDK/browser save-and-retrieve journey, existing regression suites, accessibility, production build and type checks.
-- [ ] Publish additive backend migration and client; verify discovery and hosted OAuth journey.
+- [x] Publish additive backend migration and client; verify discovery and hosted OAuth journey.
 - [ ] Confirm actual ChatGPT UI connection independently; SDK acceptance does not prove that product-specific final connection.

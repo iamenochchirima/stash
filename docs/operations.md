@@ -59,3 +59,14 @@ Platform domains and HTTPS are active; the hosted signup, sign-in, library persi
 Published client commit 7727814 to https://stash.kasitek.co.za. Vercel deployment dpl_6R2LLRc2DvhYg98NtLybUgUYuHif is READY. Live checks passed for the new landing hero/Lina icon, the connection CTA opening sign-in, and signup. Railway readiness returned 200.
 
 The initial Vercel project had no Git repository link, so GitHub pushes did not trigger deployment. Connected iamenochchirima/stash through Vercel's Git integration and verified productionBranch is main. Future main pushes are configured for production builds; the next push event has not yet been exercised. See docs/evidence/latest-client-deployment.json.
+
+
+## OAuth deployed alongside agent keys
+
+Implementation commit 057aa8a is deployed. Railway backend deployment 07835852-8401-486f-bff0-1dc9b87897ac is SUCCESS with the additive 0004_oauth migration. Vercel Git-triggered production deployment dpl_KJxneHMZ8XbUWxoMFdpv7dvjFQYf is READY on stash.kasitek.co.za. This push demonstrates that the Git connection now triggers builds automatically. Railway backend deployments remain CLI-managed.
+
+Hosted verification passed after the final concurrency refinement: issuer/resource discovery, DCR, PKCE, signup intent preservation, verification/consent, OAuth saving/retrieval, manual-key retrieval and read-only scope, token refresh, and revocation. The disposable account and its resources were deleted. See docs/evidence/oauth-hosted.json.
+
+Use the existing HTTPS /mcp URL with OAuth or a bearer key. In an OAuth client choose dynamic client registration and public-client authentication when a registration mode is requested. Client ID Metadata Documents and confidential-client secrets are not advertised. The current consent scopes are stash:read and stash:write; write includes saving and deleting. Tokens expire after one hour, refresh tokens rotate with a 30-day absolute lifetime, and revocation/reset/deletion invalidates the connection.
+
+Public DCR is rate-limited to 20 registrations per minute per source and capped at 10,000 stored clients. Pending authorization requests/codes expire and are cleaned during new authorizations. Retention/cleanup of unused public client registrations is an operational follow-up before approaching that cap. The service does not fetch client-provided URLs. Native ChatGPT UI acceptance remains a separate user/client check; the hosted SDK flow has been exercised.

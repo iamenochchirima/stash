@@ -203,3 +203,8 @@ The full backend run passed 28 tests, and the full browser run passed 11 tests. 
 Evidence: [backend regression](evidence/oauth-all-tests.txt), [browser regression](evidence/oauth-all-browser.txt), [final protocol/security](evidence/oauth-final-tests.txt), [final SDK/browser](evidence/oauth-final-browser.txt), [build](evidence/oauth-build.txt), [types](evidence/oauth-types.txt), [consent](evidence/browser/oauth-consent.png), and [connections](evidence/browser/oauth-connections.png). Native ChatGPT dialog acceptance is separate from this SDK acceptance.
 
 The initial hosted OAuth deployment passed discovery, DCR, signup/verification/consent, MCP saving/retrieval, both credential types, refresh rotation, and revocation. The disposable account was deleted. See [hosted check](evidence/oauth-hosted.json). The final concurrency refinement is being published separately.
+
+
+## Final hosted OAuth acceptance
+
+Railway final backend deployment 07835852-8401-486f-bff0-1dc9b87897ac is SUCCESS. A Git-triggered Vercel production build for commit 057aa8a is READY, and the custom domain aliases that build. The hosted OAuth verification was repeated after the final transaction-lock refinement and passed all eight checks in [the report](evidence/oauth-hosted.json), including both credential types, refresh and revocation. Its disposable account was deleted. Local API was migrated and restarted with the same code. Native ChatGPT UI acceptance is not substituted by this SDK/browser result.
