@@ -17,7 +17,11 @@ export default function Help() {
         password signs out existing sessions and revokes agent keys.
         Verification links expire after 24 hours.
       </p>
-      <h2 id="agents">Connect Codex or OpenCode</h2>
+      <h2 id="agents">Connect your agent through MCP</h2>
+      <p>
+        <a href="/signup">Create an account</a> or <a href="/signin">sign in</a> to get started.
+        In your library, open Agent connections to create a key and find your MCP address.
+      </p>
       <p>
         Open Agent connections, create a key, and copy it immediately. Use a
         separate key per client. Read-only keys can browse and retrieve.

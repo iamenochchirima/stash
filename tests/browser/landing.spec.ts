@@ -6,6 +6,8 @@ for (const width of [1440, 375]) {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Stash it now. Find it later." })).toBeVisible();
     await expect(page.getByLabel("Your name")).toHaveCount(0);
+    await page.waitForFunction(() => [...document.querySelectorAll(".hero-stream-item")].some(el => Number(getComputedStyle(el).opacity) > .8));
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await expect(page.getByText(/Codex|OpenCode/)).toHaveCount(0);
     await page.locator(".save-demo").scrollIntoViewIfNeeded();
     await expect(page.getByRole("button", { name: "Confirm example save" })).toBeVisible({ timeout: 10000 });
@@ -20,6 +22,11 @@ for (const width of [1440, 375]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await mkdir("docs/evidence/browser", { recursive: true });
     await page.screenshot({ path: `docs/evidence/browser/landing-${width}.png`, fullPage: true, animations: "disabled" });
+    await page.getByRole("link", { name: "Connect your agent", exact: false }).click();
+    await expect(page).toHaveURL(/\/help#agents$/);
+    await expect(page.getByRole("heading", { name: "Connect your agent through MCP" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Create an account", exact: true })).toHaveAttribute("href", "/signup");
+    await page.getByRole("link", { name: "Back to Stash", exact: false }).click();
     await page.getByRole("link", { name: "Sign up", exact: true }).first().click();
     await expect(page).toHaveURL(/\/signup$/);
     await expect(page).toHaveTitle("Create your account · Stash");

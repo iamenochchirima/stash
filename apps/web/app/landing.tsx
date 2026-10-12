@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight, MessageSquare, Plug } from "lucide-react";
 import { HeroIllustration, ProductStory } from "./product-illustration";
 
 export function Landing() {
@@ -25,6 +25,19 @@ export function Landing() {
           <HeroIllustration />
         </section>
         <ProductStory />
+        <section className="site-connect" id="connect" aria-labelledby="connect-title">
+          <div className="site-connect-copy">
+            <h2 id="connect-title">Your library.<br />In the conversation.</h2>
+            <Link href="/help#agents" className="site-button">Connect your agent <ArrowUpRight size={16} /></Link>
+          </div>
+          <div className="site-connect-setup">
+            <div className="site-connect-diagram" aria-hidden="true">
+              <div className="site-connect-node"><MessageSquare size={23} /><span>Your agent</span></div>
+              <div className="site-connect-wire"><span /><div><Plug size={18} /><small>MCP</small></div><span /></div>
+              <div className="site-connect-node site-connect-stash"><img src="/stash.png" width={27} height={27} alt="" /><span>Stash</span></div>
+            </div>
+          </div>
+        </section>
         <section className="site-bottom"><div><h2>Keep your next good find.</h2><p>Create an account and save it to Stash.</p></div><Link href="/signup" className="site-button">Sign up <ArrowRight size={16} /></Link></section>
       </main>
       <footer className="site-footer"><span>Stash <span className="footer-divider">/</span> A <a href="https://kasitek.co.za">KasiTek</a> product</span><Link href="/help">Help & privacy <ArrowUpRight size={13} /></Link></footer>

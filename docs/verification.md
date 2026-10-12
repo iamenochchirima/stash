@@ -145,3 +145,31 @@ All 5 focused browser checks passed, including absent player chrome, typed playb
 The Stash pane now sits inside a rounded phone frame with a status bar, camera island, and home indicator. The new card animates into the phone above the two existing resources. Narrow layouts transition from chat to the phone scene.
 
 All 5 focused browser tests passed, including card confirmation/count, continuous playback, desktop/mobile landing and account navigation, and accessibility. The production build and type checks passed. Reviewed the saved desktop phone screenshot and the 375px landing screenshot. Evidence: [browser](evidence/demo-phone-tests.txt), [build](evidence/demo-phone-build.txt), [types](evidence/demo-phone-types.txt), [desktop phone](evidence/browser/demo-saved-stage.png), and [mobile landing](evidence/browser/landing-375.png). Changes remain local and uncommitted.
+
+
+## Centered hero with incoming saves, 12 October 2026
+
+The hero now uses a smaller centered folder surrounded by assistant example labels. Links and notes arrive one at a time, slip behind the folder front, and trigger a small receiving motion. Reduced motion shows static artwork. Decorative labels and symbols do not establish new native client integrations or perform real saves.
+
+The 5 focused browser checks passed for accessibility, demo playback, and desktop/mobile landing journeys. Manual animated screenshots exposed horizontal overflow from delayed invisible items. The illustration now clips those items and gives them an initial transform. The final 2 landing checks passed at 1440px and 375px with an assertion during active incoming animation. Production build and type checks passed. Reviewed [desktop motion](evidence/browser/hero-stream-desktop.png) and [mobile](evidence/browser/hero-stream-mobile.png) captures. Evidence: [focused suite](evidence/hero-stream-tests.txt), [final layout checks](evidence/hero-stream-final-tests.txt), [build](evidence/hero-stream-build.txt), and [types](evidence/hero-stream-types.txt). Local review only, no commit or deployment.
+
+
+## Assistant logos and incoming resource cards, 12 October 2026
+
+Replaced decorative assistant symbols with actual marks from official sources, removed Any agent, and reduced the folder width to 44%. Lina is a text label pending the user's supplied logo. The stream now uses article previews with imagery and note cards rather than tiny text chips. Cards retain their size during most of their approach before slipping behind the folder front. Official asset URLs are recorded in apps/web/public/agents/README.md.
+
+Final 3 browser checks passed for accessibility and landing/account journeys at 1440px and 375px, including active-animation overflow checks and reduced-motion behavior. An initial contrast failure in card metadata was corrected before the passing run. Manual local inspection confirmed all four logo images loaded, no Any agent label remained, and no horizontal overflow at 375px. Production build and type checks passed. Evidence: [browser](evidence/hero-logos-tests.txt), [build](evidence/hero-logos-build.txt), [types](evidence/hero-logos-types.txt), [desktop](evidence/browser/hero-logos-desktop.png), and [mobile](evidence/browser/hero-logos-mobile.png). Local and uncommitted; Lina artwork remains pending user input.
+
+
+## MCP connection section and supplied Lina icon, 12 October 2026
+
+Added the MCP connection section after the walkthrough, with a Connect your agent CTA, a small connection illustration, and steps for creating a key, configuring the agent, and saving a first resource. The CTA opens /help#agents. The guide now starts with account creation/sign-in links and directs users to Agent connections. The section describes the current remote MCP/key requirement. No credentials are created or copied from the public page. Lina's hero label now uses the supplied original PNG.
+
+All 3 focused browser tests passed for accessibility and desktop/mobile landing journeys. The landing tests follow the new CTA to the setup guide and verify its account creation link, then continue through signup/signin. Manual local capture verified the section at 1440px and 375px, no horizontal overflow, and successful Lina icon loading. Production build and type checks passed. Evidence: [browser](evidence/mcp-section-tests.txt), [build](evidence/mcp-section-build.txt), [types](evidence/mcp-section-types.txt), [desktop section](evidence/browser/mcp-section-desktop.png), and [mobile section](evidence/browser/mcp-section-mobile.png). Local review only; nothing committed or deployed.
+
+
+## Simplified MCP section, 12 October 2026
+
+Removed the setup list, kicker, paragraph, and footnote from the landing section. Kept the heading, Connect your agent CTA, and connection diagram. Detailed setup and compatibility information remains at /help#agents.
+
+All 3 focused browser tests passed for accessibility and desktop/mobile navigation, including following the connection CTA. Production build and type checks passed. Reviewed the updated desktop/mobile section screenshots and confirmed no mobile overflow. Evidence: [browser](evidence/mcp-clean-tests.txt), [build](evidence/mcp-clean-build.txt), [types](evidence/mcp-clean-types.txt), [desktop](evidence/browser/mcp-section-desktop.png), and [mobile](evidence/browser/mcp-section-mobile.png). Local and uncommitted.
