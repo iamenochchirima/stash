@@ -1,9 +1,9 @@
 {
   "date": "2026-10-12",
   "railwayProject": "4d983b61-c991-4730-9e3f-6ed0187d4683",
-  "backendDeployment": "4560b434-5bc1-40ad-88d0-c2afb3f86262",
+  "backendDeployment": "47dd6480-08ce-47cc-8ef8-904687f3c585",
   "backendStatus": "SUCCESS",
-  "vercelDeployment": "dpl_2KPwAw9S6C6SWJ7jh1eS1dQ6511Y",
+  "vercelDeployment": "dpl_DQgY5Z6ieUKjBtjQ7JYHXmMxGHLu",
   "vercelStatus": "READY",
   "webUrl": "https://stash-tau-seven.vercel.app",
   "apiUrl": "https://stash-api-production-6e87.up.railway.app",
@@ -11,8 +11,10 @@
   "healthcheckPath": "/ready",
   "replicas": 1,
   "journalMount": "/data",
-  "emailDisabled": true,
+  "emailDisabled": false,
   "backupSchedules": "Unavailable: Pro workspace required",
   "pitrEnabled": false,
-  "externalAlerting": "Not configured"
+  "externalAlerting": "Not configured",
+  "emailProvider": "Resend HTTPS API",
+  "mailFrom": "Stash <noreply@kasitek.co.za>"
 }

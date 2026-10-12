@@ -8,7 +8,7 @@ This is the working checklist for implementation, verification, and release. It 
 
 Created on 12 October 2026. The first release scope follows the plan accepted in this chat. Implementation started at the user's request. The scope correction below defers hosted activation while preserving local verification and a reviewable project. PostgreSQL is required for development and production. Hosting and business email setup are deferred at the user's request; prepare the project and local evidence first.
 
-An initial scaffold exists under `apps/` and `packages/`, including account, profile, library, collection, and MCP code. Treat it as unfinished until reviewed and tested. No existing scaffold feature counts as complete merely because its files exist. The dashboard, API/MCP, and PostgreSQL were subsequently deployed at the user’s request on 12 October 2026. Email features are explicitly disabled; hosted backup schedules and external alerts remain pending.
+An initial scaffold exists under `apps/` and `packages/`, including account, profile, library, collection, and MCP code. Treat it as unfinished until reviewed and tested. No existing scaffold feature counts as complete merely because its files exist. The dashboard, API/MCP, and PostgreSQL were subsequently deployed at the user’s request on 12 October 2026. Email verification and recovery were subsequently enabled through Resend at the user’s request; hosted backup schedules and external alerts remain pending.
 
 - Leave an implementation box unchecked until the behavior works, its acceptance criteria pass, and its evidence is recorded.
 - Leave a verification box unchecked until the check has actually run against the relevant revision and environment.
@@ -24,6 +24,8 @@ An initial scaffold exists under `apps/` and `packages/`, including account, pro
 During implementation, the user required PostgreSQL, confirmed no current domain or sender, and asked to focus on building rather than hosting. The unavailable Claude client was replaced with Hermes or OpenCode; Codex/OpenCode passed real acceptance. Hosted SMTP delivery, domains/TLS, paid provisioning, remote CI execution, backup schedules, monitoring activation, and actual hosting costs are deferred to public launch. R06 to R10 cover project preparation and local recovery proof under that correction. These hosted checks are not claimed as completed by local tests.
 
 The user subsequently authorized Railway backends and a Vercel client, and explicitly chose deployment with email features disabled. Platform domains and HTTPS are active. See docs/operations.md and docs/evidence/hosted-deployment.json. This supersedes the earlier hosting deferral for those services.
+
+The user then authorized reusing the KasiTek Growth Resend credentials. Hosted verification and recovery are enabled with the existing verified business domain. Secrets remain in host variables; the source project is unchanged.
 
 ## Release scope and decisions
 
@@ -216,7 +218,7 @@ Automated checks use isolated fixtures and include successful behavior, invalid 
 - [ ] R12 After approval, deploy the database, backend, and dashboard with HTTPS and configured domains. Run hosted E01 through E08 using disposable test accounts.
 - [ ] R13 Confirm hosted monitoring and backups, remove disposable test data, and record the release version and any accepted limitations.
 
-R12 is partially verified: hosted signup/sign-in, saving and reload persistence, MCP SDK save/retrieve, scopes/revocation, origin rejection, and disposable account deletion passed. Email recovery is disabled by the user’s decision. Hosted real-client acceptance, hosted restore, and the remaining full E01–E08 coverage are not claimed. R13 remains pending: readiness checks and persistent volumes are configured, but Railway backup scheduling requires a Pro workspace and external alert notifications are not configured.
+R12 is partially verified: hosted signup/sign-in, saving and reload persistence, MCP SDK save/retrieve, scopes/revocation, origin rejection, and disposable account deletion passed. Email recovery is now enabled through the user-authorized Resend configuration; see docs/evidence/resend-hosted.json. Hosted real-client acceptance, hosted restore, and the remaining full E01–E08 coverage are not claimed. R13 remains pending: readiness checks and persistent volumes are configured, but Railway backup scheduling requires a Pro workspace and external alert notifications are not configured.
 
 ## Future feature backlog
 

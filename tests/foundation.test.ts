@@ -88,6 +88,8 @@ test("T01/T19 configuration validation and production cookie flags", async () =>
   const productionEnv = { NODE_ENV: "production", WEB_ORIGIN: "https://stash.example", PUBLIC_API_URL: "https://api.stash.example", DATABASE_URL: "postgresql://localhost/stash", DELETION_JOURNAL_DIR: "/data/deletions" };
   assert.throws(() => config(productionEnv), /SMTP_URL/);
   assert.equal(config({ ...productionEnv, EMAIL_DISABLED: "true" }).emailDisabled, true);
+  assert.equal(config({ ...productionEnv, RESEND_API_KEY: "test-key", MAIL_FROM: "Stash <noreply@example.test>" }).emailDisabled, false);
+  assert.throws(() => config({ ...productionEnv, RESEND_API_KEY: "test-key" }), /MAIL_FROM/);
   const f = await fixture();
   const app = await createApp(f.db, {
     production: true,
@@ -199,6 +201,41 @@ test("T04 account survives email delivery failure and can request verification l
       200,
     );
     assert.equal(f.mail.length, 1);
+  } finally {
+    await app.close();
+    await f.close();
+  }
+});
+
+test("T04 Resend delivers signup and recovery links and keeps provider errors private", async (t) => {
+  const f = await fixture();
+  const messages: any[] = [];
+  let reject = false;
+  t.mock.method(globalThis, "fetch", async (url: string, options: RequestInit) => {
+    assert.equal(url, "https://api.resend.com/emails");
+    assert.equal((options.headers as Record<string, string>).Authorization, "Bearer test-resend-secret");
+    assert.ok(options.signal);
+    if (reject) return new Response("provider details: test-resend-secret", { status: 429 });
+    messages.push(JSON.parse(options.body as string));
+    return Response.json({ id: randomUUID() });
+  });
+  const mailer = createMailer({ resendApiKey: "test-resend-secret", from: "Stash <noreply@example.test>", directory: ".data/unused", production: true });
+  const app = await createApp(f.db, { mailer });
+  try {
+    const signup = await app.inject({ method: "POST", url: "/api/auth/signup", headers: { origin: "http://127.0.0.1:3000" }, payload: { name: "Resend test", email: "resend@example.test", password: "Stash123" } });
+    assert.equal(signup.statusCode, 201);
+    assert.equal(signup.json().emailSent, true);
+    assert.equal(messages[0].from, "Stash <noreply@example.test>");
+    assert.deepEqual(messages[0].to, ["resend@example.test"]);
+    assert.match(messages[0].text, /\?verify=/);
+    const forgot = await app.inject({ method: "POST", url: "/api/auth/forgot", headers: { origin: "http://127.0.0.1:3000" }, payload: { email: "resend@example.test" } });
+    assert.equal(forgot.statusCode, 200);
+    assert.match(messages[1].text, /\?reset=/);
+    reject = true;
+    await assert.rejects(mailer.send({ to: "resend@example.test", subject: "Test", text: "Test" }), { message: "Email delivery failed." });
+    const before = messages.length;
+    await assert.rejects(createMailer({ ...{ resendApiKey: "test-resend-secret", from: "Stash <noreply@example.test>", directory: ".data/unused", production: true }, disabled: true }).send({ to: "resend@example.test", subject: "Test", text: "Test" }));
+    assert.equal(messages.length, before);
   } finally {
     await app.close();
     await f.close();

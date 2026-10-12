@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-12T13:11:12.505Z",
+  "web": "https://stash-tau-seven.vercel.app",
+  "from": "Stash <noreply@kasitek.co.za>",
+  "recipient": "Resend delivered test address",
+  "checks": [
+    "Hosted signup sends email; unverified account cannot create keys",
+    "Resend-generated verification link completes browser email verification",
+    "Verified account can create and use MCP key",
+    "Resend-generated recovery link changes password and revokes MCP keys",
+    "New password signs in; reused reset link rejected",
+    "Disposable hosted account deleted"
+  ],
+  "messages": [
+    {
+      "id": "01a1303d-2633-7932-8c20-48e3f79fa7f7",
+      "purpose": "verify",
+      "event": "delivered",
+      "from": "Stash <noreply@kasitek.co.za>"
+    },
+    {
+      "id": "01a1303d-496a-79be-9a95-15312b15175b",
+      "purpose": "reset",
+      "event": "delivered",
+      "from": "Stash <noreply@kasitek.co.za>"
+    }
+  ],
+  "deliveryCheckedAt": "2026-10-12T13:12:52.564Z"
+}

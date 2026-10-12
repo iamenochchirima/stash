@@ -29,11 +29,11 @@ export function config(env: NodeJS.ProcessEnv = process.env) {
   if (
     production &&
     (!env.DATABASE_URL ||
-      (!emailDisabled && (!env.SMTP_URL || !env.MAIL_FROM)) ||
+      (!emailDisabled && ((!env.RESEND_API_KEY && !env.SMTP_URL) || !env.MAIL_FROM)) ||
       !env.DELETION_JOURNAL_DIR)
   )
     throw new Error(
-      "Production requires DATABASE_URL and a durable DELETION_JOURNAL_DIR, plus SMTP_URL and MAIL_FROM unless EMAIL_DISABLED=true.",
+      "Production requires DATABASE_URL and a durable DELETION_JOURNAL_DIR, plus RESEND_API_KEY or SMTP_URL and MAIL_FROM unless EMAIL_DISABLED=true.",
     );
   if (
     env.SMTP_URL &&
@@ -53,6 +53,7 @@ export function config(env: NodeJS.ProcessEnv = process.env) {
     ),
     mailPath: resolve(env.MAIL_DIR || "../../.data/mail"),
     smtpUrl: env.SMTP_URL,
+    resendApiKey: env.RESEND_API_KEY,
     mailFrom: env.MAIL_FROM || "Stash <hello@localhost.invalid>",
   };
 }

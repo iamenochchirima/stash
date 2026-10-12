@@ -11,9 +11,8 @@ export default function Help() {
         before creating agent keys.
       </p>
       <p>
-        Email verification and password recovery are currently disabled on the
-        hosted service. When email delivery is enabled, use the sign-in screen
-        to request a reset link.
+        Use the sign-in screen to request a password reset link. Hosted email
+        is sent through Resend using Stash's business sender.
         Reset links expire after 30 minutes and can be used once. Resetting a
         password signs out existing sessions and revokes agent keys.
         Verification links expire after 24 hours.
@@ -93,7 +92,7 @@ export default function Help() {
         and confirmed before launch. Deleted accounts stay inaccessible while
         retained backup copies expire. A backup restore must reapply any account
         deletions that occurred after the backup. Stash is hosted on Vercel and
-        Railway. A business email sender has not been configured.
+        Railway. Email is sent from the verified KasiTek business domain.
       </p>
       <h2>Limits and credentials</h2>
       <p>
@@ -112,7 +111,7 @@ export default function Help() {
         Without SMTP configuration, the local server captures verification and
         recovery messages as private files in its configured mail directory.
         This mode does not send email. Production can explicitly disable email
-        features until a sender and SMTP service are configured.
+        features until a sender and SMTP or Resend service are configured.
       </p>
       <p>
         Client configuration references:{" "}

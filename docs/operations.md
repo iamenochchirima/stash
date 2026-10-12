@@ -1,6 +1,6 @@
 # Stash operation and recovery
 
-The user authorized public deployment on 12 October 2026: Railway for PostgreSQL and the API/MCP service, Vercel for the dashboard. The user explicitly chose email features disabled until a business sender is available. See [deployment evidence](evidence/hosted-deployment.json).
+The user authorized public deployment on 12 October 2026: Railway for PostgreSQL and the API/MCP service, Vercel for the dashboard. The initial deployment disabled email. The user subsequently authorized reusing KasiTek Growth’s Resend credentials to enable verification and recovery. See [deployment evidence](evidence/hosted-deployment.json).
 
 Dashboard: https://stash-tau-seven.vercel.app. API: https://stash-api-production-6e87.up.railway.app. MCP uses the same backend at `/mcp`. Railway project Stash: `4d983b61-c991-4730-9e3f-6ed0187d4683`. Vercel project: `stash`, scope `iamenochchirimas-projects`.
 
@@ -8,9 +8,9 @@ Dashboard: https://stash-tau-seven.vercel.app. API: https://stash-api-production
 
 Use PostgreSQL 18 and Node.js 24 LTS. The dashboard is a Vercel project rooted at `apps/web`; the backend is built by the root Dockerfile on Railway. Build from the workspace root with `pnpm install --frozen-lockfile` and `pnpm build`. Start the backend with `pnpm --filter @stash/server start` and the dashboard with `pnpm --filter @stash/web start`.
 
-Set `DATABASE_URL`, HTTPS `WEB_ORIGIN`, HTTPS `PUBLIC_API_URL`, `SMTP_URL`, `MAIL_FROM`, and `DELETION_JOURNAL_DIR` for the backend. `WEB_ORIGIN` is the precise browser origin, and `PUBLIC_API_URL` is the externally visible backend origin. Set the dashboard's `API_URL` before building so its API proxy reaches the backend. Use the platform's `PORT` for each service. Production refuses incomplete configuration. `EMAIL_DISABLED=true` explicitly permits operation without SMTP and disables verification/recovery email issuance. The UI hides recovery and verification prompts; agent keys are permitted without verified email in this temporary mode. `emailVerified` remains false. When adding SMTP_URL and MAIL_FROM, remove EMAIL_DISABLED or set it to false. Existing users must then verify their email before agent key creation or MCP access.
+Set `DATABASE_URL`, HTTPS `WEB_ORIGIN`, HTTPS `PUBLIC_API_URL`, `RESEND_API_KEY` or `SMTP_URL`, `MAIL_FROM`, and `DELETION_JOURNAL_DIR` for the backend. `WEB_ORIGIN` is the precise browser origin, and `PUBLIC_API_URL` is the externally visible backend origin. Set the dashboard's `API_URL` before building so its API proxy reaches the backend. Use the platform's `PORT` for each service. Production refuses incomplete configuration. `EMAIL_DISABLED=true` explicitly permits operation without SMTP and disables verification/recovery email issuance. The UI hides recovery and verification prompts; agent keys are permitted without verified email in this temporary mode. `emailVerified` remains false. When adding RESEND_API_KEY or SMTP_URL plus MAIL_FROM, remove EMAIL_DISABLED or set it to false. Existing users must then verify their email before agent key creation or MCP access.
 
-The sender will use the user's business email service when chosen. SMTP delivery was verified against a local capture server, not a real business sender. Secrets belong in host-managed variables, with database and SMTP access limited to the operator and application services.
+The hosted sender is `Stash <noreply@kasitek.co.za>` through Resend’s HTTPS API. RESEND_API_KEY is stored only in Railway service variables, copied privately from the user-authorized KasiTek Growth credential. The source project was not changed. Resend takes precedence over SMTP when both are configured. Provider requests time out after 10 seconds and failures expose only a generic error. Never put this key in Vercel, browser configuration, or committed files. Secrets belong in host-managed variables, with database and SMTP access limited to the operator and application services.
 
 ## Migrations and rollback
 
@@ -24,7 +24,7 @@ For an application-only rollback, use the previous compatible artifact. For an i
 
 `GET /health` reports process liveness and version. `GET /ready` checks database availability and returns 503 during outages. The connection pool replaces failed idle connections. SIGTERM/SIGINT stop the server and close database connections.
 
-Configure readiness-based deployment checks and alerts for repeated readiness failures, HTTP 5xx increases, and email delivery failures. Logs include request IDs and event names, and omit cookies, authorization, query credentials, passwords, notes, and internal error details. Railway uses `/ready` with a 300-second deployment timeout, one replica, and an ON_FAILURE restart policy with 10 retries. External uptime/error notifications have not been activated.
+Configure readiness-based deployment checks and alerts for repeated readiness failures, HTTP 5xx increases, and email delivery failures. Resend delivery events are visible in the provider dashboard; application acceptance does not guarantee a message reaches a user’s inbox. Logs include request IDs and event names, and omit cookies, authorization, query credentials, passwords, notes, and internal error details. Railway uses `/ready` with a 300-second deployment timeout, one replica, and an ON_FAILURE restart policy with 10 retries. External uptime/error notifications have not been activated.
 
 ## Backups and account deletion
 
@@ -49,4 +49,4 @@ This drill uses the native project-owned PostgreSQL cluster and temporarily rest
 
 ## Launch checklist still outside the build scope
 
-Platform domains and HTTPS are active; the hosted signup, sign-in, library persistence, MCP SDK save/retrieve, scope/revocation, origin rejection, and account deletion checks passed. The disposable account was deleted. Business SMTP, automatic backups, external alerts, a hosted restore drill, and a hosted real Codex/OpenCode acceptance rerun remain pending. The earlier real client acceptance and restore drill cover local behavior. No workspace upgrade was performed.
+Platform domains and HTTPS are active; the hosted signup, sign-in, library persistence, MCP SDK save/retrieve, scope/revocation, origin rejection, and account deletion checks passed. The disposable account was deleted. Automatic backups, external alerts, a hosted restore drill, and a hosted real Codex/OpenCode acceptance rerun remain pending. Email uses Resend rather than SMTP. The earlier real client acceptance and restore drill cover local behavior. No workspace upgrade was performed.

@@ -8,4 +8,4 @@ The canonical verification skill is `.agents/skills/verify-stash/SKILL.md`. Read
 
 Run the focused tests for the changed behavior, `pnpm typecheck`, and the production build. Run browser checks for UI/authentication flow changes. The tests use disposable PostgreSQL schemas. Never point tests at live user data or stop a PostgreSQL cluster owned by another project.
 
-The user authorized deployment to Railway and Vercel on 12 October 2026, with email features disabled until a business sender is configured. Do not upgrade hosting plans or enable email without further direction. See docs/operations.md for deployed resources and remaining backup/alert limitations.
+The user authorized deployment to Railway and Vercel on 12 October 2026, and subsequently authorized using the KasiTek Growth Resend credentials to enable verification and recovery. Do not upgrade hosting plans without further direction. See docs/operations.md for deployed resources and remaining backup/alert limitations.

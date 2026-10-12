@@ -21,6 +21,7 @@ const app = await createApp(database.db, {
   journal,
   logger: true,
   mailer: createMailer({
+    resendApiKey: settings.resendApiKey,
     smtpUrl: settings.smtpUrl,
     from: settings.mailFrom,
     directory: settings.mailPath,
