@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-12T13:20:51.314Z",
+  "web": "https://stash.kasitek.co.za",
+  "checks": [
+    "HTTPS certificate valid; old hostname redirects with query preserved",
+    "Signup through new domain; secure HttpOnly session cookie",
+    "Verification email points to custom domain and token verifies",
+    "Sign out/in restores saved resource through new domain",
+    "Foreign-origin mutation remains rejected",
+    "Recovery email points to custom domain; reset and new-password sign-in pass",
+    "Disposable account removed"
+  ],
+  "messages": [
+    {
+      "id": "01a13045-f400-71d8-bf88-68e54d789e1a",
+      "purpose": "verify",
+      "linkOrigin": "https://stash.kasitek.co.za",
+      "event": "delivered"
+    },
+    {
+      "id": "01a13046-19b6-7663-8367-4f20e9d9db27",
+      "purpose": "reset",
+      "linkOrigin": "https://stash.kasitek.co.za",
+      "event": "delivered"
+    }
+  ]
+}

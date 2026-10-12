@@ -4,7 +4,7 @@ A private research library with user profiles, collections, and remote MCP acces
 
 The first-release checklist is in [IMPLEMENTATION.md](IMPLEMENTATION.md). Future features live separately in [FEATURE_BACKLOG.md](FEATURE_BACKLOG.md). Verification results and known limits are recorded in [docs/verification.md](docs/verification.md).
 
-The hosted dashboard is [Stash](https://stash-tau-seven.vercel.app). The API and MCP run on Railway with PostgreSQL. Email verification and recovery use Resend with the verified KasiTek business sender. See [operating details](docs/operations.md) for endpoints and the pending backup/alert setup.
+The hosted dashboard is [Stash](https://stash.kasitek.co.za). The API and MCP run on Railway with PostgreSQL. Email verification and recovery use Resend with the verified KasiTek business sender. See [operating details](docs/operations.md) for endpoints and the pending backup/alert setup.
 
 ## Local setup
 

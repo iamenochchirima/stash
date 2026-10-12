@@ -2,7 +2,9 @@
 
 The user authorized public deployment on 12 October 2026: Railway for PostgreSQL and the API/MCP service, Vercel for the dashboard. The initial deployment disabled email. The user subsequently authorized reusing KasiTek Growth’s Resend credentials to enable verification and recovery. See [deployment evidence](evidence/hosted-deployment.json).
 
-Dashboard: https://stash-tau-seven.vercel.app. API: https://stash-api-production-6e87.up.railway.app. MCP uses the same backend at `/mcp`. Railway project Stash: `4d983b61-c991-4730-9e3f-6ed0187d4683`. Vercel project: `stash`, scope `iamenochchirimas-projects`.
+Dashboard: https://stash.kasitek.co.za. API: https://stash-api-production-6e87.up.railway.app. MCP uses the same backend at `/mcp`. Railway project Stash: `4d983b61-c991-4730-9e3f-6ed0187d4683`. Vercel project: `stash`, scope `iamenochchirimas-projects`.
+
+Cloudflare DNS has a DNS-only CNAME for `stash` pointing to `c27f10fdbbc3ce01.vercel-dns-017.com`. Vercel verified the domain and serves HTTPS. The previous `stash-tau-seven.vercel.app` hostname redirects to the custom domain with status 308, preserving paths and query strings. WEB_ORIGIN is `https://stash.kasitek.co.za`, so newly generated verification/recovery links use that address. Existing host-only browser cookies are not transferred; users may need to sign in again on the custom domain. MCP keeps its existing Railway URL.
 
 ## Runtime configuration
 

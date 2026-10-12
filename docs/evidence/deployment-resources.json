@@ -1,11 +1,11 @@
 {
   "date": "2026-10-12",
   "railwayProject": "4d983b61-c991-4730-9e3f-6ed0187d4683",
-  "backendDeployment": "47dd6480-08ce-47cc-8ef8-904687f3c585",
+  "backendDeployment": "efaf75d9-03f3-4937-8408-316e52e81618",
   "backendStatus": "SUCCESS",
   "vercelDeployment": "dpl_DQgY5Z6ieUKjBtjQ7JYHXmMxGHLu",
   "vercelStatus": "READY",
-  "webUrl": "https://stash-tau-seven.vercel.app",
+  "webUrl": "https://stash.kasitek.co.za",
   "apiUrl": "https://stash-api-production-6e87.up.railway.app",
   "mcpUrl": "https://stash-api-production-6e87.up.railway.app/mcp",
   "healthcheckPath": "/ready",
@@ -16,5 +16,6 @@
   "pitrEnabled": false,
   "externalAlerting": "Not configured",
   "emailProvider": "Resend HTTPS API",
-  "mailFrom": "Stash <noreply@kasitek.co.za>"
+  "mailFrom": "Stash <noreply@kasitek.co.za>",
+  "redirectFrom": "https://stash-tau-seven.vercel.app"
 }
