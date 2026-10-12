@@ -27,13 +27,25 @@ function ErrorNote({ message }: { message: string }) {
     </p>
   ) : null;
 }
-export function Auth({ onUser, initialMode = "signup" }: { onUser: (user: Profile) => void; initialMode?: "signup" | "login" }) {
+export function Auth({
+  onUser,
+  initialMode = "signup",
+  returnTo = "",
+}: {
+  returnTo?: string;
+  onUser: (user: Profile) => void;
+  initialMode?: "signup" | "login";
+}) {
   const [mode, setMode] = useState<"signup" | "login" | "forgot">(initialMode),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [message, setMessage] = useState("");
-  const [emailEnabled,setEmailEnabled]=useState(true);
-  useEffect(()=>{ api<{emailEnabled:boolean}>("/config").then(result=>setEmailEnabled(result.emailEnabled)).catch(()=>{}); },[]);
+  const [emailEnabled, setEmailEnabled] = useState(true);
+  useEffect(() => {
+    api<{ emailEnabled: boolean }>("/config")
+      .then((result) => setEmailEnabled(result.emailEnabled))
+      .catch(() => {});
+  }, []);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
@@ -72,14 +84,35 @@ export function Auth({ onUser, initialMode = "signup" }: { onUser: (user: Profil
   return (
     <main className="account-page">
       <header className="account-header">
-        <Link href="/" aria-label="Stash home"><Brand /></Link>
-        <Link href="/" className="account-back">Back to home</Link>
+        <Link href="/" aria-label="Stash home">
+          <Brand />
+        </Link>
+        <Link href="/" className="account-back">
+          Back to home
+        </Link>
       </header>
       <section className="account-panel">
         <div className="auth-card">
-          <h1>{mode === "signup" ? "Create your account" : mode === "login" ? "Sign in to Stash" : "Reset your password"}</h1>
-          <p>{mode === "signup" ? "Save links, add notes, and connect your agents." : mode === "login" ? "Open your private research library." : "We'll email you a link to choose a new password."}</p>
-          {!emailEnabled && <p className="muted">Email verification and password recovery are currently unavailable.</p>}
+          <h1>
+            {mode === "signup"
+              ? "Create your account"
+              : mode === "login"
+                ? "Sign in to Stash"
+                : "Reset your password"}
+          </h1>
+          <p>
+            {mode === "signup"
+              ? "Save links, add notes, and connect your agents."
+              : mode === "login"
+                ? "Open your private research library."
+                : "We'll email you a link to choose a new password."}
+          </p>
+          {!emailEnabled && (
+            <p className="muted">
+              Email verification and password recovery are currently
+              unavailable.
+            </p>
+          )}
           <form onSubmit={submit}>
             {mode === "signup" && (
               <label>
@@ -152,7 +185,37 @@ export function Auth({ onUser, initialMode = "signup" }: { onUser: (user: Profil
             </button>
           )}
           <p className="auth-switch">
-            {mode === "signup" ? <>Already have an account? <Link href="/signin">Sign in</Link></> : mode === "login" ? <>Don't have an account? <Link href="/signup">Sign up</Link></> : <button onClick={() => switchMode("login")}>Back to sign in</button>}
+            {mode === "signup" ? (
+              <>
+                Already have an account?{" "}
+                <Link
+                  href={
+                    returnTo
+                      ? `/signin?next=${encodeURIComponent(returnTo)}`
+                      : "/signin"
+                  }
+                >
+                  Sign in
+                </Link>
+              </>
+            ) : mode === "login" ? (
+              <>
+                Don't have an account?{" "}
+                <Link
+                  href={
+                    returnTo
+                      ? `/signup?next=${encodeURIComponent(returnTo)}`
+                      : "/signup"
+                  }
+                >
+                  Sign up
+                </Link>
+              </>
+            ) : (
+              <button onClick={() => switchMode("login")}>
+                Back to sign in
+              </button>
+            )}
           </p>
           <div className="privacy-note">
             <ShieldCheck size={16} />
@@ -397,8 +460,8 @@ export function ProfileForm({
       <div className="panel deletion-panel">
         <h2>Delete your account</h2>
         <p>
-          Permanently delete your account, library, and agent keys.
-          Retained backups follow the configured retention schedule.
+          Permanently delete your account, library, and agent keys. Retained
+          backups follow the configured retention schedule.
         </p>
         {!deleting ? (
           <button className="button danger" onClick={() => setDeleting(true)}>

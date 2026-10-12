@@ -1,0 +1,19 @@
+{
+  "commit": "7727814",
+  "deploymentId": "dpl_6R2LLRc2DvhYg98NtLybUgUYuHif",
+  "productionUrl": "https://stash.kasitek.co.za",
+  "status": "READY",
+  "git": {
+    "type": "github",
+    "repo": "stash",
+    "org": "iamenochchirima",
+    "productionBranch": "main"
+  },
+  "checks": [
+    "Live hero and supplied Lina icon",
+    "Connect your agent opens sign-in",
+    "Signup page renders",
+    "Railway readiness HTTP 200"
+  ],
+  "automaticPushDeployment": "Git connection configured; next push event not yet exercised"
+}

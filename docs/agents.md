@@ -2,7 +2,7 @@
 
 The local acceptance check used Codex CLI 0.162.1 to save a repository and OpenCode 1.18.35 to retrieve its exact notes and collection membership. Credential revocation then returned HTTP 401. See [the acceptance report](evidence/client-acceptance.json) and sanitized [Codex](evidence/codex-client.txt) and [OpenCode](evidence/opencode-client.txt) outputs.
 
-Claude was initially considered, but its account was unavailable. The user replaced it with Hermes or OpenCode. OpenCode passed. Hermes and Claude are not claimed as verified clients. OAuth is unnecessary for this tested bearer-token pair; OAuth-only clients remain unsupported in this release.
+Claude was initially considered, but its account was unavailable. The user replaced it with Hermes or OpenCode. OpenCode passed. Hermes and Claude are not claimed as verified clients. OAuth was unnecessary for the initial bearer-token pair. The explicitly requested OAuth follow-up now adds the standard authorization-code flow alongside keys; product-specific ChatGPT acceptance is tracked separately.
 
 ## Create a connection
 
@@ -53,3 +53,12 @@ Saved content is returned as untrusted reference material, and agents must not f
 The dashboard shows first authenticated use for a key. The onboarding retrieval milestone requires a successful get or a nonempty search/list result. These milestones persist even if the first resource is deleted or a key is revoked.
 
 Revoke a credential in Agent connections to stop new requests. A password reset revokes every existing browser session and agent credential. An in-flight request that was authorized before revocation may already have completed; revocation is checked again on every subsequent request.
+
+
+## OAuth alongside keys
+
+Use the same /mcp endpoint and choose OAuth in the client. Discovery is at /.well-known/oauth-protected-resource/mcp and /.well-known/oauth-authorization-server on the API origin. Public dynamic client registration is advertised. PKCE S256 and an exact registered redirect URI are required. The resource indicator must equal the full canonical MCP URL for authorization and token exchange. Client ID Metadata Documents and confidential-client secrets are not advertised; select DCR with public-client authentication.
+
+The browser flow uses Stash's existing account session and explicit consent. Read access is the default; write access includes saving and deleting and is available only when requested by the client and selected by the user. Verified email is required when email delivery is enabled. The connection appears in Agent connections and can be revoked like a key. Access tokens expire after one hour. Refresh tokens rotate with a 30-day absolute lifetime; reusing a consumed refresh token revokes its entire connection. Resetting a password or deleting the account invalidates OAuth grants as well as manual keys. Only token/code digests are persisted.
+
+The official MCP SDK browser journey covers discovery, DCR, PKCE, signup, verification, consent, token exchange, saving/retrieving, dashboard visibility, and revocation. The callback destination is intercepted as the client boundary. This is not a claim that the native ChatGPT dialog has been completed.

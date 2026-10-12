@@ -142,7 +142,7 @@ test("T13/E03 MCP SDK lifecycle, scopes, errors, revocation, and persisted retri
           headers: { host: `127.0.0.1:${port}` },
         })
       ).statusCode,
-      405,
+      401,
     );
     assert.equal(
       (

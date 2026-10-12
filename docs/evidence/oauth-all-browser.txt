@@ -1,0 +1,38 @@
+
+> stash@ test:browser /home/enoch/aworkspace/agents/stash
+> playwright test
+
+[WebServer] (node:522238) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:522264) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:522284) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:522284) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:522405) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:522423) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:522439) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 11 tests using 1 worker
+
+(node:522505) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/browser/accessibility.spec.ts:5:1 › T16 accessibility of signup, library, save dialog, and profile (5.3s)
+  ✓   2 tests/browser/demo.spec.ts:4:1 › Agent save demo types, shows its preview, and adds a card without player chrome (9.2s)
+  ✓   3 tests/browser/demo.spec.ts:31:1 › Demo autoplays, loops, resumes in view, and respects a manual pause (17.6s)
+  ✓   4 tests/browser/journeys.spec.ts:77:1 › T15/E01/E06 complete account, library, organization, connections, import/export, and deletion journey (9.5s)
+  ✓   5 tests/browser/journeys.spec.ts:252:1 › T15/E05 browser password recovery and invalid reused links (5.6s)
+  ✓   6 tests/browser/journeys.spec.ts:291:3 › T16/E07 responsive layout and keyboard dialog at 375px (2.0s)
+  ✓   7 tests/browser/journeys.spec.ts:291:3 › T16/E07 responsive layout and keyboard dialog at 768px (2.3s)
+  ✓   8 tests/browser/journeys.spec.ts:327:1 › T12 older search responses cannot replace newer results (2.6s)
+  ✓   9 tests/browser/landing.spec.ts:4:3 › Landing and dedicated account pages at 1440px (8.7s)
+[WebServer] [browser] Image with src "/reading-preview.webp" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+[WebServer] Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+  ✓  10 tests/browser/landing.spec.ts:4:3 › Landing and dedicated account pages at 375px (8.4s)
+  ✓  11 tests/browser/oauth.spec.ts:10:1 › OAuth SDK discovery, browser signup/verification/consent, MCP save/retrieve and dashboard revocation (3.7s)
+
+  11 passed (1.4m)

@@ -31,6 +31,8 @@ Check the compact Getting started disclosure opens and closes, resource cards om
 
 `pnpm test` covers PostgreSQL-backed account, ownership, library, import/export, and MCP behavior. `pnpm exec tsx scripts/clients-check.ts` verifies real Codex/OpenCode clients only where both have functioning model access. Never substitute an SDK test for that actual client acceptance.
 
+For OAuth, run tests/browser/oauth.spec.ts. It uses the official SDK for discovery/DCR/PKCE/token exchange and real browser signup, verification and consent, then saves/retrieves through MCP and revokes in the dashboard. Only the client callback is intercepted. Capture consent and connection screenshots, never tokens. tests/oauth.test.ts checks redirect/resource validation, PKCE, single use/racing codes, permissions, expiry, refresh rotation/replay, client binding, consent isolation, denial, and reset revocation. Record native-client acceptance separately from SDK acceptance.
+
 ## Evidence
 
 Preserve browser screenshots in `docs/evidence/browser/`, accessibility results in `docs/evidence/accessibility.json`, and failure screenshots/traces in `test-results/`. Capture a readable report with `pnpm test:browser > docs/evidence/browser-tests.txt 2>&1`.

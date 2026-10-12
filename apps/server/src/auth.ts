@@ -33,7 +33,10 @@ export async function verifyPassword(password: string, stored: string) {
     Buffer.from(hex, "hex"),
   );
 }
-export function publicProfile(user: typeof users.$inferSelect, emailEnabled = true) {
+export function publicProfile(
+  user: typeof users.$inferSelect,
+  emailEnabled = true,
+) {
   return {
     id: user.id,
     email: user.email,
@@ -52,7 +55,12 @@ export function publicProfile(user: typeof users.$inferSelect, emailEnabled = tr
     },
   };
 }
-export function auth(db: Database, production: boolean, requireEmailVerification = true) {
+export function auth(
+  db: Database,
+  production: boolean,
+  requireEmailVerification = true,
+  resource = "http://127.0.0.1:4000/mcp",
+) {
   return {
     async session(
       userId: string,
@@ -98,7 +106,12 @@ export function auth(db: Database, production: boolean, requireEmailVerification
         .from(apiKeys)
         .innerJoin(users, eq(apiKeys.userId, users.id))
         .where(eq(apiKeys.hash, digest(token)));
-      if (!row || (requireEmailVerification && !row.user.emailVerifiedAt))
+      if (
+        !row ||
+        (row.key.oauthClientId && row.key.oauthResource !== resource) ||
+        (row.key.expiresAt && row.key.expiresAt <= new Date()) ||
+        (requireEmailVerification && !row.user.emailVerifiedAt)
+      )
         throw new AppError(401, "This agent key is invalid or revoked.");
       await db
         .update(apiKeys)

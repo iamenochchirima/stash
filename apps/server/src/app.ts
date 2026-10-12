@@ -24,6 +24,7 @@ import { createDeletionJournal, type DeletionJournal } from "./deletions.js";
 import { registerAccounts } from "./accounts.js";
 import { createMailer, type Mailer } from "./mail.js";
 import { handleMcp } from "./mcp.js";
+import { registerOAuth } from "./oauth.js";
 import { fetchMetadata } from "./metadata.js";
 export async function createApp(
   db: Database,
@@ -65,7 +66,12 @@ export async function createApp(
       : false,
     bodyLimit: 3 * 1024 * 1024,
   });
-  const authentication = auth(db, !!options.production, !options.emailDisabled);
+  const authentication = auth(
+    db,
+    !!options.production,
+    !options.emailDisabled,
+    `${publicApiUrl}/mcp`,
+  );
   await app.register(cookie);
   await app.register(rateLimit, { max: 300, timeWindow: "1 minute" });
   app.setErrorHandler((error, request, reply) => {
@@ -73,8 +79,14 @@ export async function createApp(
       return reply
         .code(400)
         .send({ error: error.issues[0]?.message || "Invalid input." });
-    if (error instanceof AppError)
+    if (error instanceof AppError) {
+      if (error.status === 401 && request.url.split("?")[0] === "/mcp")
+        reply.header(
+          "WWW-Authenticate",
+          `Bearer resource_metadata="${publicApiUrl}/.well-known/oauth-protected-resource/mcp", scope="stash:read"`,
+        );
       return reply.code(error.status).send({ error: error.message });
+    }
     const dbError = error as { code?: string; cause?: { code?: string } },
       code = dbError.code || dbError.cause?.code;
     if (code === "23505")
@@ -82,22 +94,18 @@ export async function createApp(
         .code(409)
         .send({ error: "That email or name is already in use." });
     if (code === "23503")
-      return reply
-        .code(409)
-        .send({
-          error:
-            "This resource or collection changed. Please reload and try again.",
-        });
+      return reply.code(409).send({
+        error:
+          "This resource or collection changed. Please reload and try again.",
+      });
     const status = (error as { statusCode?: number }).statusCode;
     if (status && status < 500)
-      return reply
-        .code(status)
-        .send({
-          error:
-            status === 429
-              ? "Too many requests. Try again shortly."
-              : "Invalid request.",
-        });
+      return reply.code(status).send({
+        error:
+          status === 429
+            ? "Too many requests. Try again shortly."
+            : "Invalid request.",
+      });
     request.log.error(
       { event: "request_failed", requestId: request.id },
       "Request failed",
@@ -111,7 +119,26 @@ export async function createApp(
       .header("X-Content-Type-Options", "nosniff")
       .header("Cache-Control", "no-store");
     const path = request.url.split("?")[0];
-    if (request.headers.origin && request.headers.origin !== origin)
+    const publicProtocol =
+      path === "/mcp" ||
+      path.startsWith("/oauth/") ||
+      path.startsWith("/.well-known/");
+    if (publicProtocol) {
+      reply
+        .header("Access-Control-Allow-Origin", "*")
+        .header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+        .header(
+          "Access-Control-Allow-Headers",
+          "Content-Type, Authorization, MCP-Protocol-Version, MCP-Session-Id",
+        )
+        .header("Access-Control-Expose-Headers", "WWW-Authenticate");
+      if (request.method === "OPTIONS") return reply.code(204).send();
+    }
+    if (
+      !publicProtocol &&
+      request.headers.origin &&
+      request.headers.origin !== origin
+    )
       throw new AppError(403, "Origin not allowed.");
     if (
       path.startsWith("/api/") &&
@@ -135,7 +162,16 @@ export async function createApp(
       return reply.code(503).send({ ok: false });
     }
   });
-  app.get("/api/config", async () => ({ emailEnabled: !options.emailDisabled }));
+  registerOAuth(app, db, {
+    origin,
+    publicApiUrl,
+    production: options.production,
+    emailDisabled: options.emailDisabled,
+  });
+  app.options("/*", async (_req, reply) => reply.code(204).send());
+  app.get("/api/config", async () => ({
+    emailEnabled: !options.emailDisabled,
+  }));
   registerAccounts(app, db, {
     emailDisabled: options.emailDisabled,
     origin,
@@ -147,7 +183,8 @@ export async function createApp(
       options.mailer ||
       createMailer({
         directory: options.mailPath || ".data/mail",
-        production: !!options.production,disabled:options.emailDisabled,
+        production: !!options.production,
+        disabled: options.emailDisabled,
       }),
   });
   app.get("/api/resources", async (request) =>
@@ -227,6 +264,9 @@ export async function createApp(
           scope: apiKeys.scope,
           createdAt: apiKeys.createdAt,
           lastUsedAt: apiKeys.lastUsedAt,
+          authentication: sql<
+            "oauth" | "key"
+          >`case when ${apiKeys.oauthClientId} is null then 'key' else 'oauth' end`,
         })
         .from(apiKeys)
         .where(eq(apiKeys.userId, user.id)),
@@ -299,11 +339,13 @@ export async function createApp(
   app.route({
     method: ["GET", "DELETE"],
     url: "/mcp",
-    handler: async (_request, reply) =>
-      reply
+    handler: async (request, reply) => {
+      await authentication.agent(request);
+      return reply
         .code(405)
         .header("Allow", "POST")
-        .send({ error: "This stateless MCP endpoint accepts POST requests." }),
+        .send({ error: "This stateless MCP endpoint accepts POST requests." });
+    },
   });
   return app;
 }

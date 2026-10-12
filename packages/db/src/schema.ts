@@ -81,6 +81,9 @@ export const resources = pgTable(
   ],
 );
 export const apiKeys = pgTable("api_keys", {
+  oauthResource: text("oauth_resource"),
+  oauthClientId: text("oauth_client_id").references(() => oauthClients.id),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id")
     .notNull()
@@ -122,3 +125,45 @@ export const resourceCollections = pgTable(
     }).onDelete("cascade"),
   ],
 );
+
+export const oauthClients = pgTable("oauth_clients", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  redirectUris: text("redirect_uris").array().notNull(),
+  createdAt: createdAt(),
+});
+export const oauthRequests = pgTable("oauth_requests", {
+  hash: text("hash").primaryKey(),
+  clientId: text("client_id")
+    .notNull()
+    .references(() => oauthClients.id),
+  redirectUri: text("redirect_uri").notNull(),
+  resource: text("resource").notNull(),
+  scope: text("scope").notNull(),
+  state: text("state").notNull(),
+  challenge: text("challenge").notNull(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+});
+export const oauthCodes = pgTable("oauth_codes", {
+  hash: text("hash").primaryKey(),
+  clientId: text("client_id")
+    .notNull()
+    .references(() => oauthClients.id),
+  redirectUri: text("redirect_uri").notNull(),
+  resource: text("resource").notNull(),
+  scope: text("scope").notNull(),
+  challenge: text("challenge").notNull(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+});
+export const oauthRefreshTokens = pgTable("oauth_refresh_tokens", {
+  hash: text("hash").primaryKey(),
+  keyId: uuid("key_id")
+    .notNull()
+    .references(() => apiKeys.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+});

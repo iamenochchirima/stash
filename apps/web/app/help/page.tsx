@@ -7,25 +7,40 @@ export default function Help() {
       <p>
         Your profile and library are private. Create an account, save a link
         with notes, and organize it into any number of collections. You can save
-        and search immediately. When email delivery is enabled, verify your email
-        before creating agent keys.
+        and search immediately. When email delivery is enabled, verify your
+        email before creating agent keys.
       </p>
       <p>
-        Use the sign-in screen to request a password reset link. Hosted email
-        is sent through Resend using Stash's business sender.
-        Reset links expire after 30 minutes and can be used once. Resetting a
-        password signs out existing sessions and revokes agent keys.
-        Verification links expire after 24 hours.
+        Use the sign-in screen to request a password reset link. Hosted email is
+        sent through Resend using Stash's business sender. Reset links expire
+        after 30 minutes and can be used once. Resetting a password signs out
+        existing sessions and revokes agent keys. Verification links expire
+        after 24 hours.
       </p>
       <h2 id="agents">Connect your agent through MCP</h2>
       <p>
-        <a href="/signup">Create an account</a> or <a href="/signin">sign in</a> to get started.
-        In your library, open Agent connections to create a key and find your MCP address.
+        <a href="/signup">Create an account</a> or <a href="/signin">sign in</a>{" "}
+        to get started. In your library, open Agent connections to create a key
+        and find your MCP address.
       </p>
       <p>
         Open Agent connections, create a key, and copy it immediately. Use a
         separate key per client. Read-only keys can browse and retrieve.
         Read/write keys can also save and permanently delete resources.
+      </p>
+      <h3>OAuth sign-in</h3>
+      <p>
+        For clients that offer OAuth, enter Stash's MCP address and choose
+        OAuth. Automatic discovery supplies the endpoints; use dynamic client
+        registration and public-client authentication if your client asks. Sign
+        into Stash, verify your email when required, and approve access. Read
+        access is the default. Save and delete access is optional when the
+        client requests it. You can revoke the connection in Agent connections.
+      </p>
+      <h3>Agent keys</h3>
+      <p>
+        Use an agent key in clients that accept a bearer token in their
+        configuration.
       </p>
       <h3>Codex</h3>
       <p>
@@ -55,15 +70,15 @@ export default function Help() {
         requires successful retrieval of an actual saved resource.
       </p>
       <p>
-        OAuth-only clients are outside this release. ChatGPT and other products
-        must be checked separately before they are advertised as supported. A
-        web-hosted client cannot reach a server running only on your computer.
+        OAuth and agent keys are both supported. Use the hosted HTTPS MCP
+        address for web-based clients. A web-hosted client cannot reach a server
+        running only on your computer.
       </p>
       <p>
         Protocol errors? Confirm the endpoint ends in /mcp, the key is current,
-        its scope allows the requested action, and, when email delivery is enabled,
-        your email is verified.
-        Revoke a key to stop future requests immediately.
+        its scope allows the requested action, and, when email delivery is
+        enabled, your email is verified. Revoke a key to stop future requests
+        immediately.
       </p>
       <h2>Bring in bookmarks and export your data</h2>
       <p>

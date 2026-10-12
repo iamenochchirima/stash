@@ -256,3 +256,16 @@ See [the final verification report](docs/verification.md) for evidence, applicab
 - [ ] R12 and R13 are complete with hosted acceptance evidence, monitoring, and backup confirmation.
 
 Application implementation can be complete before public deployment. Do not claim the public release is complete until its separate checklist passes.
+
+## OAuth follow-up, explicitly requested 12 October 2026
+
+The original bearer-key release is retained. This follow-up adds OAuth alongside it.
+
+- [x] PostgreSQL migrations for clients, pending consent, single-use codes, expiring access credentials, and rotating refresh tokens.
+- [x] Protected-resource and authorization-server discovery, public DCR, PKCE S256, exact redirect/resource validation, and issuer identification.
+- [x] Existing Stash sign-in/signup and email verification lead back to a consent page; default read-only access, optional requested write access.
+- [x] Both credential types share library ownership/scope rules and the connection/revocation screen.
+- [x] Access expiry, refresh rotation and replay revocation, password-reset revocation, and cascading account deletion.
+- [x] Protocol/security tests, official SDK/browser save-and-retrieve journey, existing regression suites, accessibility, production build and type checks.
+- [ ] Publish additive backend migration and client; verify discovery and hosted OAuth journey.
+- [ ] Confirm actual ChatGPT UI connection independently; SDK acceptance does not prove that product-specific final connection.

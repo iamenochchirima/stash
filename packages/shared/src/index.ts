@@ -93,6 +93,7 @@ export type Resource = {
   updatedAt: string;
 };
 export type AgentKey = {
+  authentication?: "key" | "oauth";
   id: string;
   name: string;
   prefix: string;

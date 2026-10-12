@@ -44,7 +44,7 @@ test("T02/T03 versioned migrations upgrade legacy data, repeat safely, and survi
         (await client.query("SELECT count(*) FROM stash_migrations")).rows[0]
           .count,
       ),
-      3,
+      4,
     );
     assert.equal(
       (await client.query("SELECT notes FROM resources")).rows[0].notes,

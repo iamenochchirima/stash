@@ -1,0 +1,40 @@
+
+> stash@ test /home/enoch/aworkspace/agents/stash
+> tsx --test --test-concurrency=1 tests/*.test.ts
+
+✔ T04/T05/T09 signup, verification, session handling, and browser origin protection (1971.558315ms)
+✔ T04 verification expiry and resend replace previous tokens; delivery failure remains recoverable (479.533415ms)
+✔ T06/E05 recovery hides unknown accounts, is single-use, and invalidates sessions and keys (2824.429181ms)
+✔ T08/T17/E08 profiles, safe avatars, reauthenticated deletion, and complete live cleanup (2067.782866ms)
+✔ T05/T17 authentication endpoints enforce rate limits (124.688126ms)
+✔ T06 concurrent old-password login cannot create a session after a reset (1874.313794ms)
+✔ signup and recovery accept eight characters and reject seven (1865.654995ms)
+✔ email-disabled deployment allows private signup and keys without sending mail (439.358374ms)
+✔ T02/T03 versioned migrations upgrade legacy data, repeat safely, and survive reconnection (136.665932ms)
+✔ T01/T19 configuration validation and production cookie flags (785.580638ms)
+✔ T04 SMTP boundary accepts an actual account email without sending outside localhost (37.638043ms)
+✔ T04 account survives email delivery failure and can request verification later (627.660998ms)
+✔ T04 Resend delivers signup and recovery links and keeps provider errors private (535.146174ms)
+✔ T07/T10/E04 strict isolation, many-to-many membership, and collection deletion (1994.054541ms)
+✔ T11 normalization preserves meaningful URLs and concurrent duplicates preserve original content (1144.323788ms)
+✔ T10/T12 search, tags, filters, counts, boundaries, invalid URLs, and reading status (1116.288613ms)
+✔ T13/E03 MCP SDK lifecycle, scopes, errors, revocation, and persisted retrieval milestones (2279.768862ms)
+✔ T18 block private IPv4/IPv6, credentials, unsafe ports, mixed DNS results, and redirects before fetching (11.251156ms)
+✔ T18 metadata extraction, bounded redirects, DNS changes, non-HTML/oversize/failure fallback (19.041404ms)
+✔ T18 actual HTTP reader enforces response size and absolute socket deadline (83.386283ms)
+✔ T18 stalled DNS respects the total five-second metadata deadline (5003.914158ms)
+✔ OAuth discovery, PKCE, consent, expiry, scope, rotation/reuse and both credential types (923.221294ms)
+✔ OAuth rejects redirect/resource/scope/CSRF attacks, binds consent to user, and revokes on reset (1357.724407ms)
+✔ OAuth consent isolation/denial, racing code exchanges, revocation and refresh client binding (804.01494ms)
+✔ T20/E06 preview, duplicate retry, rejection reporting, and collection-remapping round trip (1364.458219ms)
+✔ T07/T20 complete export beyond one page excludes secrets and ignores malicious ownership fields (2178.997528ms)
+✔ T20 empty collections survive an export/import round trip (1140.994507ms)
+✔ T20 import reports original file indexes for post-validation failures (608.821673ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 45564.622705

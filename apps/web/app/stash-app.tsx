@@ -664,14 +664,13 @@ function Dashboard({
                   </div>
                 </label>
               </div>
-              <h2 className="section-title">Your agent keys</h2>
+              <h2 className="section-title">Your connections</h2>
               <details className="client-instructions">
                 <summary>Setup instructions</summary>
                 <p className="muted">
-                  Create a key above, then configure your client to send it as
-                  an Authorization bearer token. See{" "}
+                  Choose OAuth in clients that offer sign-in. Use an agent key in clients that accept bearer tokens. See{" "}
                   <a href="/help#agents">agent setup instructions</a>.
-                  OAuth-only clients are not supported in this release.
+
                 </p>
               </details>
               {!keys.length ? (
@@ -692,7 +691,7 @@ function Dashboard({
                       <div>
                         <strong>{k.name}</strong>
                         <small>
-                          <code>{k.prefix}…</code> ·{" "}
+                          {k.authentication === "oauth" ? "OAuth" : <code>{k.prefix}…</code>} ·{" "}
                           {k.scope === "read"
                             ? "Read only"
                             : "Read, save, and delete"}

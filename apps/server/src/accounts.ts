@@ -5,6 +5,8 @@ import {
   users,
   sessions,
   apiKeys,
+  oauthRequests,
+  oauthCodes,
   collections,
   type Database,
 } from "@stash/db";
@@ -41,7 +43,8 @@ export function registerAccounts(
   },
 ) {
   const authentication = auth(db, options.production, !options.emailDisabled);
-  const profile = (user: typeof users.$inferSelect) => publicProfile(user, !options.emailDisabled);
+  const profile = (user: typeof users.$inferSelect) =>
+    publicProfile(user, !options.emailDisabled);
   const authLimit = {
     config: { rateLimit: { max: 10, timeWindow: "1 minute" } },
   };
@@ -50,7 +53,11 @@ export function registerAccounts(
     user: typeof users.$inferSelect,
     purpose: "verify" | "reset",
   ) {
-    if (options.emailDisabled) throw new AppError(503,"Email verification and password recovery are currently unavailable.");
+    if (options.emailDisabled)
+      throw new AppError(
+        503,
+        "Email verification and password recovery are currently unavailable.",
+      );
     const token = randomBytes(32).toString("base64url");
     await db.transaction(async (tx) => {
       await tx
@@ -66,20 +73,18 @@ export function registerAccounts(
             eq(accountTokens.purpose, purpose),
           ),
         );
-      await tx
-        .insert(accountTokens)
-        .values({
-          hash: digest(token),
-          userId: user.id,
-          purpose,
-          expiresAt: new Date(
-            Date.now() +
-              (purpose === "verify"
-                ? LIMITS.verifyMinutes
-                : LIMITS.resetMinutes) *
-                60000,
-          ),
-        });
+      await tx.insert(accountTokens).values({
+        hash: digest(token),
+        userId: user.id,
+        purpose,
+        expiresAt: new Date(
+          Date.now() +
+            (purpose === "verify"
+              ? LIMITS.verifyMinutes
+              : LIMITS.resetMinutes) *
+              60000,
+        ),
+      });
     });
     try {
       await options.mailer.send({
@@ -165,9 +170,11 @@ export function registerAccounts(
     return { ok: true };
   });
   app.post("/api/auth/resend", authLimit, async (request) => {
-    if (options.emailDisabled) throw new AppError(503,"Email verification is currently unavailable.");
+    if (options.emailDisabled)
+      throw new AppError(503, "Email verification is currently unavailable.");
     const user = await authentication.user(request);
-    if (!user.emailVerifiedAt) if (!options.emailDisabled) await sendToken(user, "verify");
+    if (!user.emailVerifiedAt)
+      if (!options.emailDisabled) await sendToken(user, "verify");
     return { ok: true };
   });
   app.post("/api/auth/verify", authLimit, async (request) => {
@@ -196,7 +203,8 @@ export function registerAccounts(
     return { ok: true };
   });
   app.post("/api/auth/forgot", authLimit, async (request) => {
-    if (options.emailDisabled) throw new AppError(503,"Password recovery is currently unavailable.");
+    if (options.emailDisabled)
+      throw new AppError(503, "Password recovery is currently unavailable.");
     const input = z.object({ email }).parse(request.body);
     const [user] = await db
       .select()
@@ -238,6 +246,10 @@ export function registerAccounts(
         .where(eq(users.id, record.userId));
       await tx.delete(sessions).where(eq(sessions.userId, record.userId));
       await tx.delete(apiKeys).where(eq(apiKeys.userId, record.userId));
+      await tx
+        .delete(oauthRequests)
+        .where(eq(oauthRequests.userId, record.userId));
+      await tx.delete(oauthCodes).where(eq(oauthCodes.userId, record.userId));
     });
     reply.clearCookie("stash_session", { path: "/" });
     return { ok: true };

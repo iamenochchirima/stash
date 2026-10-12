@@ -52,3 +52,10 @@ This drill uses the native project-owned PostgreSQL cluster and temporarily rest
 ## Launch checklist still outside the build scope
 
 Platform domains and HTTPS are active; the hosted signup, sign-in, library persistence, MCP SDK save/retrieve, scope/revocation, origin rejection, and account deletion checks passed. The disposable account was deleted. Automatic backups, external alerts, a hosted restore drill, and a hosted real Codex/OpenCode acceptance rerun remain pending. Email uses Resend rather than SMTP. The earlier real client acceptance and restore drill cover local behavior. No workspace upgrade was performed.
+
+
+## Client deployment and Git connection, 12 October 2026
+
+Published client commit 7727814 to https://stash.kasitek.co.za. Vercel deployment dpl_6R2LLRc2DvhYg98NtLybUgUYuHif is READY. Live checks passed for the new landing hero/Lina icon, the connection CTA opening sign-in, and signup. Railway readiness returned 200.
+
+The initial Vercel project had no Git repository link, so GitHub pushes did not trigger deployment. Connected iamenochchirima/stash through Vercel's Git integration and verified productionBranch is main. Future main pushes are configured for production builds; the next push event has not yet been exercised. See docs/evidence/latest-client-deployment.json.

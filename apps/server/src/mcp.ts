@@ -132,6 +132,31 @@ export async function handleMcp(
     sessionIdGenerator: undefined,
     enableJsonResponse: true,
   });
+  const send = transport.send.bind(transport);
+  transport.send = async (message, options) => {
+    if ("result" in message && Array.isArray(message.result.tools)) {
+      const tools = message.result.tools.map(
+        (tool: Record<string, unknown>) => ({
+          ...tool,
+          securitySchemes: [
+            {
+              type: "oauth2",
+              scopes: [
+                (tool.annotations as { readOnlyHint?: boolean })?.readOnlyHint
+                  ? "stash:read"
+                  : "stash:write",
+              ],
+            },
+          ],
+        }),
+      );
+      return send(
+        { ...message, result: { ...message.result, tools } },
+        options,
+      );
+    }
+    return send(message, options);
+  };
   await server.connect(transport);
   reply.hijack();
   try {
