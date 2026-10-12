@@ -7,10 +7,13 @@ export default function Help() {
       <p>
         Your profile and library are private. Create an account, save a link
         with notes, and organize it into any number of collections. You can save
-        and search immediately; verify your email before creating agent keys.
+        and search immediately. When email delivery is enabled, verify your email
+        before creating agent keys.
       </p>
       <p>
-        Forgot your password? Use the sign-in screen to request a reset link.
+        Email verification and password recovery are currently disabled on the
+        hosted service. When email delivery is enabled, use the sign-in screen
+        to request a reset link.
         Reset links expire after 30 minutes and can be used once. Resetting a
         password signs out existing sessions and revokes agent keys.
         Verification links expire after 24 hours.
@@ -55,7 +58,8 @@ export default function Help() {
       </p>
       <p>
         Protocol errors? Confirm the endpoint ends in /mcp, the key is current,
-        its scope allows the requested action, and your email is verified.
+        its scope allows the requested action, and, when email delivery is enabled,
+        your email is verified.
         Revoke a key to stop future requests immediately.
       </p>
       <h2>Bring in bookmarks and export your data</h2>
@@ -88,8 +92,8 @@ export default function Help() {
         Production backup retention is planned at 7 days and must be configured
         and confirmed before launch. Deleted accounts stay inaccessible while
         retained backup copies expire. A backup restore must reapply any account
-        deletions that occurred after the backup. No public deployment or
-        business email service has been configured yet.
+        deletions that occurred after the backup. Stash is hosted on Vercel and
+        Railway. A business email sender has not been configured.
       </p>
       <h2>Limits and credentials</h2>
       <p>
@@ -107,8 +111,8 @@ export default function Help() {
       <p>
         Without SMTP configuration, the local server captures verification and
         recovery messages as private files in its configured mail directory.
-        This mode does not send email. Production requires a configured sender
-        and SMTP service.
+        This mode does not send email. Production can explicitly disable email
+        features until a sender and SMTP service are configured.
       </p>
       <p>
         Client configuration references:{" "}

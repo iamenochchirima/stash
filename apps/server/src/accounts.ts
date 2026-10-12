@@ -35,11 +35,13 @@ export function registerAccounts(
   options: {
     origin: string;
     production: boolean;
+    emailDisabled?: boolean;
     mailer: Mailer;
     journal: DeletionJournal;
   },
 ) {
-  const authentication = auth(db, options.production);
+  const authentication = auth(db, options.production, !options.emailDisabled);
+  const profile = (user: typeof users.$inferSelect) => publicProfile(user, !options.emailDisabled);
   const authLimit = {
     config: { rateLimit: { max: 10, timeWindow: "1 minute" } },
   };
@@ -48,6 +50,7 @@ export function registerAccounts(
     user: typeof users.$inferSelect,
     purpose: "verify" | "reset",
   ) {
+    if (options.emailDisabled) throw new AppError(503,"Email verification and password recovery are currently unavailable.");
     const token = randomBytes(32).toString("base64url");
     await db.transaction(async (tx) => {
       await tx
@@ -120,13 +123,13 @@ export function registerAccounts(
       return row;
     });
     await authentication.session(user.id, reply);
-    let emailSent = true;
+    let emailSent = !options.emailDisabled;
     try {
-      await sendToken(user, "verify");
+      if (!options.emailDisabled) await sendToken(user, "verify");
     } catch {
       emailSent = false;
     }
-    return reply.code(201).send({ user: publicProfile(user), emailSent });
+    return reply.code(201).send({ user: profile(user), emailSent });
   });
   app.post("/api/auth/login", authLimit, async (request, reply) => {
     const input = loginInput.parse(request.body);
@@ -150,7 +153,7 @@ export function registerAccounts(
       if (!current || current.passwordHash !== user.passwordHash)
         throw new AppError(401, "Email or password is incorrect.");
       await authentication.session(current.id, reply, tx);
-      return { user: publicProfile(current) };
+      return { user: profile(current) };
     });
   });
   app.post("/api/auth/logout", async (request, reply) => {
@@ -162,8 +165,9 @@ export function registerAccounts(
     return { ok: true };
   });
   app.post("/api/auth/resend", authLimit, async (request) => {
+    if (options.emailDisabled) throw new AppError(503,"Email verification is currently unavailable.");
     const user = await authentication.user(request);
-    if (!user.emailVerifiedAt) await sendToken(user, "verify");
+    if (!user.emailVerifiedAt) if (!options.emailDisabled) await sendToken(user, "verify");
     return { ok: true };
   });
   app.post("/api/auth/verify", authLimit, async (request) => {
@@ -192,6 +196,7 @@ export function registerAccounts(
     return { ok: true };
   });
   app.post("/api/auth/forgot", authLimit, async (request) => {
+    if (options.emailDisabled) throw new AppError(503,"Password recovery is currently unavailable.");
     const input = z.object({ email }).parse(request.body);
     const [user] = await db
       .select()
@@ -238,7 +243,7 @@ export function registerAccounts(
     return { ok: true };
   });
   app.get("/api/me", async (request) => ({
-    user: publicProfile(await authentication.user(request)),
+    user: profile(await authentication.user(request)),
   }));
   app.patch("/api/me", async (request) => {
     const user = await authentication.user(request),
@@ -251,7 +256,7 @@ export function registerAccounts(
       })
       .where(eq(users.id, user.id))
       .returning();
-    return { user: publicProfile(updated) };
+    return { user: profile(updated) };
   });
   app.post("/api/me/avatar", authLimit, async (request) => {
     const user = await authentication.user(request);
@@ -294,7 +299,7 @@ export function registerAccounts(
       .set({ avatar: `data:image/png;base64,${encoded.toString("base64")}` })
       .where(eq(users.id, user.id))
       .returning();
-    return { user: publicProfile(updated) };
+    return { user: profile(updated) };
   });
   app.delete("/api/me/avatar", async (request) => {
     const user = await authentication.user(request);
@@ -303,7 +308,7 @@ export function registerAccounts(
       .set({ avatar: null })
       .where(eq(users.id, user.id))
       .returning();
-    return { user: publicProfile(updated) };
+    return { user: profile(updated) };
   });
   app.delete("/api/me", authLimit, async (request, reply) => {
     const user = await authentication.user(request);

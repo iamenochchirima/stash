@@ -1,0 +1,36 @@
+
+> stash@ test /home/enoch/aworkspace/agents/stash
+> tsx --test --test-concurrency=1 tests/*.test.ts
+
+✔ T04/T05/T09 signup, verification, session handling, and browser origin protection (1473.598654ms)
+✔ T04 verification expiry and resend replace previous tokens; delivery failure remains recoverable (337.254505ms)
+✔ T06/E05 recovery hides unknown accounts, is single-use, and invalidates sessions and keys (1681.986247ms)
+✔ T08/T17/E08 profiles, safe avatars, reauthenticated deletion, and complete live cleanup (1371.230188ms)
+✔ T05/T17 authentication endpoints enforce rate limits (64.597246ms)
+✔ T06 concurrent old-password login cannot create a session after a reset (1282.442728ms)
+✔ signup and recovery accept eight characters and reject seven (1132.617188ms)
+✔ email-disabled deployment allows private signup and keys without sending mail (343.662055ms)
+✔ T02/T03 versioned migrations upgrade legacy data, repeat safely, and survive reconnection (88.686361ms)
+✔ T01/T19 configuration validation and production cookie flags (386.182426ms)
+✔ T04 SMTP boundary accepts an actual account email without sending outside localhost (17.026496ms)
+✔ T04 account survives email delivery failure and can request verification later (359.655718ms)
+✔ T07/T10/E04 strict isolation, many-to-many membership, and collection deletion (782.749511ms)
+✔ T11 normalization preserves meaningful URLs and concurrent duplicates preserve original content (405.584079ms)
+✔ T10/T12 search, tags, filters, counts, boundaries, invalid URLs, and reading status (425.839486ms)
+✔ T13/E03 MCP SDK lifecycle, scopes, errors, revocation, and persisted retrieval milestones (934.573877ms)
+✔ T18 block private IPv4/IPv6, credentials, unsafe ports, mixed DNS results, and redirects before fetching (4.074376ms)
+✔ T18 metadata extraction, bounded redirects, DNS changes, non-HTML/oversize/failure fallback (6.201919ms)
+✔ T18 actual HTTP reader enforces response size and absolute socket deadline (51.908251ms)
+✔ T18 stalled DNS respects the total five-second metadata deadline (5005.47669ms)
+✔ T20/E06 preview, duplicate retry, rejection reporting, and collection-remapping round trip (848.768661ms)
+✔ T07/T20 complete export beyond one page excludes secrets and ignores malicious ownership fields (1220.492691ms)
+✔ T20 empty collections survive an export/import round trip (613.314521ms)
+✔ T20 import reports original file indexes for post-validation failures (394.488798ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 23690.528044

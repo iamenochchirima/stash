@@ -31,6 +31,7 @@ export async function createApp(
     origin?: string;
     publicApiUrl?: string;
     production?: boolean;
+    emailDisabled?: boolean;
     logger?: boolean;
     mailer?: Mailer;
     mailPath?: string;
@@ -64,7 +65,7 @@ export async function createApp(
       : false,
     bodyLimit: 3 * 1024 * 1024,
   });
-  const authentication = auth(db, !!options.production);
+  const authentication = auth(db, !!options.production, !options.emailDisabled);
   await app.register(cookie);
   await app.register(rateLimit, { max: 300, timeWindow: "1 minute" });
   app.setErrorHandler((error, request, reply) => {
@@ -134,7 +135,9 @@ export async function createApp(
       return reply.code(503).send({ ok: false });
     }
   });
+  app.get("/api/config", async () => ({ emailEnabled: !options.emailDisabled }));
   registerAccounts(app, db, {
+    emailDisabled: options.emailDisabled,
     origin,
     production: !!options.production,
     journal:
@@ -144,7 +147,7 @@ export async function createApp(
       options.mailer ||
       createMailer({
         directory: options.mailPath || ".data/mail",
-        production: !!options.production,
+        production: !!options.production,disabled:options.emailDisabled,
       }),
   });
   app.get("/api/resources", async (request) =>
@@ -233,7 +236,7 @@ export async function createApp(
   app.post("/api/keys", async (request) => {
     const user = await authentication.user(request),
       input = keyInput.parse(request.body);
-    if (!user.emailVerifiedAt)
+    if (!options.emailDisabled && !user.emailVerifiedAt)
       throw new AppError(403, "Verify your email before connecting an agent.");
     const token = `stash_${randomBytes(32).toString("base64url")}`;
     const row = await db.transaction(async (tx) => {

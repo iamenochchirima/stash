@@ -9,7 +9,9 @@ export function createMailer(options: {
   from?: string;
   directory: string;
   production: boolean;
+  disabled?: boolean;
 }): Mailer {
+  if (options.disabled) return { async send() { throw new Error("Email delivery disabled"); } };
   if (options.production && !options.smtpUrl)
     throw new Error("SMTP is required in production.");
   const smtp = options.smtpUrl ? new URL(options.smtpUrl) : null;

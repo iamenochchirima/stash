@@ -1,0 +1,13 @@
+.git
+.vercel
+.railway
+.data
+node_modules
+**/node_modules
+**/.next
+**/dist
+docs/evidence
+test-results
+playwright-report
+.env
+.env.*

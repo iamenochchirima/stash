@@ -25,6 +25,7 @@ const app = await createApp(database.db, {
     from: settings.mailFrom,
     directory: settings.mailPath,
     production: settings.production,
+    disabled: settings.emailDisabled,
   }),
 });
 await app.listen({

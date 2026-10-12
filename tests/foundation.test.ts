@@ -85,6 +85,9 @@ test("T01/T19 configuration validation and production cookie flags", async () =>
     () => config({ WEB_ORIGIN: "http://localhost/path" }),
     /origin/,
   );
+  const productionEnv = { NODE_ENV: "production", WEB_ORIGIN: "https://stash.example", PUBLIC_API_URL: "https://api.stash.example", DATABASE_URL: "postgresql://localhost/stash", DELETION_JOURNAL_DIR: "/data/deletions" };
+  assert.throws(() => config(productionEnv), /SMTP_URL/);
+  assert.equal(config({ ...productionEnv, EMAIL_DISABLED: "true" }).emailDisabled, true);
   const f = await fixture();
   const app = await createApp(f.db, {
     production: true,

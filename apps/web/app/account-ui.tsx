@@ -1,5 +1,5 @@
 "use client";
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import {
   ArrowUpRight,
   ChevronRight,
@@ -33,6 +33,8 @@ export function Auth({ onUser }: { onUser: (user: Profile) => void }) {
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [message, setMessage] = useState("");
+  const [emailEnabled,setEmailEnabled]=useState(true);
+  useEffect(()=>{ api<{emailEnabled:boolean}>("/config").then(result=>setEmailEnabled(result.emailEnabled)).catch(()=>{}); },[]);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
@@ -110,6 +112,7 @@ export function Auth({ onUser }: { onUser: (user: Profile) => void }) {
                 ? "Your next idea might already be in your library."
                 : "Enter your email to request a password reset link."}
           </p>
+          {!emailEnabled && <p className="muted">Email verification and password recovery are currently unavailable.</p>}
           <form onSubmit={submit}>
             {mode === "signup" && (
               <label>
@@ -173,7 +176,7 @@ export function Auth({ onUser }: { onUser: (user: Profile) => void }) {
               {!busy && <ChevronRight size={18} />}
             </button>
           </form>
-          {mode === "login" && (
+          {mode === "login" && emailEnabled && (
             <button
               className="text-button forgot-button"
               onClick={() => switchMode("forgot")}

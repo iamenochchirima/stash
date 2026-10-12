@@ -1,18 +1,20 @@
 # Stash operation and recovery
 
-The user requested a completed project and local verification, with Railway hosting and business email configuration deferred. No domain, paid service, or public deployment has been provisioned. These instructions prepare that later step.
+The user authorized public deployment on 12 October 2026: Railway for PostgreSQL and the API/MCP service, Vercel for the dashboard. The user explicitly chose email features disabled until a business sender is available. See [deployment evidence](evidence/hosted-deployment.json).
+
+Dashboard: https://stash-tau-seven.vercel.app. API: https://stash-api-production-6e87.up.railway.app. MCP uses the same backend at `/mcp`. Railway project Stash: `4d983b61-c991-4730-9e3f-6ed0187d4683`. Vercel project: `stash`, scope `iamenochchirimas-projects`.
 
 ## Runtime configuration
 
-Use PostgreSQL 18 and Node.js 24 LTS. The web and backend can be separate Railway services. Build from the workspace root with `pnpm install --frozen-lockfile` and `pnpm build`. Start the backend with `pnpm --filter @stash/server start` and the dashboard with `pnpm --filter @stash/web start`.
+Use PostgreSQL 18 and Node.js 24 LTS. The dashboard is a Vercel project rooted at `apps/web`; the backend is built by the root Dockerfile on Railway. Build from the workspace root with `pnpm install --frozen-lockfile` and `pnpm build`. Start the backend with `pnpm --filter @stash/server start` and the dashboard with `pnpm --filter @stash/web start`.
 
-Set `DATABASE_URL`, HTTPS `WEB_ORIGIN`, HTTPS `PUBLIC_API_URL`, `SMTP_URL`, `MAIL_FROM`, and `DELETION_JOURNAL_DIR` for the backend. `WEB_ORIGIN` is the precise browser origin, and `PUBLIC_API_URL` is the externally visible backend origin. Set the dashboard's `API_URL` before building so its API proxy reaches the backend. Use the platform's `PORT` for each service. Production refuses incomplete configuration.
+Set `DATABASE_URL`, HTTPS `WEB_ORIGIN`, HTTPS `PUBLIC_API_URL`, `SMTP_URL`, `MAIL_FROM`, and `DELETION_JOURNAL_DIR` for the backend. `WEB_ORIGIN` is the precise browser origin, and `PUBLIC_API_URL` is the externally visible backend origin. Set the dashboard's `API_URL` before building so its API proxy reaches the backend. Use the platform's `PORT` for each service. Production refuses incomplete configuration. `EMAIL_DISABLED=true` explicitly permits operation without SMTP and disables verification/recovery email issuance. The UI hides recovery and verification prompts; agent keys are permitted without verified email in this temporary mode. `emailVerified` remains false. When adding SMTP_URL and MAIL_FROM, remove EMAIL_DISABLED or set it to false. Existing users must then verify their email before agent key creation or MCP access.
 
 The sender will use the user's business email service when chosen. SMTP delivery was verified against a local capture server, not a real business sender. Secrets belong in host-managed variables, with database and SMTP access limited to the operator and application services.
 
 ## Migrations and rollback
 
-Run `pnpm db:migrate` as a single release job before starting the new build. SQL migrations are versioned, checksummed, transactional, and serialized with a PostgreSQL advisory lock. Changed applied migrations are rejected. Ordinary server startup never modifies the schema.
+For local releases, run `pnpm db:migrate` before starting the new build. The Railway Dockerfile runs the bundled migration entry point before starting its single backend instance. SQL migrations are versioned, checksummed, transactional, and serialized with a PostgreSQL advisory lock. Changed applied migrations are rejected. Ordinary server startup never modifies the schema.
 
 Migration 0002 preserves legacy collection membership while adding accounts and multiple collections. Migration 0003 adds a stored search document and indexes. The pre-release one-collection scaffold cannot run after migration 0002; do not roll back to that scaffold against the upgraded schema.
 
@@ -22,11 +24,11 @@ For an application-only rollback, use the previous compatible artifact. For an i
 
 `GET /health` reports process liveness and version. `GET /ready` checks database availability and returns 503 during outages. The connection pool replaces failed idle connections. SIGTERM/SIGINT stop the server and close database connections.
 
-Configure readiness-based deployment checks and alerts for repeated readiness failures, HTTP 5xx increases, and email delivery failures. Logs include request IDs and event names, and omit cookies, authorization, query credentials, passwords, notes, and internal error details. Add host-specific alerts when deploying; none have been activated remotely.
+Configure readiness-based deployment checks and alerts for repeated readiness failures, HTTP 5xx increases, and email delivery failures. Logs include request IDs and event names, and omit cookies, authorization, query credentials, passwords, notes, and internal error details. Railway uses `/ready` with a 300-second deployment timeout, one replica, and an ON_FAILURE restart policy with 10 retries. External uptime/error notifications have not been activated.
 
 ## Backups and account deletion
 
-The proposed production policy is daily encrypted database backups retained for 7 days. Confirm Railway's actual backup schedule, retention, restore access, and cost before launch. The application does not assume the host has configured backups automatically.
+The proposed production policy is daily encrypted database backups retained for 7 days. The deployed Railway workspace rejected automatic volume backups because they require a Pro workspace. No schedule or manual snapshot was created, and PITR is disabled. Confirm a plan upgrade or another secure backup destination before relying on this deployment for retained data. The application does not assume the host has configured backups automatically.
 
 `pg_dump --format=custom` and `pg_restore` provide a local recovery path. Store production snapshots securely outside the live database. Restrict access and test restoration in an isolated database before routing traffic.
 
@@ -34,7 +36,7 @@ Account deletion writes a durable intent containing only the user UUID and reque
 
 Before accepting traffic after a restore, startup replays the deletion journal. This removes restored profiles, resources, collections, tokens, credentials, and sessions for deleted users. If a crash occurs between journaling and database commit, replay conservatively completes the user's requested deletion. A malformed journal blocks startup so the operator can investigate, rather than silently restoring deleted users.
 
-For the first deployment, a persistent volume can hold the journal if only one backend instance is running. Multiple independent backend instances require a shared durable journal service or shared filesystem; do not scale replicas onto separate journals. Confirm this storage contract before launch.
+The backend journal is on a separate persistent Railway volume mounted at `/data`, with DELETION_JOURNAL_DIR=/data/deletions. PostgreSQL has its own persistent volume. One backend replica is configured. Multiple independent backend instances require a shared durable journal service or shared filesystem; do not scale replicas onto separate journals. Confirm this storage contract before launch.
 
 The local recovery script restores a disposable schema, proves the deleted account reappears in the raw snapshot, and then proves journal replay removes it. It also restarts the project-owned PostgreSQL cluster and checks resource, collection, credential, session, and onboarding persistence with the built production server.
 
@@ -47,4 +49,4 @@ This drill uses the native project-owned PostgreSQL cluster and temporarily rest
 
 ## Launch checklist still outside the build scope
 
-Choose domains and the business sender, set up HTTPS and SMTP, confirm hosting costs, configure the durable journal and backups, activate monitoring alerts, and obtain public deployment approval. After deployment, rerun the hosted signup/recovery, library, cross-agent, deletion, and restore checks. Local evidence does not prove hosted mail delivery, TLS, backups, or alerts.
+Platform domains and HTTPS are active; the hosted signup, sign-in, library persistence, MCP SDK save/retrieve, scope/revocation, origin rejection, and account deletion checks passed. The disposable account was deleted. Business SMTP, automatic backups, external alerts, a hosted restore drill, and a hosted real Codex/OpenCode acceptance rerun remain pending. The earlier real client acceptance and restore drill cover local behavior. No workspace upgrade was performed.

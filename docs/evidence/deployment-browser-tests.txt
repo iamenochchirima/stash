@@ -1,0 +1,31 @@
+
+> stash@ test:browser /home/enoch/aworkspace/agents/stash
+> playwright test
+
+[WebServer] (node:234720) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:234732) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:234748) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:234748) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:234764) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:234775) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:234791) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 6 tests using 1 worker
+
+(node:234820) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/browser/accessibility.spec.ts:5:1 › T16 accessibility of signup, library, save dialog, and profile (3.5s)
+  ✓  2 tests/browser/journeys.spec.ts:74:1 › T15/E01/E06 complete account, library, organization, connections, import/export, and deletion journey (9.2s)
+  ✓  3 tests/browser/journeys.spec.ts:243:1 › T15/E05 browser password recovery and invalid reused links (5.4s)
+  ✓  4 tests/browser/journeys.spec.ts:282:3 › T16/E07 responsive layout and keyboard dialog at 375px (2.2s)
+  ✓  5 tests/browser/journeys.spec.ts:282:3 › T16/E07 responsive layout and keyboard dialog at 768px (2.2s)
+  ✓  6 tests/browser/journeys.spec.ts:318:1 › T12 older search responses cannot replace newer results (2.6s)
+
+  6 passed (30.4s)

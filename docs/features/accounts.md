@@ -1,6 +1,6 @@
 # Accounts and profiles
 
-New users create a profile on `/`. Signup and password recovery require at least 8 characters; sign-in accepts the existing account password. Returning users choose Sign in, with Forgot your password available on that form. A captured development email links to explicit email verification or password reset. Users can save resources before verification, but agent keys require verified email.
+New users create a profile on `/`. Signup and password recovery require at least 8 characters; sign-in accepts the existing account password. Returning users choose Sign in, with Forgot your password available on that form. A captured development email links to explicit email verification or password reset. Users can save resources before verification, but agent keys require verified email when email delivery is enabled. The hosted deployment uses EMAIL_DISABLED=true: signup sends no email, verification/recovery prompts are hidden, recovery requests return 503, and agent keys are allowed without verification. The API exposes emailEnabled in the profile and /api/config. Turning email delivery back on restores the verification requirement.
 
 Open profile exposes name, bio, interests, image upload/removal, sign-out, and account deletion with current password plus DELETE confirmation. Resetting a password ends old sessions and revokes agent keys. Profile photos are re-encoded static PNGs; replaced/deleted data is removed from the live profile.
 

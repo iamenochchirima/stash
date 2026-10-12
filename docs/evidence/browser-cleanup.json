@@ -1,5 +1,5 @@
 {
-  "schema": "test_abfb401585d546e899093a119185bf9a",
+  "schema": "test_61096b6b77d044f69205025351e95f8d",
   "dropped": true,
   "method": "Explicit Playwright global teardown; server signals also attempt cleanup",
   "passed": true

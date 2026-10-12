@@ -375,3 +375,18 @@ test("signup and recovery accept eight characters and reject seven", async () =>
     assert.equal((await f.request("POST", "/api/auth/login", { email: "length@example.test", password: "Newpass8" })).statusCode, 200);
   } finally { await f.close(); }
 });
+
+test("email-disabled deployment allows private signup and keys without sending mail", async()=>{
+ const f=await fixture();let sent=0;
+ const { createApp }=await import('../apps/server/src/app.js');
+ const app=await createApp(f.db,{emailDisabled:true,mailer:{async send(){sent++;}}});
+ try {
+  const r=await app.inject({method:'POST',url:'/api/auth/signup',headers:{origin:'http://127.0.0.1:3000'},payload:{name:'Deployment',email:'deployment@example.test',password:'Stash123'}});
+  assert.equal(r.statusCode,201);assert.equal(r.json().user.emailEnabled,false);assert.equal(r.json().emailSent,false);assert.equal(sent,0);
+  const cookie=r.headers['set-cookie']!.toString().split(';')[0];
+  const me=await app.inject({method:'GET',url:'/api/me',headers:{cookie}});assert.equal(me.json().user.emailEnabled,false);
+  assert.equal((await app.inject({method:'POST',url:'/api/keys',headers:{cookie,origin:'http://127.0.0.1:3000'},payload:{name:'Private agent'}})).statusCode,200);
+  assert.equal((await app.inject({method:'POST',url:'/api/auth/forgot',headers:{origin:'http://127.0.0.1:3000'},payload:{email:'deployment@example.test'}})).statusCode,503);
+  assert.equal(sent,0);
+ } finally {await app.close();await f.close();}
+});

@@ -1,0 +1,48 @@
+Vercel CLI 63.1.2 (Node.js 23.11.1)
+Fetching deployment "dpl_2KPwAw9S6C6SWJ7jh1eS1dQ6511Y" in iamenochchirimas-projects
+> Fetched deployment "stash-mu5wqqgr0-iamenochchirimas-projects.vercel.app" in iamenochchirimas-projects [1s]
+
+  General
+
+    id		dpl_2KPwAw9S6C6SWJ7jh1eS1dQ6511Y
+    name	stash
+    target	production
+    status	● Ready
+    url		https://stash-mu5wqqgr0-iamenochchirimas-projects.vercel.app
+    created	Mon Oct 12 2026 11:55:05 GMT+0200 (South Africa Standard Time) [15m ago]
+
+
+  Build Machine
+
+    requested build machine basic
+    actual assigned cores   2 vCPU (actual assignment)
+    memory                  8192 MiB
+    selection type          fixed
+    selection source        plan-default
+
+
+  Duration
+
+    build duration	23s
+    post-build duration	28s
+    billable duration	1m
+    CPU Minutes Usage	2 minutes (1m x 2vCPU)
+
+
+  Aliases
+
+    ╶ https://stash-tau-seven.vercel.app
+    ╶ https://stash-iamenochchirimas-projects.vercel.app
+    
+
+  Builds
+
+    ┌ .        [0ms]
+    ├── λ index (644.64KB) [iad1]
+    ├── λ _global-error (644.64KB) [iad1]
+    ├── λ _global-error.rsc (644.64KB) [iad1]
+    ├── λ _global-error.segments/__PAGE__.segment.rsc (644.64KB) [iad1]
+    ├── λ _global-error.segments/_full.segment.rsc (644.64KB) [iad1]
+    └── 12 output items hidden
+    
+

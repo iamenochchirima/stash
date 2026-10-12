@@ -67,6 +67,7 @@ export type Profile = {
   bio: string;
   interests: string[];
   emailVerified: boolean;
+  emailEnabled: boolean;
   avatar: string | null;
   onboarding: {
     profile: boolean;

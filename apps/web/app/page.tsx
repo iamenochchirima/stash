@@ -401,7 +401,7 @@ function Dashboard({
           </span>
         </header>
         <div className="content">
-          {!user.emailVerified && (
+          {user.emailEnabled && !user.emailVerified && (
             <div className="verification-banner">
               <span>
                 Verify your email to connect agents. You can use your library

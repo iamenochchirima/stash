@@ -8,3 +8,7 @@ node_modules/
 test-results/
 playwright-report/
 apps/server/dist/
+.vercel/
+.railway/
+.vercel
+.env*

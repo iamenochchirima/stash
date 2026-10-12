@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-12T10:11:26.794Z",
+  "web": "https://stash-tau-seven.vercel.app",
+  "api": "https://stash-api-production-6e87.up.railway.app",
+  "checks": [
+    "Railway readiness over HTTPS",
+    "Browser signup with eight-character password, secure proxy session",
+    "Browser resource save persists across reload",
+    "Hosted MCP SDK writer saves; separate reader retrieves persisted data",
+    "Read scope and immediate key revocation",
+    "Email recovery disabled; foreign-origin request rejected",
+    "Hosted sign out/in restores private library",
+    "Disposable account deletion clears session and private data"
+  ]
+}

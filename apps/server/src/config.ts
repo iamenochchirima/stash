@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 export function config(env: NodeJS.ProcessEnv = process.env) {
   const production = env.NODE_ENV === "production";
+  const emailDisabled = env.EMAIL_DISABLED === "true";
   const origin = env.WEB_ORIGIN || "http://127.0.0.1:3000";
   const publicApiUrl = env.PUBLIC_API_URL || "http://127.0.0.1:4000";
   const port = Number(env.PORT || 4000);
@@ -28,12 +29,11 @@ export function config(env: NodeJS.ProcessEnv = process.env) {
   if (
     production &&
     (!env.DATABASE_URL ||
-      !env.SMTP_URL ||
-      !env.MAIL_FROM ||
+      (!emailDisabled && (!env.SMTP_URL || !env.MAIL_FROM)) ||
       !env.DELETION_JOURNAL_DIR)
   )
     throw new Error(
-      "Production requires DATABASE_URL, SMTP_URL, MAIL_FROM, and a durable DELETION_JOURNAL_DIR.",
+      "Production requires DATABASE_URL and a durable DELETION_JOURNAL_DIR, plus SMTP_URL and MAIL_FROM unless EMAIL_DISABLED=true.",
     );
   if (
     env.SMTP_URL &&
@@ -42,6 +42,7 @@ export function config(env: NodeJS.ProcessEnv = process.env) {
     throw new Error("SMTP_URL must use smtp or smtps.");
   return {
     production,
+    emailDisabled,
     origin,
     publicApiUrl,
     port,
