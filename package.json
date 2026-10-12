@@ -1,0 +1,30 @@
+{
+  "name": "stash",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.30.1",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm --filter @stash/server build && pnpm --filter @stash/web build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "tsx --test --test-concurrency=1 tests/*.test.ts",
+    "db:migrate": "pnpm --filter @stash/server migrate",
+    "test:browser": "playwright test",
+    "verify": "pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "@playwright/test": "^1.56.0",
+    "@stash/core": "workspace:*",
+    "@stash/db": "workspace:*",
+    "@stash/shared": "workspace:*",
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.15.6",
+    "drizzle-orm": "^0.45.1",
+    "pg": "^8.16.3",
+    "sharp": "^0.35.5",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

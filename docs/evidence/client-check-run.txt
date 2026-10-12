@@ -1,0 +1,11 @@
+Codex exited 0.
+OpenCode exited 0.
+{
+  passed: true,
+  clientVersions: { codex: 'codex-cli 0.162.1', opencode: '1.18.35' },
+  codexExit: 0,
+  opencodeExit: 0,
+  resourceSaved: true,
+  retrieved: true,
+  revokedStatus: 401
+}

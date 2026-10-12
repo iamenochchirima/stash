@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "scope": "Known disposable schemas from earlier interrupted Stash checks; verified synthetic accounts before removal; normal development database untouched",
+  "removed": [
+    "test_8f45f62588824b86bd660cc132354667",
+    "test_5e0ff004cd5c4cd58f875abe0dbcf04f",
+    "test_5f44ec27cecd464caf0af9f19fb8e7b9",
+    "test_396c2012ce0f4dbeac0a7bf907c380c3",
+    "test_f7f8a3b595fb4a439b95cd39c3f63578",
+    "test_a9cc8431adf34a5cac61a943d167aa6d",
+    "test_86f855e4d4e043998ec6563d2ec54f0b",
+    "test_e0574c793fcd466da6221e6106cc9a1f"
+  ]
+}

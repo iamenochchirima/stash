@@ -1,0 +1,18 @@
+[
+  {
+    "page": "signup",
+    "violations": []
+  },
+  {
+    "page": "library",
+    "violations": []
+  },
+  {
+    "page": "save-dialog",
+    "violations": []
+  },
+  {
+    "page": "profile",
+    "violations": []
+  }
+]

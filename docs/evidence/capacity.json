@@ -1,0 +1,35 @@
+{
+  "passed": true,
+  "targets": {
+    "p95Ms": 1000,
+    "errors": 0
+  },
+  "environment": "Local PostgreSQL 18.6, Node 23.11.1, isolated test schema",
+  "resources": 10000,
+  "collections": 100,
+  "concurrentClients": 10,
+  "listing": {
+    "requests": 100,
+    "p50Ms": 40,
+    "p95Ms": 93,
+    "maxMs": 101,
+    "errors": 0
+  },
+  "search": {
+    "requests": 100,
+    "p50Ms": 51,
+    "p95Ms": 84,
+    "maxMs": 97,
+    "errors": 0
+  },
+  "duplicateSave": {
+    "requests": 100,
+    "p50Ms": 50,
+    "p95Ms": 65,
+    "maxMs": 67,
+    "errors": 0
+  },
+  "limitRejected": true,
+  "memoryRssMiB": 226,
+  "interpretation": "Local engineering acceptance target chosen before this rerun: p95 <= 1000 ms, zero errors at 10 concurrent clients. Hosted targets remain outside the current build scope."
+}

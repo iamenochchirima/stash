@@ -1,0 +1,33 @@
+{
+  "name": "@stash/server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "typecheck": "tsc -p tsconfig.json",
+    "build": "tsup && cp -R ../../packages/db/migrations dist/migrations",
+    "migrate": "tsx src/migrate.ts"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/rate-limit": "^10.3.0",
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "@stash/core": "workspace:*",
+    "@stash/db": "workspace:*",
+    "@stash/shared": "workspace:*",
+    "cheerio": "^1.1.2",
+    "drizzle-orm": "^0.45.1",
+    "fastify": "^5.6.2",
+    "ipaddr.js": "^2.2.0",
+    "nodemailer": "^10.1.0",
+    "pg": "8.23.1",
+    "sharp": "^0.35.5",
+    "tsx": "^4.20.6",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/nodemailer": "^8.0.2",
+    "tsup": "^8.5.0"
+  }
+}

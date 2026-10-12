@@ -1,0 +1,14 @@
+
+> @stash/server@ build /home/enoch/aworkspace/agents/stash/apps/server
+> tsup && cp -R ../../packages/db/migrations dist/migrations
+
+CLI Building entry: src/index.ts, src/migrate.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Using tsup config: /home/enoch/aworkspace/agents/stash/apps/server/tsup.config.ts
+CLI Target: es2022
+CLI Cleaning output folder
+ESM Build start
+ESM dist/migrate.js 8.30 KB
+ESM dist/index.js   53.03 KB
+ESM ⚡️ Build success in 18ms

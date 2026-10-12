@@ -1,0 +1,7 @@
+# Accounts and profiles
+
+New users create a profile on `/`. Signup and password recovery require at least 8 characters; sign-in accepts the existing account password. Returning users choose Sign in, with Forgot your password available on that form. A captured development email links to explicit email verification or password reset. Users can save resources before verification, but agent keys require verified email.
+
+Open profile exposes name, bio, interests, image upload/removal, sign-out, and account deletion with current password plus DELETE confirmation. Resetting a password ends old sessions and revokes agent keys. Profile photos are re-encoded static PNGs; replaced/deleted data is removed from the live profile.
+
+Drive with `tests/browser/journeys.spec.ts` and the account integration tests. Verify the visible updated profile, subsequent login, persisted records, invalid/reused links, rejected image uploads, and failed requests after logout/deletion. The recovery drill verifies deleted-account journal replay after a snapshot restore.

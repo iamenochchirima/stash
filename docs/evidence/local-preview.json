@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "apiReady": 200,
+  "dashboard": 200,
+  "unauthenticatedProxy": 401,
+  "origin": "http://127.0.0.1:3000"
+}

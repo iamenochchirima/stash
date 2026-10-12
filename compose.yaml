@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: stash
+      POSTGRES_PASSWORD: stash_local_only
+      POSTGRES_DB: stash
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - stash_postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stash -d stash"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  stash_postgres:
