@@ -1945,10 +1945,8 @@ textarea::placeholder {
 .hero-stream-copy small { color: #626862; }
 
 /* A direct invitation to connect the library to an agent. */
-.site-connect { max-width: 1160px; margin: 0 auto; padding: 60px 0; border-top: 1px solid #e8ebe6; display: grid; grid-template-columns: 1fr 1fr; gap: 90px; align-items: center; }
-.site-connect h2 { margin: 0; font-size: 40px; line-height: 1.13; letter-spacing: -1.6px; font-weight: 600; }
-.site-connect-copy > .site-button { margin-top: 25px; }
-.site-connect-setup { padding: 40px 30px; border: 1px solid #e5e8df; border-radius: 15px; background: #fafbf8; }
+.site-connect { max-width: 1160px; margin: 0 auto; padding: 48px 0; border-top: 1px solid #e8ebe6; display: flex; flex-direction: column; gap: 24px; align-items: center; }
+.site-connect-setup { width: min(100%, 535px); padding: 40px 30px; border: 1px solid #e5e8df; border-radius: 15px; background: #fafbf8; }
 .site-connect-diagram { display: flex; align-items: center; justify-content: center; padding: 0; }
 .site-connect-node { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 13px; width: 100px; height: 100px; border: 1px solid #e2e7dc; border-radius: 16px; background: #fff; color: #4d5d42; box-shadow: 0 4px 8px #24301903; flex-shrink: 0; }
 .site-connect-node > span { font-size: 11px; color: #363d32; font-weight: 550; }
@@ -1957,5 +1955,5 @@ textarea::placeholder {
 .site-connect-wire > span { height: 1px; flex: 1; background: #dce4d3; }
 .site-connect-wire > div { width: 48px; height: 48px; display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; color: #697e58; }
 .site-connect-wire small { font-size: 8px; color: #626862; letter-spacing: 1px; }
-@media (max-width: 850px) { .site-connect { gap: 35px; } .site-connect h2 { font-size: 34px; } .site-connect-setup { padding: 23px; } }
-@media (max-width: 700px) { .site-connect { grid-template-columns: 1fr; padding: 48px 0; gap: 30px; } .site-connect h2 { font-size: 32px; letter-spacing: -1.2px; } .site-connect-node { width: 85px; height: 85px; border-radius: 13px; } }
+@media (max-width: 850px) { .site-connect-setup { padding: 23px; } }
+@media (max-width: 700px) { .site-connect-node { width: 85px; height: 85px; border-radius: 13px; } }

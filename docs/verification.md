@@ -173,3 +173,8 @@ All 3 focused browser tests passed for accessibility and desktop/mobile landing 
 Removed the setup list, kicker, paragraph, and footnote from the landing section. Kept the heading, Connect your agent CTA, and connection diagram. Detailed setup and compatibility information remains at /help#agents.
 
 All 3 focused browser tests passed for accessibility and desktop/mobile navigation, including following the connection CTA. Production build and type checks passed. Reviewed the updated desktop/mobile section screenshots and confirmed no mobile overflow. Evidence: [browser](evidence/mcp-clean-tests.txt), [build](evidence/mcp-clean-build.txt), [types](evidence/mcp-clean-types.txt), [desktop](evidence/browser/mcp-section-desktop.png), and [mobile](evidence/browser/mcp-section-mobile.png). Local and uncommitted.
+
+
+## Connection CTA to sign-in, 12 October 2026
+
+Removed the MCP section headline, keeping the connection diagram centered above its action. Connect your agent now opens /signin as requested. All 3 focused browser tests passed for accessibility and desktop/mobile journeys, including clicking the connection CTA and verifying the sign-in form. Production build and type checks passed. The updated local desktop/mobile section screenshots were reviewed and mobile overflow was absent. Evidence: [browser](evidence/mcp-signin-tests.txt), [build](evidence/mcp-signin-build.txt), [types](evidence/mcp-signin-types.txt), [desktop](evidence/browser/mcp-section-desktop.png), and [mobile](evidence/browser/mcp-section-mobile.png). Local and uncommitted.

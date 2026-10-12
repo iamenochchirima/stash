@@ -23,10 +23,9 @@ for (const width of [1440, 375]) {
     await mkdir("docs/evidence/browser", { recursive: true });
     await page.screenshot({ path: `docs/evidence/browser/landing-${width}.png`, fullPage: true, animations: "disabled" });
     await page.getByRole("link", { name: "Connect your agent", exact: false }).click();
-    await expect(page).toHaveURL(/\/help#agents$/);
-    await expect(page.getByRole("heading", { name: "Connect your agent through MCP" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Create an account", exact: true })).toHaveAttribute("href", "/signup");
-    await page.getByRole("link", { name: "Back to Stash", exact: false }).click();
+    await expect(page).toHaveURL(/\/signin$/);
+    await expect(page.getByRole("heading", { name: "Sign in to Stash" })).toBeVisible();
+    await page.getByRole("link", { name: "Back to home" }).click();
     await page.getByRole("link", { name: "Sign up", exact: true }).first().click();
     await expect(page).toHaveURL(/\/signup$/);
     await expect(page).toHaveTitle("Create your account · Stash");

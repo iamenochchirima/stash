@@ -31,3 +31,8 @@ Lina now uses the user's supplied original PNG. A new section after the walkthro
 ## Quieter MCP section
 
 At the user's request, removed the MCP kicker, paragraph, compatibility footnote, and three setup rows. The section now has only its heading, Connect your agent button, and the unchanged connection diagram. The linked setup guide retains the account, compatibility, and configuration details.
+
+
+## Connection diagram and sign-in action
+
+Removed the connection headline at the user's request. The section now centers the unchanged diagram with a Connect your agent button beneath it. The button opens /signin. Setup details remain in /help#agents and the authenticated Agent connections view.

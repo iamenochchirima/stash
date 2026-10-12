@@ -16,4 +16,4 @@ The latest local revision uses ChatGPT-style conversation chrome and a narrower 
 
 The Stash pane is presented as a phone screen with a status bar, camera island, rounded frame, and home indicator. Existing cards stay inside the phone; the new preview moves from the chat into its Design collection. Mobile layouts switch between chat and phone scenes.
 
-The MCP connection section sits after the walkthrough. It keeps only the heading, Connect your agent action, and agent-to-Stash diagram. Detailed steps remain in the setup guide. Connect your agent links to /help#agents, which includes account creation/sign-in links and the existing client setup instructions. The setup guide covers the remote MCP agent-key requirement. It creates no keys or connections on click.
+The MCP connection section sits after the walkthrough. It keeps only the agent-to-Stash diagram and Connect your agent action, centered beneath it. Detailed steps remain in the setup guide. Connect your agent links to /signin. The existing setup instructions remain at /help#agents. The setup guide covers the remote MCP agent-key requirement. It creates no keys or connections on click.
