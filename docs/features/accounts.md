@@ -5,3 +5,5 @@ The local redesign starts with a public landing page at `/`, a dedicated signup 
 Open profile exposes name, bio, interests, image upload/removal, sign-out, and account deletion with current password plus DELETE confirmation. Resetting a password ends old sessions and revokes agent keys. Profile photos are re-encoded static PNGs; replaced/deleted data is removed from the live profile.
 
 Drive with `tests/browser/journeys.spec.ts` and the account integration tests. Verify the visible updated profile, subsequent login, persisted records, invalid/reused links, rejected image uploads, and failed requests after logout/deletion. The recovery drill verifies deleted-account journal replay after a snapshot restore.
+
+The signed-in profile uses a plain Profile heading and Bio label, with the existing avatar, account deletion, and sign-out controls. Shared workspace typography uses the same local fonts as the public pages.

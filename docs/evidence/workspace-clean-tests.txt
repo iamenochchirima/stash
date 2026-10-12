@@ -1,0 +1,78 @@
+
+> stash@ test:browser /home/enoch/aworkspace/agents/stash
+> playwright test
+
+[WebServer] (node:481115) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:481143) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:481159) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:481159) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:481294) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:481315) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:481342) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 10 tests using 1 worker
+
+(node:481450) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/browser/accessibility.spec.ts:5:1 › T16 accessibility of signup, library, save dialog, and profile (8.0s)
+  ✓   2 tests/browser/demo.spec.ts:4:1 › Agent save demo types, shows its preview, and adds a card without player chrome (9.7s)
+  ✓   3 tests/browser/demo.spec.ts:31:1 › Demo autoplays, loops, resumes in view, and respects a manual pause (16.8s)
+  ✘   4 tests/browser/journeys.spec.ts:77:1 › T15/E01/E06 complete account, library, organization, connections, import/export, and deletion journey (15.0s)
+(node:482813) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   5 tests/browser/journeys.spec.ts:246:1 › T15/E05 browser password recovery and invalid reused links (7.5s)
+  ✓   6 tests/browser/journeys.spec.ts:285:3 › T16/E07 responsive layout and keyboard dialog at 375px (2.4s)
+  ✓   7 tests/browser/journeys.spec.ts:285:3 › T16/E07 responsive layout and keyboard dialog at 768px (2.9s)
+  ✓   8 tests/browser/journeys.spec.ts:321:1 › T12 older search responses cannot replace newer results (3.0s)
+  ✓   9 tests/browser/landing.spec.ts:4:3 › Landing and dedicated account pages at 1440px (9.2s)
+  ✓  10 tests/browser/landing.spec.ts:4:3 › Landing and dedicated account pages at 375px (8.4s)
+
+
+  1) tests/browser/journeys.spec.ts:77:1 › T15/E01/E06 complete account, library, organization, connections, import/export, and deletion journey 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('heading', { name: 'No matches here yet.' })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('heading', { name: 'No matches here yet.' }) with timeout 10000ms
+      - waiting for getByRole('heading', { name: 'No matches here yet.' })
+
+
+      108 |   await expect(
+      109 |     page.getByRole("heading", { name: "No matches here yet." }),
+    > 110 |   ).toBeVisible();
+          |     ^
+      111 |   await page.getByLabel("Search your library").fill("");
+      112 |   await page
+      113 |     .getByRole("button", { name: "Agent research", exact: true })
+        at /home/enoch/aworkspace/agents/stash/tests/browser/journeys.spec.ts:110:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/journeys-T15-E01-E06-compl-7d8a4-export-and-deletion-journey/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/journeys-T15-E01-E06-compl-7d8a4-export-and-deletion-journey/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/journeys-T15-E01-E06-compl-7d8a4-export-and-deletion-journey/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/journeys-T15-E01-E06-compl-7d8a4-export-and-deletion-journey/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests/browser/journeys.spec.ts:77:1 › T15/E01/E06 complete account, library, organization, connections, import/export, and deletion journey 
+  9 passed (1.6m)
+ ELIFECYCLE  Command failed with exit code 1.

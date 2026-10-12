@@ -14,7 +14,7 @@ async function signup(page: Page) {
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(
-    page.getByRole("heading", { name: "Your library." }),
+    page.getByRole("heading", { name: "Your library" }),
   ).toBeVisible();
   return email;
 }
@@ -49,7 +49,7 @@ async function verifyEmail(page: Page, email: string) {
   await expect(page.getByText("Your email is verified.")).toBeVisible();
   await page.getByRole("button", { name: "Continue to Stash" }).click();
   await expect(
-    page.getByRole("heading", { name: "Your library." }),
+    page.getByRole("heading", { name: "Your library" }),
   ).toBeVisible();
 }
 async function save(
@@ -79,6 +79,12 @@ test("T15/E01/E06 complete account, library, organization, connections, import/e
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   const email = await signup(page);
+  const setup = page.locator("details.onboarding");
+  await expect(setup).not.toHaveAttribute("open");
+  await setup.getByText("Getting started", { exact: true }).click();
+  await expect(setup.getByRole("button", { name: "Save your first resource" })).toBeVisible();
+  await setup.getByText("Getting started", { exact: true }).click();
+  await expect(setup.getByRole("button", { name: "Save your first resource" })).not.toBeVisible();
   await save(page);
   await verifyEmail(page, email);
   await page
@@ -106,7 +112,7 @@ test("T15/E01/E06 complete account, library, organization, connections, import/e
   ).toBeVisible();
   await page.getByLabel("Search your library").fill("missing");
   await expect(
-    page.getByRole("heading", { name: "No matches here yet." }),
+    page.getByRole("heading", { name: "No results" }),
   ).toBeVisible();
   await page.getByLabel("Search your library").fill("");
   await page
@@ -122,7 +128,7 @@ test("T15/E01/E06 complete account, library, organization, connections, import/e
     .getByRole("button", { name: "Rename collection" })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Research projects." }),
+    page.getByRole("heading", { name: "Research projects" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "All resources" }).click();
   await page.getByRole("button", { name: "Import / export" }).click();
@@ -201,7 +207,7 @@ test("T15/E01/E06 complete account, library, organization, connections, import/e
   await page.getByRole("button", { name: "Remove photo", exact: true }).click();
   await expect(page.getByAltText("Your avatar")).toHaveCount(0);
   await page.getByLabel("Name", { exact: true }).fill("Updated Researcher");
-  await page.getByLabel("A little about you").fill("Building research tools");
+  await page.getByLabel("Bio").fill("Building research tools");
   await page.getByLabel("Interests").fill("agents, libraries");
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(
@@ -218,7 +224,7 @@ test("T15/E01/E06 complete account, library, organization, connections, import/e
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Your library." }),
+    page.getByRole("heading", { name: "Your library" }),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Research guide" }),

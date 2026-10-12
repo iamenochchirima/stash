@@ -1957,3 +1957,41 @@ textarea::placeholder {
 .site-connect-wire small { font-size: 8px; color: #626862; letter-spacing: 1px; }
 @media (max-width: 850px) { .site-connect-setup { padding: 23px; } }
 @media (max-width: 700px) { .site-connect-node { width: 85px; height: 85px; border-radius: 13px; } }
+
+/* The signed-in workspace uses the same quiet typography as the public page. */
+.app-layout { font-family: var(--font-public-body), sans-serif; background: #fafbf9; }
+.app-layout h1, .app-layout h2, .app-layout .brand, .app-layout .resource-title { font-family: var(--font-public-heading), sans-serif; }
+.app-layout .sidebar { width: 232px; padding-top: 26px; }
+.app-layout .sidebar nav { margin-top: 36px; }
+.app-layout .sidebar .brand { font-size: 28px; }
+.app-layout .nav-item { color: #626862; border-radius: 6px; }
+.app-layout .nav-item.active { color: #303b2c; background: #eef1ea; }
+.app-layout .button { border-radius: 6px; }
+.app-layout .button.primary { background: #242b26; box-shadow: none; }
+.app-layout .button.primary:hover { background: #414b43; }
+.app-layout .content { padding-top: 40px; }
+.app-layout .page-heading { margin-bottom: 26px; }
+.app-layout .page-heading h1 { margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -1.1px; }
+.app-layout .onboarding { display: block; padding: 0; border: 0; border-radius: 0; background: none; margin-bottom: 24px; }
+.app-layout .onboarding summary { width: fit-content; cursor: pointer; color: #626862; font-size: 12px; padding: 4px 0; }
+.app-layout .onboarding summary:focus-visible { outline: 3px solid #a391e7; outline-offset: 4px; }
+.app-layout .setup-steps { max-width: 470px; padding: 17px 0 0; gap: 10px; }
+.app-layout .setup-steps button { padding: 5px 0; }
+.app-layout .library-toolbar > .button.secondary { background: none; border-color: transparent; padding-left: 0; padding-right: 12px; color: #626862; }
+.app-layout .resource-card { min-height: 220px; border-radius: 8px; box-shadow: none; }
+.app-layout .resource-card:hover { transform: none; box-shadow: none; border-color: #cbd4c3; }
+.app-layout .resource-card-top { margin-bottom: 13px; }
+.app-layout .resource-card-top .resource-icon { width: 26px; height: 26px; border: 0; background: none; color: #75806c; }
+.app-layout .resource-title { font-weight: 600; }
+.app-layout .resource-notes { color: #626862; }
+.app-layout .resource-card footer { color: #626862; }
+.app-layout .empty { border: 1px solid #e5e8df; background: #fff; padding: 45px 25px; }
+.app-layout .empty h2 { font-size: 18px; font-weight: 600; color: #454f3e; }
+.app-layout .empty p { color: #626862; }
+.app-layout .connection-guide { display: block; background: #fff; }
+.app-layout .connection-guide label { margin-bottom: 0; }
+.app-layout .main-footer { justify-content: flex-end; }
+.app-layout .main-footer a { font-size: 11px; color: #626862; text-decoration: none; }
+.app-layout .modal h2 { font-size: 23px; letter-spacing: -.6px; }
+@media (max-width: 800px) { .app-layout .sidebar { width: 190px; } .app-layout .content { padding-top: 28px; } .app-layout .page-heading h1 { font-size: 27px; } }
+@media (max-width: 560px) { .app-layout .sidebar { width: 100%; padding-top: 15px; } .app-layout .sidebar nav { margin-top: 52px; } }

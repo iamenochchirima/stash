@@ -371,13 +371,13 @@ export function ProfileForm({
           <input name="name" required maxLength={80} defaultValue={user.name} />
         </label>
         <label>
-          A little about you
+          Bio
           <textarea
             name="bio"
             maxLength={300}
             rows={3}
             defaultValue={user.bio}
-            placeholder="What are you working on or curious about?"
+            placeholder="A short introduction"
           />
         </label>
         <label>
@@ -397,10 +397,8 @@ export function ProfileForm({
       <div className="panel deletion-panel">
         <h2>Delete your account</h2>
         <p>
-          This permanently removes your profile, library, collections, and agent
-          keys from the live database. Sessions stop working immediately.
-          Retained backups expire within the configured retention period,
-          planned at 7 days for launch.
+          Permanently delete your account, library, and agent keys.
+          Retained backups follow the configured retention schedule.
         </p>
         {!deleting ? (
           <button className="button danger" onClick={() => setDeleting(true)}>

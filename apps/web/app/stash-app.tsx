@@ -19,8 +19,6 @@ import {
   Plus,
   Search,
   Settings,
-  ShieldCheck,
-  Sparkles,
   Trash2,
   X,
   Link as LinkIcon,
@@ -278,7 +276,6 @@ function Dashboard({
       setError((e as Error).message);
     }
   }
-  const firstName = user.name.split(" ")[0];
   return (
     <div className="app-layout">
       <aside
@@ -287,9 +284,6 @@ function Dashboard({
         aria-hidden={modal ? true : undefined}
       >
         <Brand />
-        <div className="workspace-label">
-          YOUR WORKSPACE <span>PRIVATE</span>
-        </div>
         <nav aria-label="Main navigation">
           <button
             className={
@@ -349,14 +343,6 @@ function Dashboard({
           ))}
         </div>
         <div className="sidebar-bottom">
-          <div className="sidebar-tip">
-            <Sparkles size={19} />
-            <strong>A little less searching.</strong>
-            <p>Let your agents find the things you already saved.</p>
-            <button onClick={() => setView("agents")}>
-              Connect an agent <ArrowUpRight size={15} />
-            </button>
-          </div>
           <button
             className="profile-button"
             aria-label="Open profile"
@@ -371,7 +357,6 @@ function Dashboard({
             </span>
             <span>
               <strong>{user.name}</strong>
-              <small>Personal workspace</small>
             </span>
             <Settings size={17} />
           </button>
@@ -382,19 +367,6 @@ function Dashboard({
         inert={!!modal}
         aria-hidden={modal ? true : undefined}
       >
-        <header className="topbar">
-          <span>
-            Personal workspace <ChevronRight size={14} />{" "}
-            {view === "library"
-              ? "Library"
-              : view === "agents"
-                ? "Connections"
-                : "Profile"}
-          </span>
-          <span className="private-badge">
-            <ShieldCheck size={14} /> Private by default
-          </span>
-        </header>
         <div className="content">
           {user.emailEnabled && !user.emailVerified && (
             <div className="verification-banner">
@@ -425,18 +397,11 @@ function Dashboard({
             <>
               <div className="page-heading">
                 <div>
-                  <span className="eyebrow">A PLACE FOR WHAT YOU FIND</span>
                   <h1>
                     {collection
                       ? collections.find((c) => c.id === collection)?.name
                       : "Your library"}
-                    <span className="heading-dot">.</span>
                   </h1>
-                  <p>
-                    {collection
-                      ? "Everything you saved around this topic."
-                      : `Welcome back, ${firstName}. Keep your next good idea close.`}
-                  </p>
                 </div>
                 <button
                   className="button primary"
@@ -447,33 +412,23 @@ function Dashboard({
                 </button>
               </div>
               {!Object.values(user.onboarding).every(Boolean) && (
-                <div className="onboarding">
-                  <div>
-                    <span className="eyebrow">LET’S GET YOU STARTED</span>
-                    <h2>Your first find is the beginning.</h2>
-                    <p>
-                      Use the library right away. Connect your agents whenever
-                      you’re ready.
-                    </p>
-                  </div>
+                <details className="onboarding">
+                  <summary>Getting started</summary>
                   <div className="setup-steps">
                     {[
                       {
                         done: user.onboarding.profile,
                         title: "Create your profile",
-                        hint: "Make this space yours.",
                         action: () => setView("profile"),
                       },
                       {
                         done: user.onboarding.saved,
                         title: "Save your first resource",
-                        hint: "A useful link and a little context.",
                         action: () => setModal("resource"),
                       },
                       {
                         done: user.onboarding.organized,
                         title: "Organize into a collection",
-                        hint: "Add a saved resource to a collection.",
                         action: () =>
                           items[0]
                             ? (setEditing(items[0]), setModal("resource"))
@@ -482,13 +437,11 @@ function Dashboard({
                       {
                         done: user.onboarding.connected,
                         title: "Connect an agent",
-                        hint: "Completed after an authenticated request.",
                         action: () => setView("agents"),
                       },
                       {
                         done: user.onboarding.retrieved,
                         title: "Retrieve your research",
-                        hint: "Ask your agent to find a saved resource.",
                         action: () => setView("agents"),
                       },
                     ].map((step, index) => (
@@ -498,13 +451,12 @@ function Dashboard({
                         </span>
                         <span>
                           <strong>{step.title}</strong>
-                          <small>{step.hint}</small>
                         </span>
                         <ChevronRight size={17} />
                       </button>
                     ))}
                   </div>
-                </div>
+                </details>
               )}
               <div className="library-toolbar">
                 <button
@@ -570,7 +522,7 @@ function Dashboard({
               {loading ? (
                 <div className="empty">
                   <LoaderCircle className="spin" />
-                  <p>Opening your library…</p>
+                  <p>Loading…</p>
                 </div>
               ) : items.length ? (
                 <div className="resource-grid">
@@ -597,26 +549,10 @@ function Dashboard({
                         {item.title}
                         <ArrowUpRight size={17} />
                       </a>
-                      <p className="resource-source">
-                        Saved from{" "}
-                        {item.sourceAgent === "web"
-                          ? "dashboard"
-                          : item.sourceAgent}{" "}
-                        ·{" "}
-                        {item.metadataStatus === "extracted"
-                          ? "Page details fetched"
-                          : item.metadataStatus === "unavailable"
-                            ? "Page details unavailable"
-                            : "Manual entry"}
-                      </p>
                       <div className="resource-domain">
                         {new URL(item.url).hostname}
                       </div>
-                      <p className="resource-notes">
-                        {item.notes ||
-                          item.description ||
-                          "No notes yet. Add what made this worth saving."}
-                      </p>
+                      {(item.notes || item.description) && <p className="resource-notes">{item.notes || item.description}</p>}
                       <div className="tags">
                         {item.tags.map((t) => (
                           <span key={t}>{t}</span>
@@ -654,21 +590,14 @@ function Dashboard({
                   </div>
                   <h2>
                     {query || collection || status
-                      ? "No matches here yet."
-                      : "Worth saving? Stash it."}
+                      ? "No results"
+                      : "No resources yet"}
                   </h2>
                   <p>
                     {query || collection || status
-                      ? "Try another search or save something to this collection."
-                      : "Articles, repositories, tools, and ideas. Give your next find a home."}
+                      ? "Try another search or filter."
+                      : "Save a link or ask your connected agent to save it."}
                   </p>
-                  <button
-                    className="button secondary"
-                    onClick={() => setModal("resource")}
-                  >
-                    <Plus size={17} />
-                    Save a resource
-                  </button>
                 </div>
               )}
               {total > 24 && (
@@ -698,15 +627,7 @@ function Dashboard({
             <>
               <div className="page-heading">
                 <div>
-                  <span className="eyebrow">
-                    SAVE ONCE. ACCESS FROM YOUR AGENTS.
-                  </span>
-                  <h1>
-                    Connected agents<span className="heading-dot">.</span>
-                  </h1>
-                  <p>
-                    Give your agent access to your personal research library.
-                  </p>
+                  <h1>Agent connections</h1>
                 </div>
                 <button
                   className="button primary"
@@ -720,17 +641,6 @@ function Dashboard({
                 </button>
               </div>
               <div className="connection-guide">
-                <div>
-                  <span className="resource-icon">
-                    <KeyRound size={21} />
-                  </span>
-                  <h2>Your library, in the conversation.</h2>
-                  <p>
-                    Add Stash as a remote MCP server in a client that supports
-                    bearer-token authentication. Use this endpoint and your
-                    agent key.
-                  </p>
-                </div>
                 <label>
                   Remote MCP endpoint
                   <div className="copy-field">
@@ -753,15 +663,10 @@ function Dashboard({
                     </button>
                   </div>
                 </label>
-                <p className="muted">
-                  Each client has its own setup. Clients that require OAuth need
-                  a future OAuth integration. A key is marked connected after
-                  its first authenticated request.
-                </p>
               </div>
               <h2 className="section-title">Your agent keys</h2>
               <details className="client-instructions">
-                <summary>Setup for Codex and OpenCode</summary>
+                <summary>Setup instructions</summary>
                 <p className="muted">
                   Create a key above, then configure your client to send it as
                   an Authorization bearer token. See{" "}
@@ -772,10 +677,9 @@ function Dashboard({
               {!keys.length ? (
                 <div className="empty compact">
                   <KeyRound size={27} />
-                  <h2>Your agents can join you here.</h2>
+                  <h2>No agent keys</h2>
                   <p>
-                    Create a key, add the connection in your agent, then ask it
-                    to list your collections.
+                    Create a key to connect an agent.
                   </p>
                 </div>
               ) : (
@@ -839,11 +743,7 @@ function Dashboard({
             <>
               <div className="page-heading">
                 <div>
-                  <span className="eyebrow">MAKE YOURSELF AT HOME</span>
-                  <h1>
-                    Your profile<span className="heading-dot">.</span>
-                  </h1>
-                  <p>A few details to make this space yours.</p>
+                  <h1>Profile</h1>
                 </div>
               </div>
               <ProfileForm
@@ -868,20 +768,12 @@ function Dashboard({
             </>
           )}
         </div>
-        <footer className="main-footer">
-          <span>
-            Stash · Keep what matters. <a href="/help">Help and privacy</a>
-          </span>
-          <span>
-            <ShieldCheck size={13} />
-            Only you and your connected agents
-          </span>
-        </footer>
+        <footer className="main-footer"><a href="/help">Help & privacy</a></footer>
       </main>
       {modal === "resource" && (
         <Modal
           title={
-            editing ? "Edit your resource" : "Save something worth keeping"
+            editing ? "Edit resource" : "Save a resource"
           }
           close={closeModal}
         >
@@ -1088,7 +980,7 @@ function ResourceForm({
           name="title"
           maxLength={200}
           defaultValue={editing?.title}
-          placeholder="Give this find a useful name"
+          placeholder="Resource title"
         />
       </label>
       <label>
@@ -1098,7 +990,7 @@ function ResourceForm({
           maxLength={10000}
           rows={3}
           defaultValue={editing?.notes}
-          placeholder="A little context for your future self and your agents"
+          placeholder="Add a note"
         />
       </label>
       <div className="form-row">

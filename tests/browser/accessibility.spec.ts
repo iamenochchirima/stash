@@ -38,7 +38,7 @@ test("T16 accessibility of signup, library, save dialog, and profile", async ({
     .fill("correct horse battery staple");
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(
-    page.getByRole("heading", { name: "Your library." }),
+    page.getByRole("heading", { name: "Your library" }),
   ).toBeVisible();
   await check("library");
   await page

@@ -25,9 +25,7 @@ export function Portability({
   return (
     <div>
       <p className="muted">
-        Bring in browser bookmarks or a version 1 Stash export. Valid entries
-        save separately; rejected entries are listed. Existing resources keep
-        their notes.
+        Import browser bookmarks or a Stash export. Existing resources keep their notes.
       </p>
       <label className="import-file">
         Choose an import file
