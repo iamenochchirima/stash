@@ -2,9 +2,9 @@
 
 The user authorized public deployment on 12 October 2026: Railway for PostgreSQL and the API/MCP service, Vercel for the dashboard. The initial deployment disabled email. The user subsequently authorized reusing KasiTek Growth’s Resend credentials to enable verification and recovery. See [deployment evidence](evidence/hosted-deployment.json).
 
-Dashboard: https://stash.kasitek.co.za. API: https://stash-api-production-6e87.up.railway.app. MCP uses the same backend at `/mcp`. Railway project Stash: `4d983b61-c991-4730-9e3f-6ed0187d4683`. Vercel project: `stash`, scope `iamenochchirimas-projects`.
+Dashboard: https://stash.kasitek.co.za. API: https://api.stash.kasitek.co.za. MCP uses the same backend at `/mcp`. Railway project Stash: `4d983b61-c991-4730-9e3f-6ed0187d4683`. Vercel project: `stash`, scope `iamenochchirimas-projects`.
 
-Cloudflare DNS has a DNS-only CNAME for `stash` pointing to `c27f10fdbbc3ce01.vercel-dns-017.com`. Vercel verified the domain and serves HTTPS. The previous `stash-tau-seven.vercel.app` hostname redirects to the custom domain with status 308, preserving paths and query strings. WEB_ORIGIN is `https://stash.kasitek.co.za`, so newly generated verification/recovery links use that address. Existing host-only browser cookies are not transferred; users may need to sign in again on the custom domain. MCP keeps its existing Railway URL.
+Cloudflare DNS has a DNS-only CNAME for `stash` pointing to `c27f10fdbbc3ce01.vercel-dns-017.com`. Vercel verified the domain and serves HTTPS. The previous `stash-tau-seven.vercel.app` hostname redirects to the custom domain with status 308, preserving paths and query strings. WEB_ORIGIN is `https://stash.kasitek.co.za`, so newly generated verification/recovery links use that address. Existing host-only browser cookies are not transferred; users may need to sign in again on the custom domain. The API now uses api.stash.kasitek.co.za; see the API custom domain entry below.
 
 ## Runtime configuration
 
@@ -70,3 +70,11 @@ Hosted verification passed after the final concurrency refinement: issuer/resour
 Use the existing HTTPS /mcp URL with OAuth or a bearer key. In an OAuth client choose dynamic client registration and public-client authentication when a registration mode is requested. Client ID Metadata Documents and confidential-client secrets are not advertised. The current consent scopes are stash:read and stash:write; write includes saving and deleting. Tokens expire after one hour, refresh tokens rotate with a 30-day absolute lifetime, and revocation/reset/deletion invalidates the connection.
 
 Public DCR is rate-limited to 20 registrations per minute per source and capped at 10,000 stored clients. Pending authorization requests/codes expire and are cleaned during new authorizations. Retention/cleanup of unused public client registrations is an operational follow-up before approaching that cap. The service does not fetch client-provided URLs. Native ChatGPT UI acceptance remains a separate user/client check; the hosted SDK flow has been exercised.
+
+## API custom domain — 13 October 2026
+
+The canonical API origin is https://api.stash.kasitek.co.za and MCP endpoint is https://api.stash.kasitek.co.za/mcp. Railway custom domain `32cc7f99-99b5-4df4-97a5-8f6e27ac339d` routes to the existing stash-api service. Cloudflare has a DNS-only CNAME `api.stash` to `z10lc19h.up.railway.app` and Railway's ownership-verification TXT record at `_railway-verify.api.stash`. Railway reports the domain active, ownership verified and its HTTPS certificate valid.
+
+Updated Railway PUBLIC_API_URL to the new origin. Configuration redeployment `1a539add-555f-431b-a59b-8ac1dfeeafac` succeeded using the existing application image. The dashboard API proxy retains its existing Railway hostname and works against the same backend; its returned MCP setup address now uses the custom domain. No hosting plan changes were made.
+
+Agent-key clients using the previous Railway MCP URL must update their server URL; their keys remain valid. OAuth clients must reconnect because issuer and resource URLs changed. The old Railway hostname remains available for the dashboard proxy and health checks, but the MCP host guard accepts the canonical custom hostname. Health/readiness, OAuth issuer/resource endpoints, unauthenticated MCP challenge, and public dashboard/proxy checks passed. See docs/evidence/api-custom-domain.json. No new account or live-user data was changed during these checks.

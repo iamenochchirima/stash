@@ -1,0 +1,83 @@
+{
+  "origin": "https://api.stash.kasitek.co.za",
+  "checks": {
+    "/health": {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "version": "0.1.0"
+      }
+    },
+    "/ready": {
+      "status": 200,
+      "body": {
+        "ok": true
+      }
+    },
+    "/.well-known/oauth-protected-resource/mcp": {
+      "status": 200,
+      "body": {
+        "resource": "https://api.stash.kasitek.co.za/mcp",
+        "authorization_servers": [
+          "https://api.stash.kasitek.co.za"
+        ],
+        "scopes_supported": [
+          "stash:read",
+          "stash:write"
+        ],
+        "bearer_methods_supported": [
+          "header"
+        ],
+        "resource_name": "Stash",
+        "resource_documentation": "https://stash.kasitek.co.za/help#agents"
+      }
+    },
+    "/.well-known/oauth-authorization-server": {
+      "status": 200,
+      "body": {
+        "issuer": "https://api.stash.kasitek.co.za",
+        "authorization_endpoint": "https://api.stash.kasitek.co.za/oauth/authorize",
+        "token_endpoint": "https://api.stash.kasitek.co.za/oauth/token",
+        "registration_endpoint": "https://api.stash.kasitek.co.za/oauth/register",
+        "revocation_endpoint": "https://api.stash.kasitek.co.za/oauth/revoke",
+        "response_types_supported": [
+          "code"
+        ],
+        "grant_types_supported": [
+          "authorization_code",
+          "refresh_token"
+        ],
+        "token_endpoint_auth_methods_supported": [
+          "none"
+        ],
+        "revocation_endpoint_auth_methods_supported": [
+          "none"
+        ],
+        "code_challenge_methods_supported": [
+          "S256"
+        ],
+        "scopes_supported": [
+          "stash:read",
+          "stash:write"
+        ],
+        "authorization_response_iss_parameter_supported": true
+      }
+    },
+    "/mcp": {
+      "status": 401,
+      "challenge": "Bearer resource_metadata=\"https://api.stash.kasitek.co.za/.well-known/oauth-protected-resource/mcp\", scope=\"stash:read\""
+    },
+    "dashboard/": {
+      "status": 200
+    },
+    "dashboard/signin": {
+      "status": 200
+    },
+    "dashboard/signup": {
+      "status": 200
+    },
+    "dashboard/api/me": {
+      "status": 401
+    }
+  }
+}

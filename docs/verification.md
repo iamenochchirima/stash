@@ -218,3 +218,13 @@ Local reference-inspired centered hero verified at 1440px and 375px. The browser
 ### Hero tagline — 13 October 2026
 
 Changed the hero headline to the user's selected “Never lose a good find. Save it as you go.”, keeping Save highlighted. Desktop/mobile landing browser checks passed, 2/2, including navigation, animation, reduced motion and overflow. `NEXT_DIST_DIR=.next-build-verification pnpm build`, `pnpm typecheck`, and `git diff --check` passed. Evidence: `docs/evidence/tagline-browser-tests.txt` and updated landing screenshots. Local only.
+
+### API custom domain — 13 October 2026
+
+Created Railway custom domain api.stash.kasitek.co.za and Cloudflare DNS-only CNAME plus ownership TXT. Public DNS resolved both records; Railway confirmed verified ownership, valid certificate, and configuration redeployment 1a539add-555f-431b-a59b-8ac1dfeeafac SUCCESS. The initial HTTPS check correctly rejected the not-yet-issued certificate; checks were repeated with normal certificate validation after issuance and deployment completion.
+
+Verified HTTPS /health and /ready 200, protected-resource metadata with https://api.stash.kasitek.co.za/mcp, authorization-server metadata with the custom issuer and endpoints, and /mcp 401 with the correct custom-domain discovery challenge. Dashboard home, signin and signup returned 200; its anonymous /api/me proxy returned the expected 401. Evidence: docs/evidence/api-custom-domain.json. This was an infrastructure/configuration change using the existing tested image; no application source changed. Native clients need their endpoint updated, and OAuth connections must reconnect. No accounts or private records were modified.
+
+### Stash favicon — 13 October 2026
+
+Packaged the existing logo as a multi-size favicon at apps/web/app/favicon.ico. Chromium verified the favicon link and a successful image/x-icon response on /, /signin, /signup and /help. Evidence: docs/evidence/favicon.json. Production build and pnpm typecheck passed. The initial manual browser check found the local frontend stopped; started the project frontend on port 3000 and repeated the checks successfully.

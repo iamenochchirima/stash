@@ -1,0 +1,24 @@
+{
+  "local": [
+    {
+      "path": "/",
+      "status": 200,
+      "type": "image/x-icon"
+    },
+    {
+      "path": "/signin",
+      "status": 200,
+      "type": "image/x-icon"
+    },
+    {
+      "path": "/signup",
+      "status": 200,
+      "type": "image/x-icon"
+    },
+    {
+      "path": "/help",
+      "status": 200,
+      "type": "image/x-icon"
+    }
+  ]
+}
