@@ -1,0 +1,19 @@
+{
+  "events": [
+    {
+      "timestamp": "2026-10-13T20:21:29.443126843Z",
+      "method": "POST",
+      "path": "/oauth/revoke",
+      "httpStatus": 200,
+      "clientUa": "openai-connectors-oauth/1.0"
+    },
+    {
+      "timestamp": "2026-10-13T20:22:57.760710215Z",
+      "method": "POST",
+      "path": "/oauth/token",
+      "httpStatus": 200,
+      "clientUa": "python-httpx/0.28.1"
+    }
+  ],
+  "finding": "OpenAI connector sent an explicit revocation request before the next successful token exchange. Server acknowledged it with 200."
+}

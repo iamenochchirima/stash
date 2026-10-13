@@ -228,3 +228,13 @@ Verified HTTPS /health and /ready 200, protected-resource metadata with https://
 ### Stash favicon — 13 October 2026
 
 Packaged the existing logo as a multi-size favicon at apps/web/app/favicon.ico. Chromium verified the favicon link and a successful image/x-icon response on /, /signin, /signup and /help. Evidence: docs/evidence/favicon.json. Production build and pnpm typecheck passed. The initial manual browser check found the local frontend stopped; started the project frontend on port 3000 and repeated the checks successfully.
+
+### ChatGPT connection disappearance — 13 October 2026
+
+The user reported ChatGPT disappearing after connecting Claude. Production HTTP metadata showed POST /oauth/revoke from openai-connectors-oauth/1.0 at 20:21:29 UTC, returning 200, followed by a successful /oauth/token call at 20:22:57 UTC. This confirms explicit client-initiated revocation; the logs do not establish why the OpenAI connector chose to revoke. Sanitized evidence omits source IPs, request IDs and credentials: docs/evidence/oauth-connection-revocation.json.
+
+The isolated PostgreSQL regression connects clients named ChatGPT and Claude on the same account, asserts both remain listed and can access MCP after independent refreshes, then calls revocation for ChatGPT and asserts Claude remains. The normal two-client case passed before any changes to application code. All 5 OAuth tests passed after adding the regression. Evidence: docs/evidence/oauth-multiple-connections-tests.txt. No production application change or user-data mutation was required; reconnecting ChatGPT requires the user's client authorization. Production database metadata inspection could not proceed because the database has no public connection URL; HTTP metadata was sufficient to identify the revocation event.
+
+For the connection regression, production build, pnpm typecheck and git diff --check also passed. No UI or authentication-flow implementation changed, so the added verification targets the shared OAuth/API behavior rather than repeating browser journeys.
+
+The user subsequently confirmed the connection disappearance was their mistake and that both clients were working. No production fix was needed.

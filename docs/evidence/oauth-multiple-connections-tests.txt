@@ -1,0 +1,13 @@
+✔ OAuth discovery, PKCE, consent, expiry, scope, rotation/reuse and both credential types (582.333223ms)
+✔ OAuth rejects redirect/resource/scope/CSRF attacks, binds consent to user, and revokes on reset (991.091632ms)
+✔ OAuth consent isolation/denial, racing code exchanges, revocation and refresh client binding (869.487002ms)
+✔ OAuth exchange racing a password reset cannot deadlock or leave a usable grant (1576.622241ms)
+✔ Connecting a second OAuth assistant preserves both connections and their access (433.524998ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5253.718442

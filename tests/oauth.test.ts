@@ -25,6 +25,7 @@ async function grant(
   f: Awaited<ReturnType<typeof fixture>>,
   u: Awaited<ReturnType<typeof setup>>,
   write = false,
+  expectedName = "OAuth test",
 ) {
   const v = verifier();
   const params = {
@@ -49,7 +50,7 @@ async function grant(
     undefined,
     u.cookie,
   );
-  assert.equal(info.json().clientName, "OAuth test");
+  assert.equal(info.json().clientName, expectedName);
   const consent = await f.request(
     "POST",
     `/api/oauth/requests/${nonce}`,
@@ -386,4 +387,45 @@ test("OAuth exchange racing a password reset cannot deadlock or leave a usable g
     gate.release();
     await f.close();
   }
+});
+
+test("Connecting a second OAuth assistant preserves both connections and their access", async () => {
+  const f = await fixture();
+  try {
+    const u = await setup(f);
+    const connections = [];
+    for (const name of ["ChatGPT", "Claude"]) {
+      const registration = await f.request("POST", "/oauth/register", {
+        client_name: name,
+        redirect_uris: ["https://client.example/callback"],
+        token_endpoint_auth_method: "none",
+      });
+      const client = registration.json().client_id;
+      const { exchange } = await grant(f, { ...u, client }, false, name);
+      const response = await f.request("POST", "/oauth/token", exchange);
+      assert.equal(response.statusCode, 200);
+      connections.push({ client, token: response.json() });
+    }
+    const list = () => f.request("GET", "/api/keys", undefined, u.cookie);
+    assert.deepEqual((await list()).json().items.map((k: any) => k.name).sort(), ["ChatGPT", "Claude"]);
+    for (const connection of connections) {
+      const refreshed = await f.request("POST", "/oauth/token", {
+        grant_type: "refresh_token", client_id: connection.client, resource,
+        refresh_token: connection.token.refresh_token,
+      });
+      assert.equal(refreshed.statusCode, 200);
+      const call = await f.request("POST", "/mcp", { jsonrpc: "2.0", id: 1, method: "tools/list" }, undefined, {
+        host: "127.0.0.1:4000", accept: "application/json, text/event-stream",
+        authorization: `Bearer ${refreshed.json().access_token}`,
+      });
+      assert.equal(call.statusCode, 200);
+    }
+    assert.deepEqual((await list()).json().items.map((k: any) => k.name).sort(), ["ChatGPT", "Claude"]);
+    const revoked = await f.request("POST", "/oauth/revoke", {
+      client_id: connections[0].client,
+      token: connections[0].token.refresh_token,
+    });
+    assert.equal(revoked.statusCode, 200);
+    assert.deepEqual((await list()).json().items.map((k: any) => k.name), ["Claude"]);
+  } finally { await f.close(); }
 });
