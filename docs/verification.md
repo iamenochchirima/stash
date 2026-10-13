@@ -208,3 +208,13 @@ The initial hosted OAuth deployment passed discovery, DCR, signup/verification/c
 ## Final hosted OAuth acceptance
 
 Railway final backend deployment 07835852-8401-486f-bff0-1dc9b87897ac is SUCCESS. A Git-triggered Vercel production build for commit 057aa8a is READY, and the custom domain aliases that build. The hosted OAuth verification was repeated after the final transaction-lock refinement and passed all eight checks in [the report](evidence/oauth-hosted.json), including both credential types, refresh and revocation. Its disposable account was deleted. Local API was migrated and restarted with the same code. Native ChatGPT UI acceptance is not substituted by this SDK/browser result.
+
+### Reference hero — 13 October 2026
+
+Local reference-inspired centered hero verified at 1440px and 375px. The browser checks confirm content tiles actually change position along their routes, no horizontal overflow during playback, reduced motion hides moving tiles and stops the folder animation, and signup/sign-in navigation works. The existing save demo and accessibility checks also passed: `pnpm test:browser tests/browser/landing.spec.ts tests/browser/accessibility.spec.ts tests/browser/demo.spec.ts` — 5 passed. Evidence: `docs/evidence/hero-browser-tests.txt`, `docs/evidence/browser/landing-1440.png`, `docs/evidence/browser/landing-375.png`. Desktop and mobile animated states were also inspected directly on the local review server.
+
+`NEXT_DIST_DIR=.next-build-verification pnpm build`, `pnpm typecheck`, and `git diff --check` passed. An initial harness attempt could not connect to the stopped project-owned PostgreSQL cluster; after starting that cluster, the isolated schema checks ran normally. The first UI run caught the duplicated hero/demo heading selector; the walkthrough now uses a distinct heading and the hero selector targets level 1. The review frontend and API are running locally on 3000/4000. This design revision has not been committed or deployed.
+
+### Hero tagline — 13 October 2026
+
+Changed the hero headline to the user's selected “Never lose a good find. Save it as you go.”, keeping Save highlighted. Desktop/mobile landing browser checks passed, 2/2, including navigation, animation, reduced motion and overflow. `NEXT_DIST_DIR=.next-build-verification pnpm build`, `pnpm typecheck`, and `git diff --check` passed. Evidence: `docs/evidence/tagline-browser-tests.txt` and updated landing screenshots. Local only.

@@ -36,3 +36,7 @@ At the user's request, removed the MCP kicker, paragraph, compatibility footnote
 ## Connection diagram and sign-in action
 
 Removed the connection headline at the user's request. The section now centers the unchanged diagram with a Connect your agent button beneath it. The button opens /signin. Setup details remain in /help#agents and the authenticated Agent connections view.
+
+## Reference hero — 13 October 2026
+
+The supplied reference replaces the split hero with a centered headline and five assistant cards surrounding the folder. Existing genuine logos and the optimized folder image are reused. SVG motion follows the same curves as the visible dashed routes, with small content tiles and glowing particles; the folder has a gentle float. Mobile uses a separate route geometry and shorter assistant cards. Reduced motion hides moving tiles/particles and stops the folder animation. Sign-up remains available in the header and below the illustration. The demo heading changes to avoid repeating the new hero headline. This revision remains local for review.

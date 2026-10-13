@@ -14,15 +14,13 @@ export function Landing() {
         </nav>
       </header>
       <main>
-        <section className="site-hero">
+        <section className="site-hero hero-network">
           <div className="hero-copy">
-            <p className="site-kicker">Save as you go</p>
-            <h1>Stash it now.<br />Find it later.</h1>
-            <p className="hero-description">Ask your agent to save what’s useful without breaking your flow.</p>
-            <Link className="site-button hero-button" href="/signup">Sign up <ArrowRight size={17} /></Link>
-            <p className="hero-footnote">Your library is private. You choose which agents can access it.</p>
+            <h1>Never lose a good find.<br /><span>Save</span> it as you go.</h1>
+            <p className="hero-description">Capture, organise and retrieve valuable knowledge from your favourite AI tools — without breaking your flow.</p>
           </div>
           <HeroIllustration />
+          <Link className="site-button network-signup" href="/signup">Start your library <ArrowRight size={17} /></Link>
         </section>
         <ProductStory />
         <section className="site-connect" id="connect" aria-label="Connect your agent">

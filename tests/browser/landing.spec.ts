@@ -4,9 +4,15 @@ for (const width of [1440, 375]) {
   test(`Landing and dedicated account pages at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Stash it now. Find it later." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Never lose a good find. Save it as you go.", level: 1 })).toBeVisible();
     await expect(page.getByLabel("Your name")).toHaveCount(0);
-    await page.waitForFunction(() => [...document.querySelectorAll(".hero-stream-item")].some(el => Number(getComputedStyle(el).opacity) > .8));
+    await page.waitForFunction(() => [...document.querySelectorAll(".network-desktop .network-packet, .network-mobile .network-packet")].some(el => Number(getComputedStyle(el).opacity) > .8));
+    const packet = page.locator(width > 560 ? ".network-desktop .network-packet" : ".network-mobile .network-packet").first();
+    const before = await packet.boundingBox();
+    await expect.poll(async () => {
+      const after = await packet.boundingBox();
+      return before && after ? Math.hypot(after.x - before.x, after.y - before.y) : 0;
+    }).toBeGreaterThan(10);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await expect(page.getByText(/Codex|OpenCode/)).toHaveCount(0);
     await page.locator(".save-demo").scrollIntoViewIfNeeded();
@@ -16,6 +22,8 @@ for (const width of [1440, 375]) {
     await expect(page.getByText("Saved to Design", { exact: true })).toBeVisible();
     await expect(page.getByText("3 resources", { exact: true })).toBeVisible();
     await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(packet).toBeHidden();
+    await expect(page.locator(".network-folder")).toHaveCSS("animation-name", "none");
     await expect(page.locator(".demo-play")).toHaveCount(0);
     await expect(page.getByText("Saved to Design", { exact: true })).toBeVisible();
     await expect(page.locator(".demo-player, .demo-chapters, .demo-caption")).toHaveCount(0);
@@ -43,6 +51,6 @@ for (const width of [1440, 375]) {
     await expect(page.getByRole("heading", { name: "Sign in to Stash" })).toBeVisible();
     await page.getByRole("link", { name: "Back to home" }).click();
     await expect(page).toHaveURL(/\/$/);
-    await expect(page.getByRole("heading", { name: "Stash it now. Find it later." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Never lose a good find. Save it as you go.", level: 1 })).toBeVisible();
   });
 }

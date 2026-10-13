@@ -72,7 +72,7 @@ export function ProductStory() {
     <section className="product-story" id="how-it-works" aria-labelledby="product-story-title">
       <div className="product-story-heading">
         <p className="site-kicker">A quick look at Stash</p>
-        <h2 id="product-story-title">A good find.<br />Saved in a few words.</h2>
+        <h2 id="product-story-title">See a find become<br />part of your library.</h2>
         <p className="demo-intro">Keep researching. Let your agent handle the saving.</p>
       </div>
       <div ref={viewport} className={`save-demo phase-${phase} ${reducedMotion ? "demo-reduced-motion" : ""}`} aria-label="Illustrated example of saving a research link with an agent">
