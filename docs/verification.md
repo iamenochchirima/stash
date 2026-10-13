@@ -238,3 +238,7 @@ The isolated PostgreSQL regression connects clients named ChatGPT and Claude on 
 For the connection regression, production build, pnpm typecheck and git diff --check also passed. No UI or authentication-flow implementation changed, so the added verification targets the shared OAuth/API behavior rather than repeating browser journeys.
 
 The user subsequently confirmed the connection disappearance was their mistake and that both clients were working. No production fix was needed.
+
+### Alpha label — 13 October 2026
+
+Added a subtle Alpha badge beside the Stash logo in the public header, account pages and library header. Desktop and 375px landing navigation/overflow checks and the account/library accessibility checks passed, 3/3. Inspected the mobile screenshot for header spacing. Evidence: docs/evidence/alpha-browser-tests.txt and updated landing/signup screenshots. NEXT_DIST_DIR=.next-build-verification pnpm build, pnpm typecheck and git diff --check passed. Deployment uses the main-branch Vercel integration.

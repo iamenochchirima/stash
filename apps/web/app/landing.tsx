@@ -6,7 +6,7 @@ export function Landing() {
   return (
     <div className="site-page">
       <header className="site-header">
-        <Link className="site-brand" href="/" aria-label="Stash home"><img src="/stash.png" alt="" width={32} height={32} /><span>stash<span className="brand-dot">.</span></span></Link>
+        <Link className="site-brand" href="/" aria-label="Stash home"><img src="/stash.png" alt="" width={32} height={32} /><span>stash<span className="brand-dot">.</span></span><span className="release-badge">Alpha</span></Link>
         <nav aria-label="Main navigation">
           <a className="site-about" href="#how-it-works">How it works</a>
           <Link href="/signin">Sign in</Link>

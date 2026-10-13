@@ -19,3 +19,5 @@ The Stash pane is presented as a phone screen with a status bar, camera island, 
 The MCP connection section sits after the walkthrough. It keeps only the agent-to-Stash diagram and Connect your agent action, centered beneath it. Detailed steps remain in the setup guide. Connect your agent links to /signin. The existing setup instructions remain at /help#agents. The setup guide covers the remote MCP agent-key requirement. It creates no keys or connections on click.
 
 The root favicon uses the existing Stash cube logo, packaged in app/favicon.ico at 16, 32, 48 and 128 pixels. Next.js emits its icon link across public and account routes.
+
+A small Alpha label sits beside the Stash wordmark in the public header, account pages and signed-in library. It uses quiet colours and keeps the hero unchanged.

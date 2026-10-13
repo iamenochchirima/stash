@@ -17,6 +17,7 @@ function Brand() {
       <span>
         stash<span className="brand-dot">.</span>
       </span>
+      <span className="release-badge">Alpha</span>
     </div>
   );
 }

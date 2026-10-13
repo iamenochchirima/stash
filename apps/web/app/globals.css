@@ -2009,3 +2009,5 @@ textarea::placeholder {
  .network-folder, .network-packet { animation: none; }
  .network-packet, .network-particle { display: none; }
 }
+
+.release-badge { display: inline-flex; align-items: center; padding: 3px 7px; border: 1px solid #e5dfed; border-radius: 5px; background: #f8f6fb; color: #665b76; font-family: var(--font-public-body), sans-serif; font-size: 10px; font-weight: 550; line-height: 1.4; letter-spacing: .2px; }
