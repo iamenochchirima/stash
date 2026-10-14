@@ -1,0 +1,34 @@
+{
+  "events": [
+    {
+      "action": "user.suspend",
+      "outcome": "success",
+      "created_at": "2026-10-14T09:53:38.716Z"
+    },
+    {
+      "action": "user.restore",
+      "outcome": "success",
+      "created_at": "2026-10-14T09:54:15.256Z"
+    },
+    {
+      "action": "connection.revoke",
+      "outcome": "success",
+      "created_at": "2026-10-14T09:57:32.090Z"
+    },
+    {
+      "action": "user.delete.requested",
+      "outcome": "success",
+      "created_at": "2026-10-14T10:07:42.401Z"
+    },
+    {
+      "action": "user.delete",
+      "outcome": "success",
+      "created_at": "2026-10-14T10:07:42.444Z"
+    }
+  ],
+  "counts": {
+    "fixture_accounts": 0,
+    "fixture_resources": 0,
+    "fixture_connections": 0
+  }
+}

@@ -15,3 +15,5 @@ Evidence recipes: tests/admin.test.ts and tests/browser/admin.spec.ts. Browser t
 Sources: [TOTP specification](https://www.rfc-editor.org/rfc/rfc6238), [HOTP specification](https://www.rfc-editor.org/rfc/rfc4226), [Resend idempotency](https://resend.com/changelog/idempotency-keys).
 
 The browser recipe also enrols a separate operator through an owner-issued invitation. It checks the owner-only navigation/deletion controls are absent, suspends/restores a disposable account through the operator UI, verifies the customer session was revoked, and cleans up using a new customer login. Integration checks cover independent sign-out versus disconnect actions, login rate limiting, mixed login/key/OAuth races during both suspension and deletion, journal write failure and replay after an authorised deletion transaction rolls back.
+
+Account-scoped activity includes connection revocations via their retained opaque owner UUID, even after the revoked connection or customer has been deleted. The account filter excludes other customers. Migration 0006 adds a partial owner index for these revocation events; migration 0005 remains unchanged.

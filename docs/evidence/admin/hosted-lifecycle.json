@@ -1,8 +1,15 @@
 {
-  "date": "2026-10-14T09:25:28.351Z",
+  "date": "2026-10-14T09:52:03.387Z",
   "checks": [
     "Explicit disposable customer verified through a real Resend message; private fixture resource and working read-only MCP key created",
-    "Disposable account cleaned through its normal customer deletion endpoint; hosted owner lifecycle remains pending"
+    "Hosted suspension denies existing customer session, fresh password sign-in and MCP key",
+    "Hosted restoration preserves library, rejects old credentials and permits a new login and connection",
+    "Admin revocation rejects reconnected MCP key while retaining the customer browser session",
+    "Signed-in owner used the hosted admin UI; private resource title and note were absent from the account metadata view",
+    "Five-minute fresh-authentication boundary blocked revocation until the owner personally confirmed password and authenticator",
+    "Same Codex browser session showed the owner dashboard on admin.stash.kasitek.co.za and the independent customer sign-in page on stash.kasitek.co.za",
+    "Owner deletion rejects customer credentials and removes the disposable account",
+    "Production audit confirms successful suspend, restore, revoke, deletion request and deletion; zero remaining fixture accounts, resources or connections"
   ],
-  "status": "pending"
+  "status": "passed; account activity filter correction pending deployment"
 }

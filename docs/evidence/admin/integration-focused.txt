@@ -1,27 +1,28 @@
-✔ AT02 TOTP matches RFC 6238 SHA1 vectors and rejects replay/tampered encrypted secrets (4.903633ms)
-✔ AT01/AT02 dedicated invitation/MFA sign-in rejects customer sessions and stores no plain factors (1807.43637ms)
-✔ AT02 admin idle/absolute expiry, role changes and disabling take effect on the next request (417.691805ms)
-✔ AT03 bootstrap is operator-only, invitations expire and disabled delivery creates no working invite (415.122358ms)
-✔ AT01/AT04/AT05/AT08 role boundaries, private-content redaction, suspension and independent restoration (1900.260875ms)
-✔ AT03/AT08 final-owner protection, changed permissions, wrong confirmations and stale action authentication (1019.066099ms)
-✔ AT02 MFA replacement invalidates prior sessions/codes and operator-assisted recovery preserves role (1398.591015ms)
-✔ AT06 support emails use the customer's address, cooldown/idempotency and never expose delivery payloads (826.085835ms)
-✔ AT05/AT07 suspension and deletion leave no credentials from racing login/key/OAuth requests (2339.67659ms)
-✔ AT03 concurrent final-owner removals preserve a usable owner and audit failure prevents account mutation (1059.260827ms)
-✔ AT08/AT09 retention removes expired metadata only and paginated aggregate views stay accurate (382.882625ms)
-✔ AT06 delivery failures retain encrypted retry state and bounded retries succeed without duplicate issuance (1390.636948ms)
-✔ AT07 administrative deletion cascades and the durable journal removes restored account/library data (899.669845ms)
-✔ AT01 encoded admin route aliases cannot bypass origin or authentication boundaries (680.506122ms)
-✔ AT01 production admin sessions are host-only secure cookies independent from customer sessions (876.479204ms)
-✔ AT06 delivery and suspension share admin/customer lock ordering without a deadlock (1218.120445ms)
-✔ AT02 admin login rate limiting rejects continued password/factor attempts (2793.106956ms)
-✔ AT07 journal failure preserves a live account and an authorised SQL failure is completed by replay (708.836646ms)
-✔ AT06 administrator sign-out and disconnect target independent credentials on one account (1081.804496ms)
-ℹ tests 19
+✔ AT02 TOTP matches RFC 6238 SHA1 vectors and rejects replay/tampered encrypted secrets (1.850539ms)
+✔ AT01/AT02 dedicated invitation/MFA sign-in rejects customer sessions and stores no plain factors (1807.114276ms)
+✔ AT02 admin idle/absolute expiry, role changes and disabling take effect on the next request (447.102642ms)
+✔ AT03 bootstrap is operator-only, invitations expire and disabled delivery creates no working invite (505.26865ms)
+✔ AT01/AT04/AT05/AT08 role boundaries, private-content redaction, suspension and independent restoration (2051.727818ms)
+✔ AT03/AT08 final-owner protection, changed permissions, wrong confirmations and stale action authentication (1090.246143ms)
+✔ AT02 MFA replacement invalidates prior sessions/codes and operator-assisted recovery preserves role (1286.161694ms)
+✔ AT06 support emails use the customer's address, cooldown/idempotency and never expose delivery payloads (610.177959ms)
+✔ AT05/AT07 suspension and deletion leave no credentials from racing login/key/OAuth requests (1845.54239ms)
+✔ AT03 concurrent final-owner removals preserve a usable owner and audit failure prevents account mutation (820.80766ms)
+✔ AT08/AT09 retention removes expired metadata only and paginated aggregate views stay accurate (365.837463ms)
+✔ AT06 delivery failures retain encrypted retry state and bounded retries succeed without duplicate issuance (1087.828553ms)
+✔ AT07 administrative deletion cascades and the durable journal removes restored account/library data (683.996278ms)
+✔ AT01 encoded admin route aliases cannot bypass origin or authentication boundaries (589.46465ms)
+✔ AT01 production admin sessions are host-only secure cookies independent from customer sessions (588.447352ms)
+✔ AT06 delivery and suspension share admin/customer lock ordering without a deadlock (966.587035ms)
+✔ AT02 admin login rate limiting rejects continued password/factor attempts (2620.252559ms)
+✔ AT07 journal failure preserves a live account and an authorised SQL failure is completed by replay (635.436843ms)
+✔ AT06 administrator sign-out and disconnect target independent credentials on one account (886.510944ms)
+✔ AT08 account activity includes connection revocation without exposing another account (1117.185465ms)
+ℹ tests 20
 ℹ suites 0
-ℹ pass 19
+ℹ pass 20
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 22047.28079
+ℹ duration_ms 20723.964763

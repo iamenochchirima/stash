@@ -437,3 +437,22 @@ test("AT06 administrator sign-out and disconnect target independent credentials 
     assert.equal((await f.request("GET","/admin-api/me",undefined,owner.cookie)).statusCode,200);
   }finally{await f.close();}
 });
+
+test("AT08 account activity includes connection revocation without exposing another account",async()=>{
+  const f=await setup();
+  const call=(method:any,path:string,body?:unknown,cookie?:string)=>f.request(method,path,body,cookie,{origin:"http://127.0.0.1:3000"});
+  try{
+    const owner=await enroll(f),customer=await f.signup(),other=await f.signup("other-audit@example.test");
+    await call("POST","/api/auth/verify",{token:f.token("verify",customer.email)});
+    const key=(await call("POST","/api/keys",{name:"Scoped audit connection",scope:"read"},customer.cookie)).json();
+    const revoked=await f.request("POST",`/admin-api/connections/${key.id}/revoke`,{confirmation:"Scoped audit connection",reason:"Account activity regression verification",operationId:randomUUID()},owner.cookie);
+    assert.equal(revoked.statusCode,200);
+    const own=(await f.request("GET",`/admin-api/activity?targetId=${customer.user.id}`,undefined,owner.cookie)).json();
+    assert.equal(own.total,1);assert.equal(own.items[0].action,"connection.revoke");assert.equal(own.items[0].changes.userId,customer.user.id);
+    assert.equal((await f.request("GET",`/admin-api/activity?targetId=${other.user.id}`,undefined,owner.cookie)).json().total,0);
+    assert.ok(!JSON.stringify(own).includes(key.token));
+    await call("DELETE","/api/me",{password:"correct horse battery staple",confirmation:"DELETE"},customer.cookie);
+    const after=(await f.request("GET",`/admin-api/activity?targetId=${customer.user.id}`,undefined,owner.cookie)).json();
+    assert.equal(after.total,1);assert.equal(after.items[0].targetKind,"unavailable");assert.ok(!JSON.stringify(after).includes(customer.email));
+  }finally{await f.close();}
+});
