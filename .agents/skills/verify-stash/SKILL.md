@@ -39,7 +39,7 @@ Read [ADMIN_IMPLEMENTATION.md](../../../ADMIN_IMPLEMENTATION.md) and [docs/featu
 
 Admin enrolment, MFA replacement and recovery-code screens contain credentials. Traces and automatic failure screenshots are disabled for this test. Never capture a live invitation URL, QR, setup key or recovery codes. Safe metadata screenshots go under docs/evidence/admin. Check mobile overflow and axe, native dialog focus and labels. Admin integration tests in tests/admin.test.ts cover permission boundaries, expiry/replay, races, provider failures, durable deletion, retention and origin aliases against disposable PostgreSQL schemas.
 
-Run pnpm exec tsx scripts/admin-capacity-check.ts separately for paginated aggregate/index evidence. Run the recovery drill only after other Stash tests stop. Production bootstrap sends the permanent owner an invitation; the human chooses their password and enrols their own authenticator. Hosted acceptance uses explicitly disposable customers and records cleanup, API/MCP denial and audit results. Never run fixture schemas or recovery scripts against production.
+Run pnpm exec tsx scripts/admin-capacity-check.ts separately for paginated aggregate/index evidence. Run the recovery drill only after other Stash tests stop. Production bootstrap sends the permanent owner an invitation; the human chooses their password and enrols their own authenticator. Hosted acceptance uses explicitly disposable customers and records cleanup, API/MCP denial and audit results. Check account-scoped activity includes connection revocations even after the connection/customer is deleted; retained history must omit the deleted customer identity and private content. Never run fixture schemas or recovery scripts against production.
 
 ## Evidence
 

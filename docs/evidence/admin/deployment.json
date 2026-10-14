@@ -1,15 +1,15 @@
 {
   "date": "2026-10-14",
-  "revision": "88be7014ed83b02357216ccceb29365c79422eb5",
+  "revision": "81cf9b9aa762b2d18102a18aa8a2b00dd3525683",
   "admin": "https://admin.stash.kasitek.co.za",
   "consumer": "https://stash.kasitek.co.za",
   "api": "https://api.stash.kasitek.co.za",
-  "railwayDeployment": "fd1eeace-0c52-40bb-9ae1-85aea9b2fd70",
+  "railwayDeployment": "9610dfd7-41b5-443f-84a8-b96703969bb1",
   "railwayState": "SUCCESS",
-  "adminVercelDeployment": "dpl_411DsQ8ZYKMfeou1b3o66eoSPGN6",
-  "consumerVercelDeployment": "dpl_4cyivxaKg1MUXZUQuqRsr7nADQZ4",
+  "adminVercelDeployment": "dpl_4pmBgGeoFcCd4TMFyHAmXmLEHAjA",
+  "consumerVercelDeployment": "dpl_Dm9MK19CCfRQd5NhcgwKzfixw87n",
   "vercelState": "READY",
-  "migration": 5,
+  "migration": 6,
   "dataPreservation": {
     "before": {
       "users": 1,
@@ -20,7 +20,7 @@
       "resources": 13
     }
   },
-  "ownerInvitation": "delivered; owner enrolled, one active owner and no pending invitations",
+  "ownerInvitation": "delivered; owner enrolled and completed hosted password/MFA confirmation personally",
   "dns": {
     "type": "CNAME",
     "name": "admin.stash",
@@ -29,8 +29,15 @@
   },
   "limitations": [
     "Automatic backups and external alerts remain unconfigured",
-    "Hosted privileged lifecycle awaits an accessible signed-in owner browser session"
+    "GitHub CI jobs could not start due account billing/spending-limit restriction; local checks executed successfully"
   ],
   "consumerRegression": "Production email/OAuth/MCP/key refresh/revocation passed; disposable account deleted",
-  "adminClientRevision": "e848ae367f4b2e3113f3c3f0e7c4edb98c72bed1"
+  "adminClientRevision": "81cf9b9aa762b2d18102a18aa8a2b00dd3525683",
+  "hostedAdminAcceptance": "passed; disposable customer, resource and connections deleted; private fixture state cleared",
+  "finalMetadata": {
+    "users": 1,
+    "resources": 13,
+    "migrations": 6,
+    "accountActivityIndex": true
+  }
 }

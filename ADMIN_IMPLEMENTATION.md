@@ -153,7 +153,7 @@ Acceptance: admin journeys and existing customer journeys pass against the same 
 - [x] A6.2 Apply additive migrations and verify old customer data still works.
 - [x] A6.3 Provision the initial owner securely; complete verification/MFA on the real admin client.
 - [x] A6.4 Deploy locally verified API and admin artifacts. Check HTTPS, security headers, origin rules and cookie isolation.
-- [ ] A6.5 Run hosted acceptance on disposable customer accounts: inspect, suspend, deny API/MCP, restore, reconnect, revoke and delete.
+- [x] A6.5 Run hosted acceptance on disposable customer accounts: inspect, suspend, deny API/MCP, restore, reconnect, revoke and delete.
 - [x] A6.6 Verify customer dashboard/MCP still work and admin functions are absent from their UI/tools.
 - [x] A6.7 Record deployed revisions, domain details, recovery procedures and remaining infrastructure limitations.
 
@@ -198,3 +198,5 @@ Hosted consumer regression passed against the new API: production verification e
 Completion audit strengthened the operator browser journey, admin login rate limiting, independent session/agent revocation, concurrent suspension/deletion credential issuance and journal/SQL failure recovery. The 19 focused admin integration tests and two focused browser cases passed, with fresh typechecking and production builds. See docs/evidence/admin/completion-audit.md. GitHub CI could not start because of an account billing/spending-limit restriction; no remote CI success or paid configuration change is claimed. Owner enrolment and the hosted privileged lifecycle are still the two unchecked release gates.
 
 Production owner enrolment is now complete: the activation query returned one active owner and zero pending owner invitations. The accessible Codex browser tab is still signed out, so A6.5 awaits a usable owner browser session. A verified disposable customer and MCP key are prepared for that journey; its credentials stay only in ignored private state.
+
+Final hosted acceptance passed. The owner completed suspend, restore, connection revocation and permanent deletion through the hosted client with personal password/MFA confirmation. API and MCP probes verified denial, independent sessions and reconnect behaviour. PostgreSQL audit has all five lifecycle events and zero remaining disposable accounts/resources/connections; the original account and 13 resources remain. The final account-history fix is deployed in revision 81cf9b9 with additive migration 0006, and the browser displays all five events with the deleted identity hidden. Final regression: 50 integration tests, 13 combined browser checks followed by the focused owner/operator/viewer browser run, typecheck and production builds passed. All checklist gates are complete; out-of-scope backups/alerts and the GitHub runner billing restriction remain documented.

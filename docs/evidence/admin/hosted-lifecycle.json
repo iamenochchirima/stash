@@ -9,7 +9,9 @@
     "Five-minute fresh-authentication boundary blocked revocation until the owner personally confirmed password and authenticator",
     "Same Codex browser session showed the owner dashboard on admin.stash.kasitek.co.za and the independent customer sign-in page on stash.kasitek.co.za",
     "Owner deletion rejects customer credentials and removes the disposable account",
-    "Production audit confirms successful suspend, restore, revoke, deletion request and deletion; zero remaining fixture accounts, resources or connections"
+    "Production audit confirms successful suspend, restore, revoke, deletion request and deletion; zero remaining fixture accounts, resources or connections",
+    "Deployed account-scoped history now displays all five events including connection revocation, with deleted customer identity hidden"
   ],
-  "status": "passed; account activity filter correction pending deployment"
+  "status": "passed",
+  "privateFixtureState": "cleaned; no credential fields retained"
 }
