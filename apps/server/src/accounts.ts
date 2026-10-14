@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { deleteCustomer, sendAccountEmail } from "./account-lifecycle.js";
 import { and, eq, gt, sql } from "drizzle-orm";
 import {
   accountTokens,
@@ -49,66 +49,7 @@ export function registerAccounts(
     config: { rateLimit: { max: 10, timeWindow: "1 minute" } },
   };
   const tokenInput = z.object({ token: z.string().min(20).max(200) });
-  async function sendToken(
-    user: typeof users.$inferSelect,
-    purpose: "verify" | "reset",
-  ) {
-    if (options.emailDisabled)
-      throw new AppError(
-        503,
-        "Email verification and password recovery are currently unavailable.",
-      );
-    const token = randomBytes(32).toString("base64url");
-    await db.transaction(async (tx) => {
-      await tx
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.id, user.id))
-        .for("update");
-      await tx
-        .delete(accountTokens)
-        .where(
-          and(
-            eq(accountTokens.userId, user.id),
-            eq(accountTokens.purpose, purpose),
-          ),
-        );
-      await tx.insert(accountTokens).values({
-        hash: digest(token),
-        userId: user.id,
-        purpose,
-        expiresAt: new Date(
-          Date.now() +
-            (purpose === "verify"
-              ? LIMITS.verifyMinutes
-              : LIMITS.resetMinutes) *
-              60000,
-        ),
-      });
-    });
-    try {
-      await options.mailer.send({
-        to: user.email,
-        subject:
-          purpose === "verify"
-            ? "Verify your Stash email"
-            : "Reset your Stash password",
-        text: `${purpose === "verify" ? "Verify your email" : "Reset your password"}: ${options.origin}/?${purpose}=${token}\nThis link expires in ${purpose === "verify" ? LIMITS.verifyMinutes : LIMITS.resetMinutes} minutes. If you did not request this, ignore this message.`,
-      });
-    } catch {
-      await db
-        .delete(accountTokens)
-        .where(eq(accountTokens.hash, digest(token)));
-      app.log.error(
-        { event: "email_delivery_failed", purpose },
-        "Account email could not be delivered.",
-      );
-      throw new AppError(
-        503,
-        "Email delivery is unavailable. Please try again shortly.",
-      );
-    }
-  }
+  const sendToken = (user: typeof users.$inferSelect, purpose: "verify" | "reset") => sendAccountEmail(db, user.id, purpose, options);
   app.post("/api/auth/signup", authLimit, async (request, reply) => {
     const input = signupInput.parse(request.body),
       passwordHash = await hashPassword(input.password);
@@ -147,7 +88,7 @@ export function registerAccounts(
       user?.passwordHash ||
         `scrypt$131072$${"0".repeat(32)}$${"0".repeat(128)}`,
     );
-    if (!user || !valid)
+    if (!user || user.suspendedAt || !valid)
       throw new AppError(401, "Email or password is incorrect.");
     return db.transaction(async (tx) => {
       const [current] = await tx
@@ -155,7 +96,7 @@ export function registerAccounts(
         .from(users)
         .where(eq(users.id, user.id))
         .for("update");
-      if (!current || current.passwordHash !== user.passwordHash)
+      if (!current || current.suspendedAt || current.passwordHash !== user.passwordHash)
         throw new AppError(401, "Email or password is incorrect.");
       await authentication.session(current.id, reply, tx);
       return { user: profile(current) };
@@ -179,7 +120,11 @@ export function registerAccounts(
   });
   app.post("/api/auth/verify", authLimit, async (request) => {
     const { token } = tokenInput.parse(request.body);
+    const [candidate] = await db.select({ userId: accountTokens.userId }).from(accountTokens).where(and(eq(accountTokens.hash, digest(token)), eq(accountTokens.purpose, "verify")));
+    if (!candidate) throw new AppError(400, "This link is invalid or expired. Request a new one.");
     await db.transaction(async (tx) => {
+      const [current] = await tx.select().from(users).where(eq(users.id, candidate.userId)).for("update");
+      if (!current || current.suspendedAt) throw new AppError(400, "This link is invalid or expired. Request a new one.");
       const [record] = await tx
         .delete(accountTokens)
         .where(
@@ -210,7 +155,7 @@ export function registerAccounts(
       .select()
       .from(users)
       .where(eq(users.email, input.email));
-    if (user) {
+    if (user && !user.suspendedAt) {
       try {
         await sendToken(user, "reset");
       } catch {
@@ -224,7 +169,11 @@ export function registerAccounts(
   app.post("/api/auth/reset", authLimit, async (request, reply) => {
     const input = tokenInput.extend({ password }).parse(request.body),
       passwordHash = await hashPassword(input.password);
+    const [candidate] = await db.select({ userId: accountTokens.userId }).from(accountTokens).where(and(eq(accountTokens.hash, digest(input.token)), eq(accountTokens.purpose, "reset")));
+    if (!candidate) throw new AppError(400, "This link is invalid or expired. Request a new one.");
     await db.transaction(async (tx) => {
+      const [current] = await tx.select().from(users).where(eq(users.id, candidate.userId)).for("update");
+      if (!current || current.suspendedAt) throw new AppError(400, "This link is invalid or expired. Request a new one.");
       const [record] = await tx
         .delete(accountTokens)
         .where(
@@ -338,13 +287,12 @@ export function registerAccounts(
         .from(users)
         .where(eq(users.id, user.id))
         .for("update");
-      if (!current || current.passwordHash !== user.passwordHash)
+      if (!current || current.suspendedAt || current.passwordHash !== user.passwordHash)
         throw new AppError(
           401,
           "Your account changed. Sign in and confirm deletion again.",
         );
-      await options.journal.record(user.id);
-      await tx.delete(users).where(eq(users.id, user.id));
+      await deleteCustomer(tx, user.id, options.journal);
     });
     reply.clearCookie("stash_session", { path: "/" });
     return { deleted: true };

@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+import { inviteAdmin } from "../apps/server/src/admin-auth.js";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fixture } from "../tests/helpers.js";
@@ -10,7 +12,13 @@ await writeFile(
   JSON.stringify({ schema: f.schema }),
   { mode: 0o600 },
 );
+const adminOptions = {
+  origin: "http://127.0.0.1:3101", encryptionKey: randomBytes(32).toString("base64"), production: false,
+  mailer: createMailer({ directory: resolve(".data/verification-mail"), production: false }),
+};
 const app = await createApp(f.db, {
+  adminOrigin: adminOptions.origin,
+  adminEncryptionKey: adminOptions.encryptionKey,
   origin: "http://127.0.0.1:3100",
   publicApiUrl: "http://127.0.0.1:4100",
   mailer: createMailer({
@@ -19,6 +27,7 @@ const app = await createApp(f.db, {
   }),
 });
 await app.listen({ port: 4100, host: "127.0.0.1" });
+await inviteAdmin(f.db,adminOptions,{email:"owner@admin.example.test",name:"Stash owner",role:"owner",bootstrap:true});
 console.log("Isolated Stash verification server ready on 4100.");
 let stopping = false;
 for (const signal of ["SIGINT", "SIGTERM"] as const)

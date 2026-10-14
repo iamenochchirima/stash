@@ -1,5 +1,8 @@
 import {
   pgTable,
+  bigint,
+  integer,
+  jsonb,
   uuid,
   text,
   timestamp,
@@ -24,6 +27,9 @@ export const users = pgTable("users", {
   agentConnectedAt: timestamp("agent_connected_at", { withTimezone: true }),
   agentRetrievedAt: timestamp("agent_retrieved_at", { withTimezone: true }),
   interests: text("interests").array().notNull().default([]),
+  suspendedAt: timestamp("suspended_at", { withTimezone: true }),
+  suspensionReason: text("suspension_reason"),
+  lastActiveAt: timestamp("last_active_at", { withTimezone: true }),
   createdAt: createdAt(),
 });
 export const sessions = pgTable("sessions", {
@@ -166,4 +172,59 @@ export const oauthRefreshTokens = pgTable("oauth_refresh_tokens", {
     .references(() => apiKeys.id, { onDelete: "cascade" }),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   usedAt: timestamp("used_at", { withTimezone: true }),
+});
+
+
+export const adminUsers = pgTable("admin_users", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  email: text("email").notNull().unique(), name: text("name").notNull(),
+  passwordHash: text("password_hash").notNull(),
+  role: text("role", { enum: ["owner", "operator", "viewer"] }).notNull(),
+  disabledAt: timestamp("disabled_at", { withTimezone: true }),
+  recoveryPendingAt: timestamp("recovery_pending_at", { withTimezone: true }),
+  mfaSecret: text("mfa_secret").notNull(),
+  pendingMfaSecret: text("pending_mfa_secret"),
+  lastTotpStep: bigint("last_totp_step", { mode: "number" }).notNull().default(-1),
+  verifiedAt: timestamp("verified_at", { withTimezone: true }).notNull(),
+  lastSignedInAt: timestamp("last_signed_in_at", { withTimezone: true }),
+  createdAt: createdAt(),
+});
+export const adminSessions = pgTable("admin_sessions", {
+  hash: text("hash").primaryKey(),
+  adminId: uuid("admin_id").notNull().references(() => adminUsers.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  lastActiveAt: timestamp("last_active_at", { withTimezone: true }).notNull(),
+  authenticatedAt: timestamp("authenticated_at", { withTimezone: true }).notNull(),
+});
+export const adminInvites = pgTable("admin_invites", {
+  id: uuid("id").defaultRandom().notNull().unique(),
+  purpose: text("purpose", { enum: ["enroll", "recover"] }).notNull().default("enroll"),
+  hash: text("hash").primaryKey(), email: text("email").notNull(), name: text("name").notNull(),
+  role: text("role", { enum: ["owner", "operator", "viewer"] }).notNull(),
+  invitedBy: uuid("invited_by").references(() => adminUsers.id, { onDelete: "set null" }),
+  mfaSecret: text("mfa_secret"),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(), createdAt: createdAt(),
+});
+export const adminRecoveryCodes = pgTable("admin_recovery_codes", {
+  hash: text("hash").primaryKey(),
+  adminId: uuid("admin_id").notNull().references(() => adminUsers.id, { onDelete: "cascade" }),
+  createdAt: createdAt(),
+});
+export const adminAudit = pgTable("admin_audit", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  actorId: uuid("actor_id").references(() => adminUsers.id, { onDelete: "set null" }),
+  targetId: text("target_id"), action: text("action").notNull(), reason: text("reason").notNull(),
+  outcome: text("outcome", { enum: ["success", "failed"] }).notNull(),
+  changes: jsonb("changes").$type<Record<string, unknown>>().notNull().default({}),
+  operationId: uuid("operation_id"), createdAt: createdAt(),
+});
+
+export const adminEmailJobs = pgTable("admin_email_jobs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  actorId: uuid("actor_id").references(() => adminUsers.id, { onDelete: "set null" }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  purpose: text("purpose", { enum: ["verify", "reset"] }).notNull(),
+  payload: text("payload"), status: text("status", { enum: ["pending", "sent", "failed"] }).notNull().default("pending"),
+  attempts: integer("attempts").notNull().default(0), createdAt: createdAt(),
+  sentAt: timestamp("sent_at", { withTimezone: true }),
 });

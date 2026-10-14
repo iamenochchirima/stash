@@ -1,0 +1,21 @@
+✔ T07/T10/E04 strict isolation, many-to-many membership, and collection deletion (1101.459747ms)
+✔ T11 normalization preserves meaningful URLs and concurrent duplicates preserve original content (473.72031ms)
+✔ T10/T12 search, tags, filters, counts, boundaries, invalid URLs, and reading status (479.079804ms)
+✔ T13/E03 MCP SDK lifecycle, scopes, errors, revocation, and persisted retrieval milestones (1134.032187ms)
+✔ OAuth discovery, PKCE, consent, expiry, scope, rotation/reuse and both credential types (637.41254ms)
+✔ OAuth rejects redirect/resource/scope/CSRF attacks, binds consent to user, and revokes on reset (1152.139743ms)
+✔ OAuth consent isolation/denial, racing code exchanges, revocation and refresh client binding (740.215462ms)
+✔ OAuth exchange racing a password reset cannot deadlock or leave a usable grant (1493.750895ms)
+✔ Connecting a second OAuth assistant preserves both connections and their access (415.215412ms)
+✔ T20/E06 preview, duplicate retry, rejection reporting, and collection-remapping round trip (1262.478448ms)
+✔ T07/T20 complete export beyond one page excludes secrets and ignores malicious ownership fields (1466.179753ms)
+✔ T20 empty collections survive an export/import round trip (636.051769ms)
+✔ T20 import reports original file indexes for post-validation failures (338.899388ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5881.841504

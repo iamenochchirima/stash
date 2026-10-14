@@ -14,3 +14,5 @@ apps/server/dist/
 .railway/
 .vercel
 .env*
+
+!.env.example

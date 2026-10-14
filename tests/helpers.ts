@@ -5,7 +5,7 @@ import { createApp } from "../apps/server/src/app.js";
 import type { Mail } from "../apps/server/src/mail.js";
 export const BASE =
   process.env.TEST_DATABASE_URL || "postgresql://127.0.0.1:55432/stash_test";
-export async function fixture() {
+export async function fixture(options: { adminEncryptionKey?: string; adminOrigin?: string; deletionJournalDir?: string; mailFailure?: () => boolean } = {}) {
   const url = new URL(BASE);
   if (!url.pathname.endsWith("_test"))
     throw new Error("Test database name must end in _test.");
@@ -16,8 +16,10 @@ export async function fixture() {
   const connection = await openDatabase({ url: url.toString(), migrate: true });
   const mail: Mail[] = [];
   const app = await createApp(connection.db, {
+    ...options,
     mailer: {
       async send(message) {
+        if (options.mailFailure?.()) throw new Error("Mail provider unavailable");
         mail.push(message);
       },
     },

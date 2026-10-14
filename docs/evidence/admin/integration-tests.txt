@@ -1,0 +1,58 @@
+
+> stash@ test /home/enoch/aworkspace/agents/stash
+> tsx --test --test-concurrency=1 tests/*.test.ts
+
+✔ T04/T05/T09 signup, verification, session handling, and browser origin protection (2184.361449ms)
+✔ T04 verification expiry and resend replace previous tokens; delivery failure remains recoverable (584.082707ms)
+✔ T06/E05 recovery hides unknown accounts, is single-use, and invalidates sessions and keys (2590.759889ms)
+✔ T08/T17/E08 profiles, safe avatars, reauthenticated deletion, and complete live cleanup (1936.010971ms)
+✔ T05/T17 authentication endpoints enforce rate limits (111.823881ms)
+✔ T06 concurrent old-password login cannot create a session after a reset (1501.615282ms)
+✔ signup and recovery accept eight characters and reject seven (1382.523259ms)
+✔ email-disabled deployment allows private signup and keys without sending mail (447.493239ms)
+✔ AT02 TOTP matches RFC 6238 SHA1 vectors and rejects replay/tampered encrypted secrets (2.139353ms)
+✔ AT01/AT02 dedicated invitation/MFA sign-in rejects customer sessions and stores no plain factors (2050.162822ms)
+✔ AT02 admin idle/absolute expiry, role changes and disabling take effect on the next request (395.473744ms)
+✔ AT03 bootstrap is operator-only, invitations expire and disabled delivery creates no working invite (436.843793ms)
+✔ AT01/AT04/AT05/AT08 role boundaries, private-content redaction, suspension and independent restoration (3204.841224ms)
+✔ AT03/AT08 final-owner protection, changed permissions, wrong confirmations and stale action authentication (1824.388964ms)
+✔ AT02 MFA replacement invalidates prior sessions/codes and operator-assisted recovery preserves role (2019.703978ms)
+✔ AT06 support emails use the customer's address, cooldown/idempotency and never expose delivery payloads (962.038098ms)
+✔ AT05 suspension invalidates OAuth code/access/refresh and racing key creation cannot survive it (1281.846129ms)
+✔ AT03 concurrent final-owner removals preserve a usable owner and audit failure prevents account mutation (1077.861307ms)
+✔ AT08/AT09 retention removes expired metadata only and paginated aggregate views stay accurate (788.909754ms)
+✔ AT06 delivery failures retain encrypted retry state and bounded retries succeed without duplicate issuance (2905.918729ms)
+✔ AT07 administrative deletion cascades and the durable journal removes restored account/library data (1088.300296ms)
+✔ AT01 encoded admin route aliases cannot bypass origin or authentication boundaries (851.96643ms)
+✔ AT01 production admin sessions are host-only secure cookies independent from customer sessions (938.773901ms)
+✔ AT06 delivery and suspension share admin/customer lock ordering without a deadlock (1183.444642ms)
+✔ T02/T03 versioned migrations upgrade legacy data, repeat safely, and survive reconnection (117.238719ms)
+✔ T01/T19 configuration validation and production cookie flags (504.162481ms)
+✔ T04 SMTP boundary accepts an actual account email without sending outside localhost (18.628655ms)
+✔ T04 account survives email delivery failure and can request verification later (404.024658ms)
+✔ T04 Resend delivers signup and recovery links and keeps provider errors private (370.72526ms)
+✔ T07/T10/E04 strict isolation, many-to-many membership, and collection deletion (808.099709ms)
+✔ T11 normalization preserves meaningful URLs and concurrent duplicates preserve original content (407.496027ms)
+✔ T10/T12 search, tags, filters, counts, boundaries, invalid URLs, and reading status (413.852916ms)
+✔ T13/E03 MCP SDK lifecycle, scopes, errors, revocation, and persisted retrieval milestones (950.379612ms)
+✔ T18 block private IPv4/IPv6, credentials, unsafe ports, mixed DNS results, and redirects before fetching (3.55683ms)
+✔ T18 metadata extraction, bounded redirects, DNS changes, non-HTML/oversize/failure fallback (6.422083ms)
+✔ T18 actual HTTP reader enforces response size and absolute socket deadline (54.994826ms)
+✔ T18 stalled DNS respects the total five-second metadata deadline (5005.711875ms)
+✔ OAuth discovery, PKCE, consent, expiry, scope, rotation/reuse and both credential types (544.777993ms)
+✔ OAuth rejects redirect/resource/scope/CSRF attacks, binds consent to user, and revokes on reset (908.764112ms)
+✔ OAuth consent isolation/denial, racing code exchanges, revocation and refresh client binding (663.941893ms)
+✔ OAuth exchange racing a password reset cannot deadlock or leave a usable grant (1478.432008ms)
+✔ Connecting a second OAuth assistant preserves both connections and their access (435.492874ms)
+✔ T20/E06 preview, duplicate retry, rejection reporting, and collection-remapping round trip (761.229029ms)
+✔ T07/T20 complete export beyond one page excludes secrets and ignores malicious ownership fields (1099.3645ms)
+✔ T20 empty collections survive an export/import round trip (597.605423ms)
+✔ T20 import reports original file indexes for post-validation failures (364.837717ms)
+ℹ tests 46
+ℹ suites 0
+ℹ pass 46
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 54372.075664

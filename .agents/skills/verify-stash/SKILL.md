@@ -11,7 +11,7 @@ The canonical feature map is [docs/features/README.md](../../../docs/features/RE
 
 From the repository root, run `pnpm install --frozen-lockfile`, `./scripts/postgres-local.sh start`, and `pnpm exec playwright install chromium`. Set `TEST_DATABASE_URL` if using an existing PostgreSQL test database. Its name must end in `_test`.
 
-Run `pnpm test:browser`. The harness uses `.next-verification` for isolated Next.js output so it can run alongside the local review server. It launches an API on `127.0.0.1:4100` with a disposable PostgreSQL schema and a Next.js dashboard on `127.0.0.1:3100`. Development emails are captured in private `.data/verification-mail` files, never sent. This suite starts and cleans up its own instances; do not launch another suite on those ports simultaneously.
+Run `pnpm test:browser`. The harness uses `.next-verification` for isolated Next.js output so it can run alongside the local review server. It launches an API on `127.0.0.1:4100` with a disposable PostgreSQL schema a Next.js dashboard on `127.0.0.1:3100`, and a separate admin client on `127.0.0.1:3101`. Development emails are captured in private `.data/verification-mail` files, never sent. This suite starts and cleans up its own instances; do not launch another suite on those ports simultaneously.
 
 For normal manual use, run `pnpm db:migrate` then `pnpm dev` and open `http://127.0.0.1:3000`. Manual instances use the development library, so automated checks should use the isolated harness instead.
 
@@ -19,7 +19,7 @@ For normal manual use, run `pnpm db:migrate` then `pnpm dev` and open `http://12
 
 Before driving a manually running instance, check `GET /health` for version `0.1.0` and `GET /ready` for status 200 on its API port. Confirm the ports belong to this run and the configured `WEB_ORIGIN` matches the browser URL. If the harness says a port is occupied, stop and identify its owner; never reuse or kill an unknown process.
 
-For the managed browser suite, Playwright checks the two readiness URLs before driving. If readiness fails, inspect `docs/evidence/browser-tests.txt` or the server output before trying UI actions.
+For the managed browser suite, Playwright checks API readiness and both client URLs before driving. If readiness fails, inspect `docs/evidence/browser-tests.txt` or the server output before trying UI actions.
 
 ## Drive
 
@@ -32,6 +32,14 @@ Check the compact Getting started disclosure opens and closes, resource cards om
 `pnpm test` covers PostgreSQL-backed account, ownership, library, import/export, and MCP behavior. `pnpm exec tsx scripts/clients-check.ts` verifies real Codex/OpenCode clients only where both have functioning model access. Never substitute an SDK test for that actual client acceptance.
 
 For OAuth, run tests/browser/oauth.spec.ts. It uses the official SDK for discovery/DCR/PKCE/token exchange and real browser signup, verification and consent, then saves/retrieves through MCP and revokes in the dashboard. Only the client callback is intercepted. Capture consent and connection screenshots, never tokens. tests/oauth.test.ts checks redirect/resource validation, PKCE, single use/racing codes, permissions, expiry, refresh rotation/replay, client binding, consent isolation, denial, and reset revocation. Record native-client acceptance separately from SDK acceptance.
+
+## Admin journey
+
+Read [ADMIN_IMPLEMENTATION.md](../../../ADMIN_IMPLEMENTATION.md) and [docs/features/admin.md](../../../docs/features/admin.md). Run pnpm test:browser tests/browser/admin.spec.ts for the focused owner/viewer journey. The harness bootstraps a synthetic owner into its private captured mailbox and generates a disposable encryption key. It drives real invitation enrolment, password/TOTP authentication, one-time recovery codes, 7/30-day metrics, query-only pagination, filtered user detail/back navigation, suspension/restoration with API/MCP denial, audit, owner deletion, authenticator replacement, viewer enrolment and owner-only denial. It cleans up customer fixtures through real deletion endpoints.
+
+Admin enrolment, MFA replacement and recovery-code screens contain credentials. Traces and automatic failure screenshots are disabled for this test. Never capture a live invitation URL, QR, setup key or recovery codes. Safe metadata screenshots go under docs/evidence/admin. Check mobile overflow and axe, native dialog focus and labels. Admin integration tests in tests/admin.test.ts cover permission boundaries, expiry/replay, races, provider failures, durable deletion, retention and origin aliases against disposable PostgreSQL schemas.
+
+Run pnpm exec tsx scripts/admin-capacity-check.ts separately for paginated aggregate/index evidence. Run the recovery drill only after other Stash tests stop. Production bootstrap sends the permanent owner an invitation; the human chooses their password and enrols their own authenticator. Hosted acceptance uses explicitly disposable customers and records cleanup, API/MCP denial and audit results. Never run fixture schemas or recovery scripts against production.
 
 ## Evidence
 

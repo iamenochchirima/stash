@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import nodemailer from "nodemailer";
-export type Mail = { to: string; subject: string; text: string };
+export type Mail = { to: string; subject: string; text: string; idempotencyKey?: string };
 export type Mailer = { send: (mail: Mail) => Promise<void> };
 export function createMailer(options: {
   resendApiKey?: string;
@@ -17,14 +17,16 @@ export function createMailer(options: {
     if (!options.from) throw new Error("MAIL_FROM is required for Resend.");
     return {
       async send(mail) {
+        const { idempotencyKey, ...content } = mail;
         try {
           const response = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: {
               Authorization: `Bearer ${options.resendApiKey}`,
               "Content-Type": "application/json",
+              ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
             },
-            body: JSON.stringify({ from: options.from, ...mail, to: [mail.to] }),
+            body: JSON.stringify({ from: options.from, ...content, to: [mail.to] }),
             signal: AbortSignal.timeout(10_000),
           });
           if (!response.ok) throw new Error("Email delivery failed.");
@@ -45,7 +47,8 @@ export function createMailer(options: {
   return {
     async send(mail) {
       if (transport) {
-        await transport.sendMail({ from: options.from, ...mail });
+        const { idempotencyKey, ...content } = mail;
+        await transport.sendMail({ from: options.from, ...content, ...(idempotencyKey ? { messageId: `<${idempotencyKey}@stash.kasitek.co.za>` } : {}) });
         return;
       }
       await mkdir(options.directory, { recursive: true, mode: 0o700 });

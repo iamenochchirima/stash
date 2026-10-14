@@ -1,13 +1,20 @@
+import { mfaCipher } from "./admin-crypto.js";
 import { resolve } from "node:path";
 export function config(env: NodeJS.ProcessEnv = process.env) {
   const production = env.NODE_ENV === "production";
   const emailDisabled = env.EMAIL_DISABLED === "true";
   const origin = env.WEB_ORIGIN || "http://127.0.0.1:3000";
   const publicApiUrl = env.PUBLIC_API_URL || "http://127.0.0.1:4000";
+  const adminOrigin = env.ADMIN_WEB_ORIGIN || "http://127.0.0.1:3001";
+  if (env.ADMIN_ENCRYPTION_KEY) {
+    mfaCipher(env.ADMIN_ENCRYPTION_KEY);
+    if (production && !env.ADMIN_WEB_ORIGIN) throw new Error("Admin access requires ADMIN_WEB_ORIGIN in production.");
+  }
   const port = Number(env.PORT || 4000);
   for (const [name, value] of [
     ["WEB_ORIGIN", origin],
     ["PUBLIC_API_URL", publicApiUrl],
+    ...(env.ADMIN_ENCRYPTION_KEY ? [["ADMIN_WEB_ORIGIN", adminOrigin]] : []),
   ]) {
     const url = new URL(value);
     if (
@@ -41,6 +48,8 @@ export function config(env: NodeJS.ProcessEnv = process.env) {
   )
     throw new Error("SMTP_URL must use smtp or smtps.");
   return {
+    adminOrigin,
+    adminEncryptionKey: env.ADMIN_ENCRYPTION_KEY,
     production,
     emailDisabled,
     origin,

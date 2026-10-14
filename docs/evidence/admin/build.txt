@@ -1,0 +1,75 @@
+
+> stash@ build /home/enoch/aworkspace/agents/stash
+> pnpm --filter @stash/server build && pnpm --filter @stash/web build && pnpm --filter @stash/admin build
+
+
+> @stash/server@ build /home/enoch/aworkspace/agents/stash/apps/server
+> tsup && cp -R ../../packages/db/migrations dist/migrations
+
+CLI Building entry: src/bootstrap-admin.ts, src/index.ts, src/maintain-admin.ts, src/migrate.ts, src/recover-admin.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Using tsup config: /home/enoch/aworkspace/agents/stash/apps/server/tsup.config.ts
+CLI Target: es2022
+CLI Cleaning output folder
+ESM Build start
+ESM dist/bootstrap-admin.js 24.84 KB
+ESM dist/maintain-admin.js  16.20 KB
+ESM dist/recover-admin.js   25.05 KB
+ESM dist/migrate.js         15.44 KB
+ESM dist/index.js           129.38 KB
+ESM ⚡️ Build success in 25ms
+
+> @stash/web@ build /home/enoch/aworkspace/agents/stash/apps/web
+> next build
+
+▲ Next.js 16.4.0 (Turbopack)
+✓ Running next.config.ts took 21ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 140ms
+  Running TypeScript ...
+  Finished TypeScript in 933ms ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/8) ...
+  Generating static pages using 9 workers (2/8) 
+  Generating static pages using 9 workers (4/8) 
+  Generating static pages using 9 workers (6/8) 
+✓ Generating static pages using 9 workers (8/8) in 462ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /help
+├ ○ /oauth/consent
+├ ○ /signin
+└ ○ /signup
+
+
+○  (Static)  prerendered as static content
+
+
+> @stash/admin@ build /home/enoch/aworkspace/agents/stash/apps/admin
+> next build
+
+▲ Next.js 16.4.0 (Turbopack)
+✓ Running next.config.ts took 17ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 306ms
+  Running TypeScript ...
+  Finished TypeScript in 1859ms ...
+  Collecting page data using 5 workers ...
+  Generating static pages using 5 workers (0/3) ...
+✓ Generating static pages using 5 workers (3/3) in 494ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /_not-found
+└ ƒ /[[...route]]
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

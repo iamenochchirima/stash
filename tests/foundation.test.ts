@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import pg from "pg";
 import { openDatabase } from "@stash/db";
@@ -44,7 +44,7 @@ test("T02/T03 versioned migrations upgrade legacy data, repeat safely, and survi
         (await client.query("SELECT count(*) FROM stash_migrations")).rows[0]
           .count,
       ),
-      4,
+      (await readdir(new URL("../packages/db/migrations/", import.meta.url))).filter(name=>name.endsWith(".sql")).length,
     );
     assert.equal(
       (await client.query("SELECT notes FROM resources")).rows[0].notes,

@@ -237,11 +237,11 @@ export function registerOAuth(
       hash = requestHash(req.params);
     const pending = await db.transaction(async (tx) => {
       const [owner] = await tx
-        .select({ id: users.id })
+        .select({ id: users.id, suspendedAt: users.suspendedAt })
         .from(users)
         .where(eq(users.id, user.id))
         .for("update");
-      if (!owner) throw new AppError(401, "Sign in to continue.");
+      if (!owner || owner.suspendedAt) throw new AppError(401, "Sign in to continue.");
       const [pending] = await tx
         .update(oauthRequests)
         .set({ userId: user.id })
@@ -282,11 +282,11 @@ export function registerOAuth(
       throw new AppError(403, "Verify your email before connecting an agent.");
     return db.transaction(async (tx) => {
       const [owner] = await tx
-        .select({ id: users.id })
+        .select({ id: users.id, suspendedAt: users.suspendedAt })
         .from(users)
         .where(eq(users.id, user.id))
         .for("update");
-      if (!owner) throw new AppError(401, "Sign in to continue.");
+      if (!owner || owner.suspendedAt) throw new AppError(401, "Sign in to continue.");
       const [pending] = await tx
         .select()
         .from(oauthRequests)
@@ -405,7 +405,7 @@ export function registerOAuth(
               "invalid_grant",
               "Code is invalid, expired, or already used.",
             );
-          if (!user || (!options.emailDisabled && !user.emailVerifiedAt))
+          if (!user || user.suspendedAt || (!options.emailDisabled && !user.emailVerifiedAt))
             throw new OAuthError(
               "invalid_grant",
               "Account is unavailable or unverified.",
@@ -497,7 +497,7 @@ export function registerOAuth(
           await tx.delete(apiKeys).where(eq(apiKeys.id, key.id));
           return { replay: true as const };
         }
-        if (!user || (!options.emailDisabled && !user.emailVerifiedAt))
+        if (!user || user.suspendedAt || (!options.emailDisabled && !user.emailVerifiedAt))
           throw new OAuthError(
             "invalid_grant",
             "Account is unavailable or unverified.",

@@ -1,0 +1,12 @@
+{
+  backupRestoresAccount: true,
+  deletedAccountsPurged: 1,
+  noResurrection: true,
+  productionStartup: true,
+  outageReadyStatus: 503,
+  profileAndOnboardingPersisted: true,
+  resourcesPersisted: true,
+  credentialsPersisted: true,
+  gracefulShutdown: true,
+  passed: true
+}

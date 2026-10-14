@@ -25,10 +25,14 @@ import { registerAccounts } from "./accounts.js";
 import { createMailer, type Mailer } from "./mail.js";
 import { handleMcp } from "./mcp.js";
 import { registerOAuth } from "./oauth.js";
+import { requestPath } from "./request-path.js";
+import { registerAdminRoutes } from "./admin-routes.js";
 import { fetchMetadata } from "./metadata.js";
 export async function createApp(
   db: Database,
   options: {
+    adminOrigin?: string;
+    adminEncryptionKey?: string;
     origin?: string;
     publicApiUrl?: string;
     production?: boolean;
@@ -53,7 +57,7 @@ export async function createApp(
           serializers: {
             req: (request) => ({
               method: request.method,
-              url: request.url.split("?")[0],
+              url: request.routeOptions?.url || "/[unmatched]",
               id: request.id,
             }),
             err: (error) => ({
@@ -80,7 +84,7 @@ export async function createApp(
         .code(400)
         .send({ error: error.issues[0]?.message || "Invalid input." });
     if (error instanceof AppError) {
-      if (error.status === 401 && request.url.split("?")[0] === "/mcp")
+      if (error.status === 401 && requestPath(request) === "/mcp")
         reply.header(
           "WWW-Authenticate",
           `Bearer resource_metadata="${publicApiUrl}/.well-known/oauth-protected-resource/mcp", scope="stash:read"`,
@@ -118,7 +122,7 @@ export async function createApp(
     reply
       .header("X-Content-Type-Options", "nosniff")
       .header("Cache-Control", "no-store");
-    const path = request.url.split("?")[0];
+    const path = requestPath(request);
     const publicProtocol =
       path === "/mcp" ||
       path.startsWith("/oauth/") ||
@@ -134,10 +138,11 @@ export async function createApp(
         .header("Access-Control-Expose-Headers", "WWW-Authenticate");
       if (request.method === "OPTIONS") return reply.code(204).send();
     }
+    const browserOrigin = path.startsWith("/admin-api/") && options.adminEncryptionKey ? (options.adminOrigin || "http://127.0.0.1:3001") : origin;
     if (
       !publicProtocol &&
       request.headers.origin &&
-      request.headers.origin !== origin
+      request.headers.origin !== browserOrigin
     )
       throw new AppError(403, "Origin not allowed.");
     if (
@@ -151,8 +156,22 @@ export async function createApp(
     if (path === "/mcp" && request.headers.host !== new URL(publicApiUrl).host)
       throw new AppError(403, "Host not allowed.");
   });
+  app.addHook("onResponse", async (request, reply) => {
+    if (!request.stashActivityUserId || reply.statusCode >= 400) return;
+    try { await db.update(users).set({ lastActiveAt: new Date() }).where(sql`${users.id}=${request.stashActivityUserId} AND ${users.suspendedAt} IS NULL AND (${users.lastActiveAt} IS NULL OR ${users.lastActiveAt}<now()-interval '5 minutes')`); }
+    catch { request.log.warn({ event: "activity_update_failed" }, "Activity timestamp could not be updated"); }
+  });
   const id = (params: unknown) =>
     z.object({ id: z.string().uuid() }).parse(params).id;
+  if (options.adminEncryptionKey) registerAdminRoutes(app, db, {
+    origin: options.adminOrigin || "http://127.0.0.1:3001",
+    encryptionKey: options.adminEncryptionKey,
+    consumerOrigin: origin,
+    production: !!options.production,
+    mailer: options.mailer || createMailer({ directory: options.mailPath || "../../.data/mail", production: !!options.production, disabled: options.emailDisabled }),
+    emailDisabled: options.emailDisabled,
+    journal: options.journal || createDeletionJournal(options.deletionJournalDir || ".data/deletions"),
+  });
   app.get("/health", async () => ({ ok: true, version: "0.1.0" }));
   app.get("/ready", async (_request, reply) => {
     try {
@@ -280,11 +299,12 @@ export async function createApp(
       throw new AppError(403, "Verify your email before connecting an agent.");
     const token = `stash_${randomBytes(32).toString("base64url")}`;
     const row = await db.transaction(async (tx) => {
-      await tx
-        .select({ id: users.id })
+      const [current] = await tx
+        .select({ id: users.id, suspendedAt: users.suspendedAt })
         .from(users)
         .where(eq(users.id, user.id))
         .for("update");
+      if (!current || current.suspendedAt) throw new AppError(403, "This account is suspended.");
       const [count] = await tx
         .select({ total: sql<number>`count(*)::int` })
         .from(apiKeys)

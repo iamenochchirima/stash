@@ -1,6 +1,6 @@
 import { defineConfig } from "tsup";
 export default defineConfig({
-  entry: ["src/index.ts", "src/migrate.ts"],
+  entry: ["src/index.ts", "src/migrate.ts", "src/bootstrap-admin.ts", "src/recover-admin.ts", "src/maintain-admin.ts"],
   format: ["esm"],
   outDir: "dist",
   clean: true,

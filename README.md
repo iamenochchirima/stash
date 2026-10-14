@@ -46,7 +46,7 @@ pnpm test:browser
 pnpm exec tsx scripts/capacity-check.ts
 ```
 
-Browser verification starts its own isolated API on 4100 and dashboard on 3100, then stops them and drops its test schema. It saves screenshots in `docs/evidence/browser/` and failure traces in `test-results/`. Keep these ports free. See [the verification skill](.agents/skills/verify-stash/SKILL.md) for the repeatable user path and cleanup rules.
+Browser verification starts its own isolated API on 4100 dashboard on 3100, and admin client on 3101, then stops them and drops its test schema. It saves screenshots in `docs/evidence/browser/` and failure traces in `test-results/`. Keep all three ports free. Admin enrolment and recovery screens disable trace/screenshot capture. See [the verification skill](.agents/skills/verify-stash/SKILL.md) for the repeatable user path and cleanup rules.
 
 `pnpm exec tsx scripts/clients-check.ts` runs a real Codex save and OpenCode retrieval using disposable credentials and an isolated library. It uses the clients' configured model/account access, so run it only where both are authenticated. It does not modify their persistent MCP configuration. Raw outputs are sanitized before saving; credentials are revoked and the temporary database schema is dropped.
 
@@ -56,6 +56,7 @@ Browser verification starts its own isolated API on 4100 and dashboard on 3100, 
 pnpm build
 pnpm --filter @stash/server start
 pnpm --filter @stash/web start
+pnpm --filter @stash/admin start
 ```
 
 The server build bundles shared workspace code and includes versioned SQL migrations. Migrations are explicit with `pnpm db:migrate`; ordinary server startup does not alter the schema. Run migrations before starting a new build. In production, set `NODE_ENV=production`, `DATABASE_URL`, HTTPS `WEB_ORIGIN` and `PUBLIC_API_URL`, `SMTP_URL`, and `MAIL_FROM`. Configure `API_URL` for the web server at build time so its `/api` proxy reaches the backend.
@@ -68,6 +69,7 @@ The remote endpoint is `/mcp` using Streamable HTTP. It exposes resource save/se
 
 ## Project structure
 
+- `apps/admin`: Separate invitation-only administration client with password and TOTP MFA.
 - `apps/web`: Next.js dashboard, account flows, and help.
 - `apps/server`: Fastify API, account/email/metadata services, and MCP transport.
 - `packages/core`: Shared ownership-aware library services and portability.
@@ -76,4 +78,12 @@ The remote endpoint is `/mcp` using Streamable HTTP. It exposes resource save/se
 - `tests`: PostgreSQL integration, MCP, metadata, and browser checks.
 - `docs`: Decisions, verification results, and operating instructions.
 
-Hosting preparation is in [docs/operations.md](docs/operations.md). Public deployment is outside the current build request.
+Hosting preparation is in [docs/operations.md](docs/operations.md). The separate admin scope is in [ADMIN_IMPLEMENTATION.md](ADMIN_IMPLEMENTATION.md).
+
+## Admin development
+
+Set ADMIN_WEB_ORIGIN to http://127.0.0.1:3001 and generate a private ADMIN_ENCRYPTION_KEY as described in .env.example. Without that key, admin endpoints are disabled. Run migrations and pnpm dev, then open http://127.0.0.1:3001. The admin client proxies /admin-api using its own API_URL.
+
+Bootstrap a fresh local admin database with pnpm admin:bootstrap <email> <name>. Follow the privately captured invitation to choose a password, scan the local authenticator QR code and save the recovery codes. Public signup and customer credentials cannot grant admin access. Use pnpm admin:recover <email> only for a verified operator-assisted recovery; it immediately invalidates existing admin sessions and recovery codes. See [admin operations](docs/operations.md#admin-access) before using these commands in production.
+
+pnpm exec tsx scripts/admin-capacity-check.ts verifies 10,000 disposable customer accounts and 50,000 resources without inspecting private content.

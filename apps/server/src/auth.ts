@@ -93,8 +93,9 @@ export function auth(
             gt(sessions.expiresAt, new Date()),
           ),
         );
-      if (!row)
+      if (!row || row.user.suspendedAt)
         throw new AppError(401, "Your session expired. Please sign in again.");
+      request.stashActivityUserId = row.user.id;
       return row.user;
     },
     async agent(request: FastifyRequest) {
@@ -107,7 +108,7 @@ export function auth(
         .innerJoin(users, eq(apiKeys.userId, users.id))
         .where(eq(apiKeys.hash, digest(token)));
       if (
-        !row ||
+        !row || row.user.suspendedAt ||
         (row.key.oauthClientId && row.key.oauthResource !== resource) ||
         (row.key.expiresAt && row.key.expiresAt <= new Date()) ||
         (requireEmailVerification && !row.user.emailVerifiedAt)
@@ -123,7 +124,11 @@ export function auth(
           agentConnectedAt: sql`coalesce(${users.agentConnectedAt},now())`,
         })
         .where(eq(users.id, row.user.id));
+      request.stashActivityUserId = row.user.id;
       return row.key;
     },
   };
 }
+
+
+declare module "fastify" { interface FastifyRequest { stashActivityUserId?: string; } }

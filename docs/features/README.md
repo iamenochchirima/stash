@@ -9,3 +9,4 @@ This map records current user behavior, not future features. Use the [verificati
 | [Library and collections](library.md) | Save/search/edit, multiple collections, reading status, and user isolation |
 | [Agent connections](agents.md) | Email verification when enabled, scoped keys, actual MCP save/retrieve, and revocation |
 | [Import and export](portability.md) | Preview, commit report, download content, and round-trip organization |
+| [Administration](admin.md) | Separate MFA-protected admin client, metadata overview, user/connection lifecycle and immutable application audit |
