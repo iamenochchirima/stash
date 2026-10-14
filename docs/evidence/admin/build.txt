@@ -32,9 +32,9 @@ ESM ⚡️ Build success in 25ms
   Finished TypeScript in 933ms ...
   Collecting page data using 9 workers ...
   Generating static pages using 9 workers (0/8) ...
-  Generating static pages using 9 workers (2/8) 
-  Generating static pages using 9 workers (4/8) 
-  Generating static pages using 9 workers (6/8) 
+  Generating static pages using 9 workers (2/8)
+  Generating static pages using 9 workers (4/8)
+  Generating static pages using 9 workers (6/8)
 ✓ Generating static pages using 9 workers (8/8) in 462ms
   Finalizing page optimization ...
 
@@ -72,4 +72,3 @@ Route (app)
 
 ○  (Static)   prerendered as static content
 ƒ  (Dynamic)  server-rendered on demand
-
