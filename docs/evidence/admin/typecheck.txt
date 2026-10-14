@@ -11,7 +11,7 @@ apps/admin typecheck$ tsc --noEmit
 apps/web typecheck$ tsc --noEmit
 packages/core typecheck$ tsc -p tsconfig.json
 apps/web typecheck: Done
-packages/core typecheck: Done
 apps/admin typecheck: Done
+packages/core typecheck: Done
 apps/server typecheck$ tsc -p tsconfig.json
 apps/server typecheck: Done

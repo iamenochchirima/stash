@@ -18,24 +18,24 @@ ESM dist/maintain-admin.js  16.20 KB
 ESM dist/recover-admin.js   25.05 KB
 ESM dist/migrate.js         15.44 KB
 ESM dist/index.js           129.38 KB
-ESM ⚡️ Build success in 25ms
+ESM ⚡️ Build success in 34ms
 
 > @stash/web@ build /home/enoch/aworkspace/agents/stash/apps/web
 > next build
 
 ▲ Next.js 16.4.0 (Turbopack)
-✓ Running next.config.ts took 21ms
+✓ Running next.config.ts took 36ms
 
   Creating an optimized production build ...
-✓ Compiled successfully in 140ms
+✓ Compiled successfully in 161ms
   Running TypeScript ...
-  Finished TypeScript in 933ms ...
+  Finished TypeScript in 1415ms ...
   Collecting page data using 9 workers ...
   Generating static pages using 9 workers (0/8) ...
   Generating static pages using 9 workers (2/8)
   Generating static pages using 9 workers (4/8)
   Generating static pages using 9 workers (6/8)
-✓ Generating static pages using 9 workers (8/8) in 462ms
+✓ Generating static pages using 9 workers (8/8) in 903ms
   Finalizing page optimization ...
 
 Route (app)
@@ -54,15 +54,15 @@ Route (app)
 > next build
 
 ▲ Next.js 16.4.0 (Turbopack)
-✓ Running next.config.ts took 17ms
+✓ Running next.config.ts took 26ms
 
   Creating an optimized production build ...
-✓ Compiled successfully in 306ms
+✓ Compiled successfully in 342ms
   Running TypeScript ...
-  Finished TypeScript in 1859ms ...
+  Finished TypeScript in 2.3s ...
   Collecting page data using 5 workers ...
   Generating static pages using 5 workers (0/3) ...
-✓ Generating static pages using 5 workers (3/3) in 494ms
+✓ Generating static pages using 5 workers (3/3) in 423ms
   Finalizing page optimization ...
 
 Route (app)

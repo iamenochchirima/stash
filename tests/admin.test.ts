@@ -197,7 +197,8 @@ test("AT06 support emails use the customer's address, cooldown/idempotency and n
     assert.ok(!log.includes(stored.mfaSecret));
   }finally{await f.close();}
 });
-test("AT05 suspension invalidates OAuth code/access/refresh and racing key creation cannot survive it",async()=>{
+test("AT05/AT07 suspension and deletion leave no credentials from racing login/key/OAuth requests",async()=>{
+ for(const action of ["suspend","delete"] as const){
   const f=await setup();
   const customerRequest=(method:any,path:string,body?:unknown,cookie?:string,headers={})=>f.request(method,path,body,cookie,{origin:"http://127.0.0.1:3000",...headers});
   try{
@@ -217,14 +218,26 @@ test("AT05 suspension invalidates OAuth code/access/refresh and racing key creat
     const exchange=await authorization(),token=await customerRequest("POST","/oauth/token",exchange);assert.equal(token.statusCode,200);
     assert.equal((await f.request("GET","/admin-api/me",undefined,undefined,{authorization:`Bearer ${token.json().access_token}`})).statusCode,401);
     const pending=await authorization();
-    const suspension={action:"suspend",confirmation:customer.email,reason:"Verify OAuth suspension boundaries",operationId:randomUUID()};
-    const [suspended]=await Promise.all([f.request("POST",`/admin-api/users/${customer.user.id}/actions`,suspension,owner.cookie),customerRequest("POST","/api/keys",{name:"Racing key",scope:"read"},customer.cookie)]);assert.equal(suspended.statusCode,200);
+    const suspension={action,confirmation:customer.email,reason:"Verify OAuth suspension boundaries",operationId:randomUUID()};
+    const [suspended,login]=await Promise.all([
+      f.request("POST",`/admin-api/users/${customer.user.id}/actions`,suspension,owner.cookie),
+      customerRequest("POST","/api/auth/login",{email:customer.email,password:"correct horse battery staple"}),
+      customerRequest("POST","/api/keys",{name:"Racing key",scope:"read"},customer.cookie),
+      customerRequest("POST","/oauth/token",pending),
+      customerRequest("POST","/oauth/token",{grant_type:"refresh_token",client_id:client,resource:exchange.resource,refresh_token:token.json().refresh_token})
+    ]);assert.equal(suspended.statusCode,200);
+    if(login.statusCode===200){
+      const racingCookie=login.headers["set-cookie"]!.toString().split(";")[0];
+      assert.equal((await customerRequest("GET","/api/me",undefined,racingCookie)).statusCode,401);
+    }else assert.equal(login.statusCode,401);
+    assert.equal((await f.db.execute(sql`select count(*)::int AS count from sessions where user_id=${customer.user.id}`)).rows[0].count,0);
     assert.equal((await customerRequest("GET","/api/keys",undefined,customer.cookie)).statusCode,401);
     assert.equal((await customerRequest("POST","/oauth/token",pending)).json().error,"invalid_grant");
     assert.equal((await customerRequest("POST","/oauth/token",{grant_type:"refresh_token",client_id:client,resource:exchange.resource,refresh_token:token.json().refresh_token})).json().error,"invalid_grant");
     assert.equal((await customerRequest("POST","/mcp",{jsonrpc:"2.0",id:1,method:"tools/list"},undefined,{host:"127.0.0.1:4000",accept:"application/json, text/event-stream",authorization:`Bearer ${token.json().access_token}`})).statusCode,401);
     assert.equal((await f.db.execute(sql`select count(*)::int AS count from api_keys where user_id=${customer.user.id}`)).rows[0].count,0);
   }finally{await f.close();}
+ }
 });
 test("AT03 concurrent final-owner removals preserve a usable owner and audit failure prevents account mutation",async()=>{
   const f=await setup();
@@ -365,5 +378,62 @@ test("AT06 delivery and suspension share admin/customer lock ordering without a 
     assert.equal(sent.statusCode,200);assert.equal(suspended.statusCode,200);
     const [user]=await f.db.select().from(users).where(eq(users.id,customer.user.id));assert.ok(user.suspendedAt);
     const [job]=await f.db.select().from(adminEmailJobs);assert.equal(job.status,"sent");
+  }finally{await f.close();}
+});
+
+
+test("AT02 admin login rate limiting rejects continued password/factor attempts",async()=>{
+  const f=await setup();
+  try{
+    for(let i=0;i<10;i++)assert.equal((await f.request("POST","/admin-api/login",{email:"unknown@example.test",password:"invalid-password",code:"000000"})).statusCode,401);
+    const limited=await f.request("POST","/admin-api/login",{email:"unknown@example.test",password:"invalid-password",code:"000000"});
+    assert.equal(limited.statusCode,429);assert.ok(limited.headers["retry-after"]);
+    assert.equal((await f.db.select().from(adminSessions)).length,0);
+  }finally{await f.close();}
+});
+
+test("AT07 journal failure preserves a live account and an authorised SQL failure is completed by replay",async()=>{
+  const {writeFile,readFile,rm}=await import("node:fs/promises"),{createDeletionJournal}=await import("../apps/server/src/deletions.js");
+  const directory=`.data/admin-deletion-failure-${randomUUID()}`,f=await setup(undefined,directory);
+  try{
+    const owner=await enroll(f),customer=await f.signup();
+    const input={action:"delete",confirmation:customer.email,reason:"Disposable deletion failure verification",operationId:randomUUID()};
+    await writeFile(directory,"Deliberately prevent journal directory creation");
+    assert.equal((await f.request("POST",`/admin-api/users/${customer.user.id}/actions`,input,owner.cookie)).statusCode,500);
+    assert.equal((await f.db.select().from(users).where(eq(users.id,customer.user.id))).length,1);
+    assert.ok((await f.db.select().from(adminAudit)).some(e=>e.action==="user.delete.requested"&&e.targetId===customer.user.id));
+    await rm(directory);
+    await f.db.execute(sql`create function reject_deletion_completion() returns trigger language plpgsql as $$begin if NEW.action='user.delete' and NEW.outcome='success' then raise exception 'completion audit unavailable'; end if; return NEW; end$$`);
+    await f.db.execute(sql`create trigger reject_deletion_completion before insert on admin_audit for each row execute function reject_deletion_completion()`);
+    assert.equal((await f.request("POST",`/admin-api/users/${customer.user.id}/actions`,input,owner.cookie)).statusCode,500);
+    assert.equal((await f.db.select().from(users).where(eq(users.id,customer.user.id))).length,1);
+    const journalEntry=JSON.parse((await readFile(`${directory}/account-deletions.jsonl`,"utf8")).trim());
+    assert.equal(journalEntry.userId,customer.user.id);
+    assert.equal(await createDeletionJournal(directory).apply(f.db),1);
+    assert.equal((await f.db.select().from(users).where(eq(users.id,customer.user.id))).length,0);
+    assert.equal((await f.request("GET","/admin-api/me",undefined,owner.cookie)).statusCode,200);
+  }finally{await f.close();await rm(directory,{recursive:true,force:true});}
+});
+
+
+test("AT06 administrator sign-out and disconnect target independent credentials on one account",async()=>{
+  const f=await setup();
+  const call=(method:any,path:string,body?:unknown,cookie?:string,headers={})=>f.request(method,path,body,cookie,{origin:"http://127.0.0.1:3000",...headers});
+  try{
+    const owner=await enroll(f),customer=await f.signup();
+    await call("POST","/api/auth/verify",{token:f.token("verify",customer.email)});
+    const key=(await call("POST","/api/keys",{name:"Independent credential",scope:"read"},customer.cookie)).json();
+    const input=(action:string)=>({action,confirmation:customer.email,reason:"Verify independent support revocation",operationId:randomUUID()});
+    assert.equal((await f.request("POST",`/admin-api/users/${customer.user.id}/actions`,input("signout"),owner.cookie)).statusCode,200);
+    assert.equal((await call("GET","/api/me",undefined,customer.cookie)).statusCode,401);
+    const tools=()=>call("POST","/mcp",{jsonrpc:"2.0",id:1,method:"tools/list"},undefined,{host:"127.0.0.1:4000",accept:"application/json, text/event-stream",authorization:`Bearer ${key.token}`});
+    assert.equal((await tools()).statusCode,200);
+    const login=await call("POST","/api/auth/login",{email:customer.email,password:"correct horse battery staple"});assert.equal(login.statusCode,200);
+    const cookie=login.headers["set-cookie"]!.toString().split(";")[0];
+    assert.equal((await f.request("POST",`/admin-api/users/${customer.user.id}/actions`,input("disconnect"),owner.cookie)).statusCode,200);
+    assert.equal((await call("GET","/api/me",undefined,cookie)).statusCode,200);
+    assert.equal((await tools()).statusCode,401);
+    assert.equal((await call("GET","/api/keys",undefined,cookie)).json().items.length,0);
+    assert.equal((await f.request("GET","/admin-api/me",undefined,owner.cookie)).statusCode,200);
   }finally{await f.close();}
 });
