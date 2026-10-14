@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-14T09:09:15.521Z",
+  "web": "https://stash.kasitek.co.za",
+  "server": "https://api.stash.kasitek.co.za",
+  "checks": [
+    "Hosted discovery, DCR and S256 authorization URL via official MCP SDK",
+    "Signup retains OAuth intent; unverified consent is blocked",
+    "Production email verification, explicit consent, issuer/state, and code exchange",
+    "OAuth MCP save/retrieve persists in the user library",
+    "Existing bearer key reads OAuth-saved resource; read scope has no save tool",
+    "Production refresh token rotation succeeds",
+    "Connection revocation immediately rejects rotated OAuth access token",
+    "Disposable hosted account and resources deleted"
+  ]
+}

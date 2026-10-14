@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-14T09:08:19.096Z",
+  "revision": "88be701",
+  "checks": [
+    {
+      "path": "/",
+      "host": "admin.stash.kasitek.co.za",
+      "status": 200
+    },
+    {
+      "path": "/ready",
+      "host": "api.stash.kasitek.co.za",
+      "status": 200
+    },
+    {
+      "path": "/admin-api/me",
+      "host": "admin.stash.kasitek.co.za",
+      "status": 401
+    },
+    {
+      "path": "/admin-api/me",
+      "host": "api.stash.kasitek.co.za",
+      "status": 401
+    },
+    {
+      "path": "/",
+      "host": "stash.kasitek.co.za",
+      "status": 200
+    },
+    {
+      "path": "/admin-api/login",
+      "host": "admin.stash.kasitek.co.za",
+      "status": 403
+    },
+    {
+      "path": "/admin-api/login",
+      "host": "admin.stash.kasitek.co.za",
+      "status": 403
+    },
+    {
+      "path": "/admin-api/login",
+      "host": "admin.stash.kasitek.co.za",
+      "status": 403
+    },
+    {
+      "path": "/api/auth/signin",
+      "host": "stash.kasitek.co.za",
+      "status": 403
+    },
+    {
+      "path": "/mcp",
+      "host": "api.stash.kasitek.co.za",
+      "status": 401
+    },
+    {
+      "path": "/.well-known/oauth-authorization-server",
+      "host": "api.stash.kasitek.co.za",
+      "status": 200
+    }
+  ],
+  "headers": "HTTPS, frame denial and no-referrer passed; no authenticated cookie was inspected"
+}

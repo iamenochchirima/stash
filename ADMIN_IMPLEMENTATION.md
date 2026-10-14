@@ -149,13 +149,13 @@ Acceptance: admin journeys and existing customer journeys pass against the same 
 
 ### A6 Deployment and hosted acceptance
 
-- [ ] A6.1 Configure admin domain/project, admin origin, encryption key and session settings without logging secrets or upgrading plans.
-- [ ] A6.2 Apply additive migrations and verify old customer data still works.
+- [x] A6.1 Configure admin domain/project, admin origin, encryption key and session settings without logging secrets or upgrading plans.
+- [x] A6.2 Apply additive migrations and verify old customer data still works.
 - [ ] A6.3 Provision the initial owner securely; complete verification/MFA on the real admin client.
-- [ ] A6.4 Deploy locally verified API and admin artifacts. Check HTTPS, security headers, origin rules and cookie isolation.
+- [x] A6.4 Deploy locally verified API and admin artifacts. Check HTTPS, security headers, origin rules and cookie isolation.
 - [ ] A6.5 Run hosted acceptance on disposable customer accounts: inspect, suspend, deny API/MCP, restore, reconnect, revoke and delete.
-- [ ] A6.6 Verify customer dashboard/MCP still work and admin functions are absent from their UI/tools.
-- [ ] A6.7 Record deployed revisions, domain details, recovery procedures and remaining infrastructure limitations.
+- [x] A6.6 Verify customer dashboard/MCP still work and admin functions are absent from their UI/tools.
+- [x] A6.7 Record deployed revisions, domain details, recovery procedures and remaining infrastructure limitations.
 
 Acceptance: an owner can complete the operational journey on the hosted admin client, all audit events exist and disposable test data is cleaned up. No private customer data appears in screenshots or logs.
 
@@ -190,3 +190,7 @@ A checklist item is complete only when its acceptance criteria and affected veri
 14 October: 46 PostgreSQL integration tests passed, including admin permissions, MFA replay/session expiry, final-owner races, OAuth/key suspension races, deletion journalling/replay, audit outages, encrypted email retries and mail/suspension lock ordering. Production builds and typechecking passed for both clients and the server. The disposable capacity check used 10,000 customers and 50,000 resources, with 13–47 ms API timings and indexed plans. The owned-PostgreSQL restart/restore drill passed. Final browser verification and hosted acceptance are recorded below as they finish. Screenshots, reports and capacity proof are in docs/evidence/admin. The owner invitation destination was supplied privately; the human sets their own password and authenticator.
 
 Final combined browser run passed 13 tests, including both admin journeys and all consumer/OAuth journeys. Desktop/tablet/mobile screenshots were inspected, admin users axe had zero violations, and dialog focus/Escape, expired sessions, API unavailability/retry, pagination and period switching were exercised. Deployed acceptance remains pending.
+
+Deployment 88be701: Railway fd1eeace-0c52-40bb-9ae1-85aea9b2fd70 SUCCESS, admin Vercel dpl_7XBgjaahyTF8hwNvNuiD5WbMmNMZ READY and consumer Vercel dpl_4cyivxaKg1MUXZUQuqRsr7nADQZ4 READY. Migration 0005 preserved the one existing customer and 13 resources. The initial owner invitation was sent; human enrolment and hosted privileged acceptance remain pending. Anonymous HTTPS/origin/discovery checks passed.
+
+Hosted consumer regression passed against the new API: production verification email, OAuth discovery/DCR/PKCE/consent, MCP save/retrieve, read-only manual key retrieval, refresh rotation and revocation. Its disposable account/resources were deleted. Remaining A6.3/A6.5 require the permanent owner to complete their personal enrolment; no production admin credentials were set on their behalf.
