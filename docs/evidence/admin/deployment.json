@@ -6,7 +6,7 @@
   "api": "https://api.stash.kasitek.co.za",
   "railwayDeployment": "fd1eeace-0c52-40bb-9ae1-85aea9b2fd70",
   "railwayState": "SUCCESS",
-  "adminVercelDeployment": "dpl_7XBgjaahyTF8hwNvNuiD5WbMmNMZ",
+  "adminVercelDeployment": "dpl_411DsQ8ZYKMfeou1b3o66eoSPGN6",
   "consumerVercelDeployment": "dpl_4cyivxaKg1MUXZUQuqRsr7nADQZ4",
   "vercelState": "READY",
   "migration": 5,
@@ -20,7 +20,7 @@
       "resources": 13
     }
   },
-  "ownerInvitation": "sent; personal password/MFA enrolment pending",
+  "ownerInvitation": "delivered; owner enrolled, one active owner and no pending invitations",
   "dns": {
     "type": "CNAME",
     "name": "admin.stash",
@@ -29,7 +29,8 @@
   },
   "limitations": [
     "Automatic backups and external alerts remain unconfigured",
-    "Hosted privileged lifecycle awaits permanent owner enrolment"
+    "Hosted privileged lifecycle awaits an accessible signed-in owner browser session"
   ],
-  "consumerRegression": "Production email/OAuth/MCP/key refresh/revocation passed; disposable account deleted"
+  "consumerRegression": "Production email/OAuth/MCP/key refresh/revocation passed; disposable account deleted",
+  "adminClientRevision": "e848ae367f4b2e3113f3c3f0e7c4edb98c72bed1"
 }

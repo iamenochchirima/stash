@@ -151,7 +151,7 @@ Acceptance: admin journeys and existing customer journeys pass against the same 
 
 - [x] A6.1 Configure admin domain/project, admin origin, encryption key and session settings without logging secrets or upgrading plans.
 - [x] A6.2 Apply additive migrations and verify old customer data still works.
-- [ ] A6.3 Provision the initial owner securely; complete verification/MFA on the real admin client.
+- [x] A6.3 Provision the initial owner securely; complete verification/MFA on the real admin client.
 - [x] A6.4 Deploy locally verified API and admin artifacts. Check HTTPS, security headers, origin rules and cookie isolation.
 - [ ] A6.5 Run hosted acceptance on disposable customer accounts: inspect, suspend, deny API/MCP, restore, reconnect, revoke and delete.
 - [x] A6.6 Verify customer dashboard/MCP still work and admin functions are absent from their UI/tools.
@@ -196,3 +196,5 @@ Deployment 88be701: Railway fd1eeace-0c52-40bb-9ae1-85aea9b2fd70 SUCCESS, admin 
 Hosted consumer regression passed against the new API: production verification email, OAuth discovery/DCR/PKCE/consent, MCP save/retrieve, read-only manual key retrieval, refresh rotation and revocation. Its disposable account/resources were deleted. Remaining A6.3/A6.5 require the permanent owner to complete their personal enrolment; no production admin credentials were set on their behalf.
 
 Completion audit strengthened the operator browser journey, admin login rate limiting, independent session/agent revocation, concurrent suspension/deletion credential issuance and journal/SQL failure recovery. The 19 focused admin integration tests and two focused browser cases passed, with fresh typechecking and production builds. See docs/evidence/admin/completion-audit.md. GitHub CI could not start because of an account billing/spending-limit restriction; no remote CI success or paid configuration change is claimed. Owner enrolment and the hosted privileged lifecycle are still the two unchecked release gates.
+
+Production owner enrolment is now complete: the activation query returned one active owner and zero pending owner invitations. The accessible Codex browser tab is still signed out, so A6.5 awaits a usable owner browser session. A verified disposable customer and MCP key are prepared for that journey; its credentials stay only in ignored private state.

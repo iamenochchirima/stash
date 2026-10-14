@@ -1,0 +1,8 @@
+{
+  "date": "2026-10-14T09:25:28.351Z",
+  "checks": [
+    "Explicit disposable customer verified through a real Resend message; private fixture resource and working read-only MCP key created",
+    "Disposable account cleaned through its normal customer deletion endpoint; hosted owner lifecycle remains pending"
+  ],
+  "status": "pending"
+}
