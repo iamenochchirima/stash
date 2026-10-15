@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-10-15T13:02:27.875Z",
+  "passed": true,
+  "fixture": "One labelled Resend test recipient and a synthetic note",
+  "noPublicHeroInAuthenticatedHtml": true,
+  "directRoutesAndRefresh": true,
+  "privateHtmlNoStore": true,
+  "cardNavigation": true,
+  "mobileOverflow": false,
+  "disposableAccountDeleted": true,
+  "unauthenticatedReturnPath": true
+}

@@ -1,0 +1,19 @@
+{
+  "source": "a4fad81",
+  "consumer": {
+    "deployment": "dpl_D7bb7HWzrx2bnwtfzFTW9Yr7nrMZ",
+    "status": "READY"
+  },
+  "admin": {
+    "deployment": "dpl_CHDpVhxPwTwEJ2GMpagLjqgZTHJx",
+    "status": "READY"
+  },
+  "api": {
+    "deployment": "21934e6c-a571-4177-a74b-68f4b0d7b74f",
+    "status": "SUCCESS"
+  },
+  "migration": "0022 unchanged",
+  "model": "cohere/north-mini-code:free",
+  "nvidia": "Blocked by existing OpenRouter free-model training privacy setting; user decision pending",
+  "acceptance": "hosted-routing.json"
+}

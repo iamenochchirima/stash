@@ -138,3 +138,6 @@ Library v2 release acceptance is complete. Source e514960 is live at Railway afc
 
 
 Consumer routing rollout preparation, 15 October: deploy the new consumer before the backend email-link template. The consumer accepts old root verification/reset URLs and new /account paths, so existing messages keep working. The backend update then issues the explicit account routes. There are no schema/storage/authentication contract changes. API_URL is used at server runtime for uncached cookie/session checks as well as proxy rewrites. Forward only the Stash session cookie. Never cache authenticated HTML or use the marketing page as its loading/error state. The production model stays Cohere until NVIDIA passes the existing privacy policy or an explicit privacy change is approved.
+
+
+Consumer routing rollout completed on 15 October 2026. Consumer/admin source a4fad81 is READY, followed by the backend account email-link update at Railway 21934e6c-a571-4177-a74b-68f4b0d7b74f. Hosted route/refresh/no-store/mobile acceptance passed and disposable accounts were deleted. See docs/evidence/routing/deployment.json and hosted-routing.json. PostgreSQL migration 0022, capture configuration, storage journals and Cohere model remain unchanged. NVIDIA activation still requires resolution of the OpenRouter privacy rejection.
