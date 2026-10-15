@@ -1,0 +1,10 @@
+{
+  "users": 1,
+  "resources": 13,
+  "memberships": 12,
+  "migration": "0022_storage_journal.sql",
+  "nonLinks": 0,
+  "ready": 200,
+  "deployment": "252db9eb-32ab-4048-bfaf-b7f4d81e10c5",
+  "newTypesEnabled": false
+}

@@ -1,0 +1,12 @@
+{
+  "users": 1,
+  "resources": 13,
+  "memberships": 12,
+  "migration": "0006_admin_activity.sql",
+  "snapshot": {
+    "archiveIndexValidated": true,
+    "bytes": 47161,
+    "sha256": "59cab95d7bb5233d09bf450efdaac628012f0aa2a23a125d6719a02b2a5dfb1a",
+    "private": true
+  }
+}
