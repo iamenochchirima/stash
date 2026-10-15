@@ -1,0 +1,20 @@
+import { test,expect } from "@playwright/test";
+import { randomUUID } from "node:crypto";
+import AxeBuilder from "@axe-core/playwright";
+const headers={origin:"http://127.0.0.1:3100"};
+for(const width of[1440,375])test(`Card text selection, Trash Undo, restore and permanent deletion at ${width}px`,async({page})=>{
+ await page.setViewportSize({width,height:1000});expect((await page.request.post("/api/auth/signup",{headers,data:{name:"Reading researcher",email:`lifecycle-${randomUUID()}@example.test`,password:"Research123"}})).status()).toBe(201);
+ const saved=await page.request.post("/api/items",{headers,data:{kind:"link",url:"https://example.test/useful",title:"Useful reading",notes:"Select this useful context without opening the item."}}),id=(await saved.json()).item.id;
+ await page.goto("/");const card=page.locator(".resource-card").filter({hasText:"Useful reading"}),text=card.locator(".resource-notes");
+ const bounds=await text.boundingBox();await page.mouse.move(bounds!.x+2,bounds!.y+10);await page.mouse.down();await page.mouse.move(bounds!.x+bounds!.width-4,bounds!.y+10,{steps:15});await page.mouse.up();
+ await expect(page).toHaveURL(/\/$/);expect(await page.evaluate(()=>getSelection()?.toString())).toContain("useful");
+ await page.evaluate(()=>getSelection()?.removeAllRanges());await text.click();await expect(page).toHaveURL(new RegExp(`/items/${id}`));
+ await page.getByText("More",{exact:true}).click();await page.getByRole("button",{name:"Move to Trash",exact:true}).click();await expect(page).toHaveURL(/\/$/);await expect(page.getByText("Moved to Trash.",{exact:true})).toBeVisible();await expect(page.getByRole("link",{name:"Useful reading",exact:true})).toHaveCount(0);
+ await page.getByRole("button",{name:"Undo",exact:true}).click();await expect(page.getByRole("link",{name:"Useful reading",exact:true})).toBeVisible();await expect(page.getByText("Change undone.",{exact:true})).toBeVisible();
+ await page.getByRole("link",{name:"Useful reading",exact:true}).click();await page.getByText("More",{exact:true}).click();await page.getByRole("button",{name:"Archive",exact:true}).click();await expect(page.getByText("Archived.",{exact:true})).toBeVisible();await page.getByRole("button",{name:"Undo",exact:true}).click();await expect(page.locator(".item-context").getByText("Archived",{exact:true})).toHaveCount(0);
+ await page.getByText("More",{exact:true}).click();await page.getByRole("button",{name:"Move to Trash",exact:true}).click();await page.getByRole("button",{name:"Trash",exact:true}).click();await page.getByRole("link",{name:"Useful reading",exact:true}).click();
+ page.once("dialog",dialog=>dialog.dismiss());await page.getByRole("button",{name:"Delete permanently",exact:true}).click();await expect(page.getByRole("heading",{name:"Useful reading",exact:true})).toBeVisible();
+ page.once("dialog",dialog=>dialog.accept());await page.getByRole("button",{name:"Delete permanently",exact:true}).click();await expect(page.getByText("Permanently deleted.",{exact:true})).toBeVisible();expect((await page.request.get(`/api/items/${id}?trash=true`)).status()).toBe(404);
+ await expect(page.getByRole("button",{name:"Undo",exact:true})).toHaveCount(0);expect((await new AxeBuilder({page}).withTags(["wcag2a","wcag2aa","wcag21aa"]).analyze()).violations).toEqual([]);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:`docs/evidence/library-v2/lifecycle-${width}.png`,fullPage:true});
+});

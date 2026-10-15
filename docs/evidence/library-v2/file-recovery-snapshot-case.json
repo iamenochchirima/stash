@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-10-15T09:39:42.331Z",
+  "fixture": "Synthetic PDF, summary, mixed items, pending original and disposable PostgreSQL schema",
+  "postgresRestarted": false,
+  "backupTaken": true,
+  "accountDeleted": true,
+  "disposableSchemaRestored": true,
+  "backupContainedDeletedAccountAndSummary": true,
+  "journalReplayIdempotent": true,
+  "restoredAccessDenied": true,
+  "privateDerivedRecordsRemoved": true,
+  "cleanupRecreatedWithByteAccounting": true,
+  "allOriginalsRemoved": true,
+  "passed": true
+}

@@ -28,3 +28,10 @@ A real Backblaze check exported and restored a synthetic original to another dis
 
 
 Bookmark export is explicit about its scope: titles and URLs from main-library links, including archived links, with counts for excluded project, Trash and non-link items. Notes, files, summaries and organisation require JSON or a full ZIP. HTML output escapes both titles and URL attributes. Data-only JSON and bookmark downloads stream directly through the same transient download worker; JSON serialises one item at a time and bookmarks one entry at a time. Neither is cached. Legacy JSON endpoints remain compatible. Help and MCP descriptions now explain URL-free notes/ideas, scope, bounded project reads and archive/Trash defaults. Evidence: exports-mcp.txt, exports-stream.txt and exports-browser.txt.
+
+
+Drafts are scoped to the signed-in account in session storage. Discard is explicit; storage failure leaves saving available with a warning. Conflict review preserves typed content and shows the latest revision before retry. Mutations reject an explicitly mismatched account marker. Sign-out/reset/deletion clear drafts and other tabs leave private screens. Card text can be selected; ordinary body clicks still open detail. Trash/archive actions offer a 30-second Undo, while permanent deletion requires confirmation.
+
+Production startup now replays a separate ordered storage intent journal after account-deletion replay and before HTTP. It recovers orphan originals written after a restored database snapshot and honours completed removals. Local dump/restore acceptance tracked and removed three originals. Current local acceptance is 108 integration tests plus focused browser checks, typecheck and all builds. Hosted rollout remains pending.
+
+Real native Codex/OpenCode mixed-item save/retrieve and revocation passed. MCP list/search accepts omitted or null unused filters without relaxing ownership checks. Release preparation includes a 10,001-link migration and six admin/OAuth/PWA browser regressions. Hosted acceptance is still pending.

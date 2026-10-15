@@ -336,3 +336,5 @@ export const backupRestoreItems = pgTable("backup_restore_items", {
   resourceId: uuid("resource_id").references(() => resources.id, { onDelete: "set null" }),
   sourceOriginId: uuid("source_origin_id"), created: boolean("created").notNull().default(false),
 }, t => [primaryKey({ columns: [t.transferHash,t.originId] })]);
+
+export const storageFileLedger=pgTable("storage_file_ledger",{storageKey:text("storage_key").primaryKey(),userId:uuid("user_id").notNull(),byteSize:integer("byte_size").notNull(),state:text("state",{enum:["put","remove","removed"]}).notNull(),lastEventSeq:bigint("last_event_seq",{mode:"bigint"}).notNull(),recordedAt:timestamp("recorded_at",{withTimezone:true}).notNull()});

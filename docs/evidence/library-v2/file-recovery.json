@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-10-15T10:01:12.641Z",
+  "fixture": "Synthetic PDF, summary, mixed items, pending original and disposable PostgreSQL schema",
+  "postgresRestarted": false,
+  "backupTaken": true,
+  "postSnapshotOriginalWritten": true,
+  "accountDeleted": true,
+  "disposableSchemaRestored": true,
+  "backupContainedDeletedAccountAndSummary": true,
+  "journalReplayIdempotent": true,
+  "storageJournalReplayed": true,
+  "restoredAccessDenied": true,
+  "privateDerivedRecordsRemoved": true,
+  "originalsExpected": 3,
+  "cleanupTasksRestored": 3,
+  "postSnapshotOriginalTracked": true,
+  "cleanupRecreatedWithByteAccounting": true,
+  "allOriginalsRemoved": true,
+  "passed": true
+}

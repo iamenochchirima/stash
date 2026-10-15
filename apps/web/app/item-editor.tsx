@@ -3,12 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import type { Item, Collection } from "@stash/shared";
 import { uploadPdf } from "./pdf-transfer";
 import { api, ApiError } from "./api";
-export function clearItemDrafts() {
-  try { for (const key of Object.keys(sessionStorage)) if (key.startsWith("stash-draft:")) sessionStorage.removeItem(key); } catch { /* Private browsing can disable browser storage. */ }
-}
-export function scopeItemDraftsToUser(userId:string) {
-  try { const previous=sessionStorage.getItem("stash-active-user");if(previous&&previous!==userId)clearItemDrafts();sessionStorage.setItem("stash-active-user",userId); } catch { /* Capture still works without browser storage. */ }
-}
+export {clearItemDrafts,scopeItemDraftsToUser} from "./draft-storage";
 type Draft = { kind: "link" | "note" | "idea" | "pdf"; title: string; url: string; body: string; notes: string; tags: string; collectionIds: string[]; status: string; revision: number; requestId: string };
 export function ItemEditor({ userId, editing, collections, selectedCollection, projectId, onSaved }: {
   projectId?: string; userId: string; editing?: Item | null; collections: Collection[]; selectedCollection?: string; onSaved: (item: Item, duplicate?: boolean) => void | Promise<void>;
@@ -23,7 +18,7 @@ export function ItemEditor({ userId, editing, collections, selectedCollection, p
       if (!saved || typeof saved !== "object") return initial;
       const next = { ...initial };
       for (const key of ["title", "url", "body", "notes", "tags", "requestId"] as const) if (typeof saved[key] === "string") next[key] = saved[key];
-      if (["link", "note", "idea", "pdf"].includes(saved.kind)) next.kind = saved.kind;
+      if (!editing && ["link", "note", "idea", "pdf"].includes(saved.kind)) next.kind = saved.kind;
       if (["unread", "reading", "done"].includes(saved.status)) next.status = saved.status;
       if (Array.isArray(saved.collectionIds)) next.collectionIds = saved.collectionIds.filter((v: unknown) => typeof v === "string").slice(0, 20);
       if (Number.isInteger(saved.revision) && saved.revision > 0) next.revision = saved.revision;
@@ -42,8 +37,9 @@ export function ItemEditor({ userId, editing, collections, selectedCollection, p
     if (!dirty) return;
     try { sessionStorage.setItem(draftKey, JSON.stringify(draft)); setDraftWarning(""); } catch { setDraftWarning("Draft storage is unavailable. Keep this editor open until you save."); }
     const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
+    const ended=()=>{window.removeEventListener("beforeunload",warn);setDirty(false);};
+    window.addEventListener("beforeunload", warn);window.addEventListener("stash-session-ended",ended);
+    return () => {window.removeEventListener("beforeunload", warn);window.removeEventListener("stash-session-ended",ended);};
   }, [draft, dirty, draftKey]);
   async function submit(event: FormEvent) {
     event.preventDefault(); setBusy(true); setError("");
@@ -53,10 +49,10 @@ export function ItemEditor({ userId, editing, collections, selectedCollection, p
       if (!editing && draft.kind === "pdf") {
         if (!file) throw new Error("Choose a PDF file.");
         if (file.size > 20 * 1024 * 1024) throw new Error("PDFs can be up to 20 MB.");
-        const saved = await uploadPdf(file, setProgress, { projectId: workspaceId, ...common, status: draft.status, requestId: draft.requestId });
+        const saved = await uploadPdf(file, setProgress, { projectId: workspaceId, ...common, status: draft.status, requestId: draft.requestId },userId);
         try { sessionStorage.removeItem(draftKey); } catch {} setDirty(false); await onSaved(saved); return;
       }
-      const result = await api<{ item: Item; duplicate?: boolean }>(editing ? `/items/${editing.id}` : "/items", { method: editing ? "PATCH" : "POST", body: JSON.stringify(input) });
+      const result = await api<{ item: Item; duplicate?: boolean }>(editing ? `/items/${editing.id}` : "/items", { method: editing ? "PATCH" : "POST", headers:{"X-Stash-Account":userId}, body: JSON.stringify(input) });
       try { sessionStorage.removeItem(draftKey); } catch {} setDirty(false); await onSaved(result.item, result.duplicate);
     } catch (e) { setError((e as Error).message); setConflict(e instanceof ApiError && e.status === 409 && !!editing); }
     finally { setBusy(false); }
@@ -68,11 +64,15 @@ export function ItemEditor({ userId, editing, collections, selectedCollection, p
     <label>Title<input maxLength={200} value={draft.title} onChange={e => change({ title: e.target.value })} placeholder={draft.kind === "pdf" ? "Optional, use the filename" : draft.kind === "link" ? "Optional, use the page title" : "Optional, use the first line"} /></label>
     {["note", "idea"].includes(draft.kind) && <label>Content<textarea aria-label="Content" required maxLength={contentLimit} rows={10} value={draft.body} onChange={e => change({ body: e.target.value })} placeholder="Write it down. Markdown supported." /><small>Up to {contentLimit.toLocaleString()} characters. Headings, lists, links and code blocks supported.</small></label>}
     <label>Why it matters<textarea maxLength={10000} rows={3} value={draft.notes} onChange={e => change({ notes: e.target.value })} placeholder="Optional context for later" /></label>
-    <div className="form-row">{!workspaceId && <fieldset className="collection-picker"><legend>Collections</legend>{collections.map(c => <label key={c.id}><input type="checkbox" checked={draft.collectionIds.includes(c.id)} onChange={e => change({ collectionIds: e.target.checked ? [...draft.collectionIds, c.id] : draft.collectionIds.filter(id => id !== c.id) })} />{c.name}</label>)}</fieldset>}{(["link", "pdf"].includes(draft.kind)) && <label>Reading status<select value={draft.status} onChange={e => change({ status: e.target.value })}><option value="unread">Unread</option><option value="reading">Reading</option><option value="done">Finished</option></select></label>}</div>
+    <details className="item-editor-options"><summary>More options</summary><div className="form-row">{!workspaceId && <fieldset className="collection-picker"><legend>Collections</legend>{collections.map(c => <label key={c.id}><input type="checkbox" checked={draft.collectionIds.includes(c.id)} onChange={e => change({ collectionIds: e.target.checked ? [...draft.collectionIds, c.id] : draft.collectionIds.filter(id => id !== c.id) })} />{c.name}</label>)}</fieldset>}{(["link", "pdf"].includes(draft.kind)) && <label>Reading status<select value={draft.status} onChange={e => change({ status: e.target.value })}><option value="unread">Unread</option><option value="reading">Reading</option><option value="done">Finished</option></select></label>}</div>
     <label>Tags<input aria-label="Tags" value={draft.tags} onChange={e => change({ tags: e.target.value })} placeholder="research, ideas" /><small>Separate with commas.</small></label>
+    </details>
     {draftWarning&&<p role="status">{draftWarning}</p>}
     {error && <p role="alert" className="error">{error}</p>}
-    {conflict && editing && <section className="edit-conflict"><button type="button" className="button secondary" onClick={() => api<{ item: Item }>(`/items/${editing.id}`).then(r => setLatest(r.item)).catch(e => setError(e.message))}>Review latest version</button>{latest && <><h3>Latest saved version</h3><p>{latest.title}</p><pre>{latest.body || latest.notes}</pre><p>Your unsaved changes remain in the editor above.</p><button type="button" className="button secondary" onClick={() => { change({ revision: latest.revision }); setConflict(false); setLatest(null); setError(""); }}>Use this revision for my next save</button></>}</section>}
-    <div className="form-actions"><small>{dirty ? "Unsaved changes" : ""}</small><button type="submit" className="button primary" disabled={busy || (!editing && draft.kind === "pdf" && !pdfAvailable)}>{busy ? "Saving…" : editing ? "Save changes" : "Save item"}</button></div>
+    {conflict && editing && <section className="edit-conflict"><button type="button" className="button secondary" onClick={() => api<{ item: Item }>(`/items/${editing.id}`).then(r => setLatest(r.item)).catch(e => setError(e.message))}>Review latest version</button>{latest && <><h3>Latest saved version</h3><p>{latest.title}</p>{latest.body&&<pre>{latest.body}</pre>}{latest.notes&&<p><strong>Why it matters</strong><br/>{latest.notes}</p>}{latest.tags.length>0&&<p>Tags: {latest.tags.join(", ")}</p>}{latest.collectionIds.length>0&&<p>Collections: {collections.filter(c=>latest.collectionIds.includes(c.id)).map(c=>c.name).join(", ")}</p>}{["link","pdf"].includes(latest.kind)&&<p>Reading status: {latest.status==="done"?"Finished":latest.status==="reading"?"Reading":"Unread"}</p>}<p>Your unsaved changes remain in the editor above.</p><button type="button" className="button secondary" onClick={() => { change({ revision: latest.revision }); setConflict(false); setLatest(null); setError(""); }}>Use this revision for my next save</button></>}</section>}
+    <div className="form-actions"><small>{dirty ? "Unsaved changes" : ""}</small>{dirty&&<button type="button" className="button secondary" onClick={()=>{
+      if(!confirm("Discard your unsaved changes?"))return;
+      try{sessionStorage.removeItem(draftKey);}catch{}setDraft(initial);setDirty(false);setConflict(false);setLatest(null);setError("");setFile(null);setProgress(0);setDraftWarning("");
+    }}>Discard draft</button>}<button type="submit" className="button primary" disabled={busy || (!editing && draft.kind === "pdf" && !pdfAvailable)}>{busy ? "Saving…" : editing ? "Save changes" : "Save item"}</button></div>
   </fieldset></form>;
 }

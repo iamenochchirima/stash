@@ -1,0 +1,12 @@
+✔ Storage journal replays orphan intents, deletion acknowledgements and monotonic ordering (580.323788ms)
+✔ Storage writes fail before touching objects if the durable journal cannot be written (418.453888ms)
+✔ Storage journal rejects missing/corrupt private history and seeds pre-journal originals (458.485223ms)
+✔ An interrupted physical deletion remains authoritative after older attachment metadata returns (518.332197ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3193.439927

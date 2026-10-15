@@ -95,6 +95,8 @@ export function auth(
         );
       if (!row || row.user.suspendedAt)
         throw new AppError(401, "Your session expired. Please sign in again.");
+      const expected=request.headers["x-stash-account"];
+      if(expected!==undefined&&expected!==row.user.id)throw new AppError(403,"Your signed-in account changed. Reload Stash before saving.");
       request.stashActivityUserId = row.user.id;
       return row.user;
     },

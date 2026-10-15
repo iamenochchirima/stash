@@ -1,4 +1,6 @@
 "use client";
+import { LifecycleFeedback,recordLifecycle } from "./lifecycle-feedback";
+import { useAccountSession } from "./session-guard";
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -13,6 +15,7 @@ import { ItemEditor, scopeItemDraftsToUser } from "./item-editor";
 export function ItemDetail({ id }: { id: string }) {
   const router = useRouter();
   const [item, setItem] = useState<Item | null>(null), [userId, setUserId] = useState("");
+  useAccountSession(userId);
   const [pdfPage, setPdfPage] = useState(1);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [error, setError] = useState(""), [notice, setNotice] = useState("");
@@ -38,11 +41,11 @@ export function ItemDetail({ id }: { id: string }) {
   async function action(type: "archive" | "unarchive" | "trash" | "restore" | "purge") {
     if (type === "purge" && !confirm("Permanently delete this item? It cannot be restored.")) return;
     setBusy(true); setNotice("");
-    try { await api(`/items/${id}/lifecycle`, { method: "POST", body: JSON.stringify({ action: type }) }); if (["trash", "restore", "purge"].includes(type)) router.push(returnTo); else await load(); }
+    try { await api(`/items/${id}/lifecycle`, { method: "POST", body: JSON.stringify({ action: type }) }); const menu=document.querySelector<HTMLDetailsElement>(".item-more");if(menu)menu.open=false;recordLifecycle(userId,id,type); if (["trash", "restore", "purge"].includes(type)) router.push(returnTo); else await load(); }
     catch (e) { setNotice((e as Error).message); } finally { setBusy(false); }
   }
   return <div className="item-shell"><header className="item-header"><Link className="site-brand" href="/" aria-label="Stash home"><img src="/stash.png" width={30} height={30} alt="" /><span>stash<span className="brand-dot">.</span></span><span className="release-badge">Alpha</span></Link><Link className="item-back" href={returnTo}><ArrowLeft size={16} />{item?.projectId ? "Back to project" : "Back to library"}</Link></header>
-    <main className="item-reading">
+    <main className="item-reading"><LifecycleFeedback userId={userId} onChanged={load}/>
       {error ? <section><h1>{error === "Item not found." ? "Item not found" : "Unable to open item"}</h1><p role="alert">{error}</p>{error !== "Item not found." && <button className="button secondary" onClick={() => void load()}>Try again</button>}</section> : !item ? <p role="status"><LoaderCircle className="spin" size={18} /> Loading item…</p> : <>
         {editing ? <><div className="item-heading"><h1>Edit item</h1><button className="button secondary" onClick={() => { if (confirm("Close the editor? Your draft will remain on this device until sign-out.")) setEditing(false); }}><X size={16} />Close editor</button></div><ItemEditor key={item.id} userId={userId} editing={item} collections={collections} onSaved={saved => { setItem(saved); setEditing(false); setNotice("Changes saved."); }} /></> : <>
           <div className="item-context"><span>{item.kind === "link" ? "Saved link" : item.kind === "note" ? "Note" : item.kind === "idea" ? "Idea" : "PDF"}</span>{item.url && <span>{new URL(item.url).hostname}</span>}{item.archivedAt && <span>Archived</span>}{trash && <span>In Trash</span>}</div>

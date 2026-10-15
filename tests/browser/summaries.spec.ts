@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
-import { pdf } from "../pdf-fixture.js";
+import { pdf,pagedPdf,imageOnlyPdf } from "../pdf-fixture.js";
 for(const width of [1440,375]) test(`Request, revisit and regenerate a cited PDF summary at ${width}px`,async({page})=>{
   await page.setViewportSize({width,height:1000});
   const signup=await page.request.post("/api/auth/signup",{headers:{origin:"http://127.0.0.1:3100"},data:{name:"Summary reader",email:`summary-${randomUUID()}@example.test`,password:"Research123"}});
@@ -36,4 +36,14 @@ for(const width of [1440,375]) test(`Request, revisit and regenerate a cited PDF
   expect((await new AxeBuilder({page}).withTags(["wcag2a","wcag2aa","wcag21aa"]).analyze()).violations).toEqual([]);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:`docs/evidence/library-v2/summary-${width}.png`,fullPage:true});
+});
+
+
+test("Long PDF summaries disclose partial coverage and scanned originals remain downloadable",async({page})=>{
+ test.setTimeout(90000);const headers={origin:"http://127.0.0.1:3100"};expect((await page.request.post("/api/auth/signup",{headers,data:{name:"Source reviewer",email:`partial-${randomUUID()}@example.test`,password:"Research123"}})).status()).toBe(201);
+ async function upload(name:string,bytes:Buffer){const ticket=(await(await page.request.post("/api/items/uploads",{headers,data:{filename:name,byteSize:bytes.length}})).json());const response=await page.request.post(ticket.uploadUrl,{headers:{...headers,authorization:`Bearer ${ticket.token}`,"content-type":"application/pdf"},data:bytes});expect(response.status()).toBe(200);return(await response.json()).item;}
+ const long=await upload("Long source.pdf",pagedPdf(Array.from({length:30},(_,index)=>`Page ${index+1}. `+"This synthetic trial compares paper and cloth filters without establishing drinking water safety. ".repeat(15))));
+ await page.goto(`/items/${long.id}`);const panel=page.getByRole("region",{name:"AI summary"});await expect(panel.getByRole("button",{name:"Summarise",exact:true})).toBeEnabled({timeout:25000});await panel.getByRole("button",{name:"Summarise",exact:true}).click();await expect(panel.getByText("Covers part of the source. Read the original for the full document.",{exact:true})).toBeVisible({timeout:25000});await panel.getByText("Source references",{exact:true}).click();await expect(panel.getByRole("heading",{name:"Page 1",exact:true})).toBeVisible();await page.screenshot({path:"docs/evidence/library-v2/summary-partial.png",fullPage:true});
+ const scanned=await upload("Scanned source.pdf",imageOnlyPdf());await page.goto(`/items/${scanned.id}`);await expect(page.getByText("This PDF has no selectable text. Scanned documents need OCR, which is not supported yet.",{exact:true})).toBeVisible({timeout:25000});await expect(page.getByRole("button",{name:"Download PDF",exact:true})).toBeEnabled();await expect(panel.getByRole("button",{name:"Summarise",exact:true})).toBeDisabled();
+ expect((await new AxeBuilder({page}).withTags(["wcag2a","wcag2aa","wcag21aa"]).analyze()).violations).toEqual([]);
 });

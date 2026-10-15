@@ -1,0 +1,17 @@
+✔ T04/T05/T09 signup, verification, session handling, and browser origin protection (1475.578892ms)
+✔ T04 verification expiry and resend replace previous tokens; delivery failure remains recoverable (386.593537ms)
+✔ T06/E05 recovery hides unknown accounts, is single-use, and invalidates sessions and keys (1642.427152ms)
+✔ T08/T17/E08 profiles, safe avatars, reauthenticated deletion, and complete live cleanup (1325.305138ms)
+✔ T05/T17 authentication endpoints enforce rate limits (129.701265ms)
+✔ T06 concurrent old-password login cannot create a session after a reset (1374.5753ms)
+✔ signup and recovery accept eight characters and reject seven (1151.116898ms)
+✔ email-disabled deployment allows private signup and keys without sending mail (393.641413ms)
+✔ An editor bound to another account cannot write through a changed browser session (775.366562ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10377.271161

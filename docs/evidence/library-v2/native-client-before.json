@@ -1,0 +1,7 @@
+{
+  "passed": false,
+  "codexSavedIdea": true,
+  "opencodeRetrieved": false,
+  "reason": "Native model filled unused filters with invented IDs. Null filters were not accepted.",
+  "fixedBy": "Nullable MCP-only filters with null omitted before shared validation; foreign IDs still denied."
+}

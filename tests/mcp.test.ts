@@ -191,6 +191,11 @@ test("Mixed-item MCP sharing, editing conflicts, lifecycle and read-only boundar
     assert.equal(updated.body, "Developed across agents");
     assert.ok((await writer.callTool({ name: "update_item", arguments: { id: idea.id, revision: idea.revision, body: "Stale overwrite" } })).isError);
     assert.equal(data(await reader.callTool({ name: "search_items", arguments: { q: "developed" } })).total, 1);
+    const nullFilters = {projectId:null,collectionId:null,includeProjects:null,kind:null,status:null,favourite:null,includeArchived:null,limit:null,offset:null,location:null};
+    for (const name of ["list_items","search_items"]) {
+      assert.equal(data(await reader.callTool({name,arguments:{...nullFilters,q:"developed"}})).total,1);
+      assert.ok((await reader.callTool({name,arguments:{...nullFilters,projectId:b.user.id}})).isError);
+    }
     assert.equal(data(await reader.callTool({ name: "list_resources", arguments: {} })).total, 0);
     const foreign = (await f.request("POST", "/api/items", { kind: "note", body: "Private foreign account" }, b.cookie)).json().item;
     assert.ok((await reader.callTool({ name: "get_item", arguments: { id: foreign.id } })).isError);

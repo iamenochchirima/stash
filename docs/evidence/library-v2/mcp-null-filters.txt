@@ -1,0 +1,12 @@
+✔ T13/E03 MCP SDK lifecycle, scopes, errors, revocation, and persisted retrieval milestones (1009.596705ms)
+✔ Mixed-item MCP sharing, editing conflicts, lifecycle and read-only boundaries (1041.06177ms)
+✔ PDF MCP reads are bounded and retain account and Trash checks (868.802252ms)
+✔ MCP summaries require write scope, deduplicate across clients and retain account isolation (6043.983473ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9811.529096

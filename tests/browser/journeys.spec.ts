@@ -67,6 +67,7 @@ async function save(
   await dialog
     .getByLabel("Why it matters")
     .fill("Remember the agent memory patterns.");
+  await dialog.getByText("More options",{exact:true}).click();
   await dialog.getByLabel("Tags").fill("agents, memory");
   await dialog.getByLabel("Inbox", { exact: true }).check();
   await dialog
@@ -100,6 +101,7 @@ test("T15/E01/E06 complete account, library, organization, connections, import/e
     .click();
   await page.getByRole("button", { name: "Edit", exact: true }).click();
   const edit = page.getByRole("dialog");
+  await edit.getByText("More options",{exact:true}).click();
   await edit.getByLabel("Agent research", { exact: true }).check();
   await edit.getByLabel("Reading status").selectOption("reading");
   await edit.getByRole("button", { name: "Save changes" }).click();

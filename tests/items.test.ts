@@ -74,10 +74,14 @@ test("Expired trash is really purged and restore cannot resurrect a purged item"
     const a = await f.signup();
     const item = (await f.request("POST", "/api/items", { kind: "idea", body: "A recoverable idea" }, a.cookie)).json().item;
     await f.request("POST", `/api/items/${item.id}/lifecycle`, { action: "trash" }, a.cookie);
-    await f.db.update(resources).set({ deletedAt: new Date(Date.now() - 31 * 86400_000) }).where(eq(resources.id, item.id));
+    const inside=(await f.request("POST","/api/items",{kind:"note",body:"Still inside the recovery window"},a.cookie)).json().item;
+    await f.request("POST",`/api/items/${inside.id}/lifecycle`,{action:"trash"},a.cookie);
+    await f.db.update(resources).set({deletedAt:new Date(Date.now()-30*86400_000+60000)}).where(eq(resources.id,inside.id));
+    await f.db.update(resources).set({ deletedAt: new Date(Date.now() - 30 * 86400_000 - 60000) }).where(eq(resources.id, item.id));
     assert.equal((await maintainLibrary(f.db)).purged, 1);
     assert.equal((await maintainLibrary(f.db)).purged, 0);
     assert.equal((await f.request("POST", `/api/items/${item.id}/lifecycle`, { action: "restore" }, a.cookie)).statusCode, 404);
+    assert.equal((await f.request("POST",`/api/items/${inside.id}/lifecycle`,{action:"restore"},a.cookie)).statusCode,200);
   } finally { await f.close(); }
 });
 

@@ -1,3 +1,4 @@
+import { createStorageJournal,journaledFileStore } from "./storage-journal.js";
 import { sql } from "drizzle-orm";
 import { openDatabase } from "@stash/db";
 import { createApp } from "./app.js";
@@ -16,8 +17,12 @@ try {
 }
 const journal = createDeletionJournal(settings.deletionJournalDir);
 await journal.apply(database.db);
+const storageJournal=createStorageJournal(settings.deletionJournalDir);
+await storageJournal.replay(database.db);
+const fileStore=settings.fileStore?journaledFileStore(settings.fileStore,database.db,storageJournal):undefined;
 const app = await createApp(database.db, {
   ...settings,
+  fileStore,
   journal,
   logger: true,
   mailer: createMailer({

@@ -119,7 +119,7 @@ Example journey: an agent finds an article and saves it with context. The user o
 - [x] V1.2 Make card main areas/title navigate internally; provide separate source and menu controls.
 - [x] V1.3 Preserve library filters, pagination and scroll when returning. Support direct links, refresh and safe return after sign-in.
 - [x] V1.4 Show all existing link context; support existing edit/delete actions without losing list state.
-- [ ] V1.5 Verify keyboard, text selection, nested controls, mobile navigation and wrong-account IDs.
+- [x] V1.5 Verify keyboard, text selection, nested controls, mobile navigation and wrong-account IDs.
 
 Acceptance: the exact reported card issue is fixed. Card body/title opens the saved Stash item; Open source alone opens the external site. Direct links never bypass account ownership.
 
@@ -136,8 +136,8 @@ Acceptance: an account can create URL-free notes/ideas and retrieve them through
 
 ### V3 Capture, editor and organisation
 
-- [ ] V3.1 Build the type-aware Add item form, deterministic title fallback and account-scoped draft protection.
-- [ ] V3.2 Render safe full content and explicit editing states. Support conflict recovery without discarding typed content.
+- [x] V3.1 Build the type-aware Add item form, deterministic title fallback and account-scoped draft protection.
+- [x] V3.2 Render safe full content and explicit editing states. Support conflict recovery without discarding typed content.
 - [x] V3.3 Add compact type-aware cards and filters for type/collection/favourites/link-or-PDF reading status.
 - [x] V3.4 Implement favourite and archive/unarchive actions, counts and empty states.
 - [x] V3.5 Verify all operations persist after refresh and across separate browser sessions.
@@ -147,12 +147,12 @@ Acceptance: a user can quickly capture an idea, reopen and develop it, organise 
 
 ### V4 Recovery and portability
 
-- [ ] V4.1 Implement Trash, restore, permanent deletion and explicit confirmation/undo feedback.
+- [x] V4.1 Implement Trash, restore, permanent deletion and explicit confirmation/undo feedback.
 - [x] V4.2 Implement 30-day purge processing with bounded batches, retry/race protection and deployment scheduling.
-- [ ] V4.3 Preserve account-deletion journal/cascade semantics for every item state and pending draft.
+- [x] V4.3 Preserve account-deletion journal/cascade semantics for every item state and pending draft.
 - [x] V4.4 Add JSON v2 export/import and v1 compatibility, preserving all item types, memberships and state.
 - [x] V4.5 Keep bookmark import/export honest about its links-only scope.
-- [ ] V4.6 Verify restore/duplicate conflicts, purge boundaries and re-import into an isolated account.
+- [x] V4.6 Verify restore/duplicate conflicts, purge boundaries and re-import into an isolated account.
 
 Acceptance: accidental deletion is recoverable before expiry; expired trash is actually purged; full export/import preserves note/idea content and organisation; account deletion removes everything immediately.
 
@@ -168,13 +168,13 @@ Acceptance: an agent can save an idea without a URL, another can retrieve/update
 
 ### V6 PDF capture and processing
 
-- [ ] V6.1 Select private object storage, agree on storage quota/cost and add required attachment/extraction/job migrations.
+- [x] V6.1 Select private object storage, agree on storage quota/cost and add required attachment/extraction/job migrations.
 - [x] V6.2 Implement authorised upload/complete/download, size/content checks, abandoned-upload cleanup and per-account byte accounting.
 - [x] V6.3 Implement isolated extraction with deadlines/concurrency/page-text mapping, durable states and retry controls.
 - [x] V6.4 Build PDF capture/detail, useful failure states, text/page reading and Download original; integrate extracted text with search and bounded MCP retrieval.
-- [ ] V6.5 Extend archive/trash/purge, account deletion/journal replay and orphan cleanup to stored files and derived content.
+- [x] V6.5 Extend archive/trash/purge, account deletion/journal replay and orphan cleanup to stored files and derived content.
 - [x] V6.6 Implement full PDF backup ZIP export/import and explicit JSON-only limitations.
-- [ ] V6.7 Verify hostile/malformed/oversized/encrypted/image-only fixtures, ownership, quota races, worker restarts, storage outages and deletion during processing.
+- [x] V6.7 Verify hostile/malformed/oversized/encrypted/image-only fixtures, ownership, quota races, worker restarts, storage outages and deletion during processing.
 
 Acceptance: upload a real text PDF, refresh, read/search its extracted content and download the identical original. Other accounts cannot access it. Unsupported files fail honestly; deleted files do not survive indefinitely as untracked objects.
 
@@ -185,7 +185,7 @@ Acceptance: upload a real text PDF, refresh, read/search its extracted content a
 - [x] V7.3 Implement durable jobs, structured outputs, source references, atomic quota reservation, usage reconciliation, cancellation and bounded retries.
 - [x] V7.4 Add the explicit Summarise action, saved/stale summaries, progress, unavailable/error states and regeneration that preserves user content.
 - [x] V7.5 Add write-scoped summarise_item/status MCP flows and safe operational admin status/usage counts.
-- [ ] V7.6 Verify source grounding on a small labelled article/PDF set, partial-source disclosure, stale content and prompt-injection fixtures.
+- [x] V7.6 Verify source grounding on a small labelled article/PDF set, partial-source disclosure, stale content and prompt-injection fixtures.
 - [x] V7.7 Verify timeouts, rate limits, budget exhaustion, duplicate requests, ambiguous provider failures and cancellation/account deletion races.
 - [x] V7.8 Run real provider acceptance on disposable sources within the agreed budget, recording usage and content/provenance quality without exposing private text.
 
@@ -193,12 +193,12 @@ Acceptance: a user explicitly requests an article/PDF summary, receives a concis
 
 ### V8 Release and hosted acceptance
 
-- [ ] V8.1 Run focused integration/browser/security tests, pnpm typecheck and all production builds, including admin and processing workers.
-- [ ] V8.2 Verify migration on a representative disposable copy and prepare a rollback-compatible deployment sequence.
+- [x] V8.1 Run focused integration/browser/security tests, pnpm typecheck and all production builds, including admin and processing workers.
+- [x] V8.2 Verify migration on a representative disposable copy and prepare a rollback-compatible deployment sequence.
 - [ ] V8.3 Deploy schema/API with new item creation gated off, then the compatible consumer client, extraction/summary/purge workers, private storage configuration and necessary admin updates. Verify before enabling new item types. Keep old-contract links-only adapters available for cached clients.
-- [ ] V8.4 Define rollback after activation: disable new writes and use the last mixed-item-aware artifact. Do not roll back to a URL-required server or destructively revert the migration once notes/ideas exist.
+- [x] V8.4 Define rollback after activation: disable new writes and use the last mixed-item-aware artifact. Do not roll back to a URL-required server or destructively revert the migration once notes/ideas exist.
 - [ ] V8.5 Run hosted disposable-account acceptance for link/note/idea/PDF capture, original-file download, searchable extraction, real AI summary generation, direct-card navigation, search, agent retrieval, archive/trash/restore and complete account deletion.
-- [ ] V8.6 Verify real available agent clients separately from SDK tests; record client/version and any unavailable acceptance checks.
+- [x] V8.6 Verify real available agent clients separately from SDK tests; record client/version and any unavailable acceptance checks.
 - [ ] V8.7 Update docs/features, canonical verification skill, operations, verification evidence and decisions. Review metrics and privacy before marking complete.
 
 Acceptance: the consumer client, API, MCP, admin integration, private object storage and extraction/summary/purge workers are deployed and verified. Failed/unavailable checks stay pending, and test accounts are cleaned up. No hosting-plan upgrade is implied.
@@ -263,3 +263,10 @@ Full ZIP restore checkpoint, 15 October 2026: V4.4 and V6.6 are now locally veri
 
 
 Export/help checkpoint, 15 October 2026: V4.5 and V5.4 are locally verified. Bookmark HTML contains owned main-library link titles and URLs, includes archived links, excludes Trash/project research and all non-link content, escapes text/attributes and reports omitted counts before and inside the download. JSON and bookmark downloads now use the same session-bound direct API path as ZIP, with incremental output and no private worker caching. A multi-megabyte JSON test checks bounded per-item chunks. Agent help includes URL-free save/find examples, explicit archive/Trash and project scope, PDF reading and current backup behavior. Eight export/ZIP/MCP tests, eight final streaming/backup tests and the real mobile export plus complete account browser journey passed. Root typecheck and API/consumer/admin production builds passed. Local migration 0021 is frozen/applied only to development. Remaining draft verification must include changing accounts in another tab before saving an old draft, explicit discard and conflict recovery. These items remain unchecked until demonstrated. No v2/Projects push or deployment has occurred.
+
+
+Draft, recovery and quality checkpoint, 15 October 2026: account-scoped drafts now survive close/reload and recoverable conflicts, support explicit discard and remain usable when browser storage is full. Account changes reject stale-tab writes; sign-out, reset and deletion clear drafts and notify other tabs. Actual text selection, nested card controls, mobile navigation, lifecycle Undo and permanent-delete confirmation passed browser checks. The user explicitly confirmed 500 MiB per account and 5 GiB global PDF limits including pending deletion.
+
+The independent storage journal records write/removal intent and removal acknowledgement before accepting traffic. A real disposable PostgreSQL dump/restore drill now tracks and removes all three originals, including a PDF uploaded after the snapshot. Parser tests cover 100/101 pages, text limits, image-only/encrypted/malformed files and item/account deletion during extraction. Prompt v3 passed a manually reviewed labelled article/PDF/injection set at reported $0 cost; browser checks show partial coverage and scanned-PDF failure honestly. Full integration passed 108 tests, root typecheck and all production builds passed. These are local results. Native-client acceptance, representative migration/rollback preparation, final browser release matrix and backend-first hosted deployment remain open. Migration 0022 is frozen/applied only locally. No Library v2 or Projects changes have been pushed or deployed.
+
+Release preparation checkpoint: final admin/OAuth/PWA browsers and 10,001-link migration passed. Real Codex 0.162.1 to OpenCode 1.18.35 idea save/retrieve and revocation passed after fixing nullable unused MCP filters. Typecheck/build were repeated successfully. Rollout and post-activation rollback are recorded in docs/library-v2-rollout.md. Railway provider values are staged privately with the feature gate off. V8.3, V8.5 and V8.7 remain open; production application code is unchanged.

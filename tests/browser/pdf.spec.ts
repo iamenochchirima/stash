@@ -14,6 +14,7 @@ for (const width of [1440, 375]) test(`Upload, read, download and edit a private
   await form.getByLabel("PDF file", { exact: true }).setInputFiles({ name: "Useful research.pdf", mimeType: "application/pdf", buffer: pdf() });
   await form.getByLabel("Title", { exact: true }).fill("Research worth keeping");
   await form.getByLabel("Why it matters").fill("Read this before the next project.");
+  await form.getByText("More options",{exact:true}).click();
   await form.getByRole("checkbox",{name:"Research",exact:true}).check();
   await form.getByRole("button", { name: "Save item", exact: true }).click();
   await page.getByRole("link", { name: "Research worth keeping", exact: true }).click();

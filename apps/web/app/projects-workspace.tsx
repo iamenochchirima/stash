@@ -1,4 +1,6 @@
 "use client";
+import { LifecycleFeedback } from "./lifecycle-feedback";
+import { useAccountSession } from "./session-guard";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,6 +14,7 @@ export function ProjectsWorkspace({ id }: { id?: string }) {
     [projects, setProjects] = useState<Project[]>([]),
     [project, setProject] = useState<Project | null>(null),
     [items, setItems] = useState<Item[]>([]);
+  useAccountSession(userId);
   const [error, setError] = useState(""),
     [loading, setLoading] = useState(true),
     [archived, setArchived] = useState(false),
@@ -201,7 +204,7 @@ export function ProjectsWorkspace({ id }: { id?: string }) {
           {id ? "All projects" : "Back to library"}
         </Link>
       </header>
-      <main className="project-main">
+      <main className="project-main"><LifecycleFeedback userId={userId} onChanged={load}/>
         {error && (
           <p role="alert" className="error">
             {error}

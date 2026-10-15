@@ -36,6 +36,8 @@ import { Landing } from "./landing";
 import { api, ApiError } from "./api";
 import { AccountLink, ProfileForm } from "./account-ui";
 import { Portability } from "./portability-ui";
+import { LifecycleFeedback,recordLifecycle } from "./lifecycle-feedback";
+import { useAccountSession } from "./session-guard";
 import { ItemEditor, clearItemDrafts } from "./item-editor";
 
 const json = (data: unknown) => JSON.stringify(data);
@@ -183,6 +185,7 @@ function Dashboard({
   user: Profile;
   setUser: (user: Profile | null) => void;
 }) {
+  useAccountSession(user.id);
   const [view, setView] = useState<"library" | "agents" | "profile">("library");
   const [items, setItems] = useState<Item[]>([]),
     [collections, setCollections] = useState<Collection[]>([]),
@@ -428,6 +431,7 @@ function Dashboard({
             </div>
           )}
           <ErrorNote message={error} />
+          <LifecycleFeedback userId={user.id} onChanged={async()=>{await Promise.all([reloadResources(),reloadMeta()]);}}/>
           {notice && (
             <div role="status" className="toast">
               <Check size={16} />
@@ -570,7 +574,11 @@ function Dashboard({
               ) : items.length ? (
                 <div className="resource-grid">
                   {items.map((item) => (
-                    <article className="resource-card" key={item.id}>
+                    <article className="resource-card" key={item.id} onClick={event=>{
+                      if((event.target as HTMLElement).closest("a,button,input,select,textarea,summary")||window.getSelection()?.isCollapsed===false)return;
+                      const link=event.currentTarget.querySelector<HTMLAnchorElement>(".resource-open");
+                      if(event.metaKey||event.ctrlKey||event.shiftKey){if(link)window.open(link.href,"_blank","noopener,noreferrer");}else link?.click();
+                    }}>
                       <div className="resource-card-top">
                         <span className="resource-icon">
                           {item.kind === "link" ? <LinkIcon size={19} /> : item.kind === "idea" ? <Lightbulb size={19} /> : <FileText size={19} />}
@@ -612,7 +620,7 @@ function Dashboard({
                         <button
                           className="text-button"
                           onClick={() => {
-                            if (itemLocation === "trash") { void mutate(() => api(`/items/${item.id}/lifecycle`, { method: "POST", body: json({ action: "restore" }) })); return; }
+                            if (itemLocation === "trash") { void mutate(async() => {await api(`/items/${item.id}/lifecycle`, { method: "POST", body: json({ action: "restore" }) });recordLifecycle(user.id,item.id,"restore");}); return; }
                             api<{ item: Item }>(`/items/${item.id}`).then(result => { setEditing(result.item); setModal("resource"); }).catch(e => setError(e.message));
                           }}
                         >

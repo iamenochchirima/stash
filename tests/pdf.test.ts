@@ -8,7 +8,7 @@ import { fixture } from "./helpers.js";
 import { localFileStore, backblazeFileStore } from "../apps/server/src/file-store.js";
 import { extractPdf } from "../apps/server/src/pdf-process.js";
 import { processPdfJob, cleanPdfFiles } from "../apps/server/src/pdf-worker.js";
-import { pdf } from "./pdf-fixture.js";
+import { pdf,pagedPdf,imageOnlyPdf } from "./pdf-fixture.js";
 
 test("PDF parser extracts real page text and safely rejects malformed and image-only files", async () => {
   assert.equal((await extractPdf(pdf())).pages[0].text, "Research survives the conversation");
@@ -16,6 +16,10 @@ test("PDF parser extracts real page text and safely rejects malformed and image-
   await assert.rejects(extractPdf(await readFile(new URL("./fixtures/password-protected.pdf", import.meta.url))), /password_protected/);
   await assert.rejects(extractPdf(Buffer.concat([pdf(), Buffer.alloc(20 * 1024 * 1024)])), /invalid_pdf/);
   await assert.rejects(extractPdf(pdf("")), /no_extractable_text/);
+  await assert.rejects(extractPdf(imageOnlyPdf()), /no_extractable_text/);
+  const boundary=await extractPdf(pagedPdf(Array(100).fill("Synthetic page")));assert.equal(boundary.pageCount,100);
+  const oversizedPageCount=pagedPdf(Array(101).fill("Synthetic page"));await assert.rejects(extractPdf(oversizedPageCount),/too_many_pages/);
+  const oversizedText=pagedPdf(Array(100).fill("Repeated source text. ".repeat(150)));await assert.rejects(extractPdf(oversizedText),/too_much_text/);
   assert.throws(() => backblazeFileStore({ endpoint: "http://localhost", region: "x", bucket: "private", keyId: "x", applicationKey: "x" }));
 });
 test("Private PDF upload, extraction, search, ownership, retry rejection and durable cleanup", async () => {
@@ -173,4 +177,21 @@ test("A changed stored original cannot be downloaded or parsed",async()=>{
   await processPdfJob(f.db,store);
   const pages=(await f.request("GET",`/api/items/${id}/pages`,undefined,a.cookie)).json();assert.equal(pages.state,"failed");assert.equal(pages.errorCode,"original_changed");assert.deepEqual(pages.pages,[]);
  }finally{await f.close();await rm(directory,{recursive:true,force:true});}
+});
+
+test("Deleting an item or account while extraction has claimed its original cannot resurrect derived data",async()=>{
+ for(const mode of["item","account"]){
+  const directory=await mkdtemp(join(tmpdir(),"stash-extract-delete-")),base=localFileStore(directory);let blocked=false,entered!:()=>void,release!:()=>void;const reading=new Promise<void>(resolve=>{entered=resolve;}),resume=new Promise<void>(resolve=>{release=resolve;});
+  const store={...base,async get(key:string){if(blocked){entered();await resume;}return base.get(key);}},f=await fixture({fileStore:store});
+  try{
+   const a=await f.signup(),bytes=pdf(),ticket=(await f.request("POST","/api/items/uploads",{filename:"Processing.pdf",byteSize:bytes.length},a.cookie)).json();
+   const saved=await f.request("POST",`/uploads/${ticket.id}`,bytes,undefined,{authorization:`Bearer ${ticket.token}`,"content-type":"application/pdf"});assert.equal(saved.statusCode,200,saved.body);const id=saved.json().item.id;
+   blocked=true;const processing=processPdfJob(f.db,store);await reading;
+   if(mode==="account")assert.equal((await f.request("DELETE","/api/me",{password:"correct horse battery staple",confirmation:"DELETE"},a.cookie)).statusCode,200);
+   else{assert.equal((await f.request("POST",`/api/items/${id}/lifecycle`,{action:"trash"},a.cookie)).statusCode,200);assert.equal((await f.request("POST",`/api/items/${id}/lifecycle`,{action:"purge"},a.cookie)).statusCode,200);}
+   release();await processing;await f.app.close();
+   for(const table of["resources","attachments","item_jobs","item_summaries"]){const result=await f.db.execute(sql.raw(`select count(*)::int as n from ${table} where ${table==="resources"?"id":"resource_id"}='${id}'`));assert.equal(result.rows[0].n,0);}
+   assert.equal((await f.db.execute(sql`select * from blob_cleanup where user_id=${a.user.id}`)).rows.length,1);await f.db.execute(sql`update blob_cleanup set not_before=now()`);await cleanPdfFiles(f.db,base);assert.equal((await f.db.execute(sql`select * from blob_cleanup where user_id=${a.user.id}`)).rows.length,0);
+  }finally{release();await f.close();await rm(directory,{recursive:true,force:true});}
+ }
 });

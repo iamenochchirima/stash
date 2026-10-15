@@ -1,0 +1,16 @@
+✔ PDF parser extracts real page text and safely rejects malformed and image-only files (2497.667826ms)
+✔ Private PDF upload, extraction, search, ownership, retry rejection and durable cleanup (1083.383145ms)
+✔ PDF reservations serialize quota races and expired uploads leave a tracked cleanup task (409.029157ms)
+✔ PDF worker recovers an expired lease and retains cleanup work across storage outages (977.441664ms)
+✔ PDF details save atomically and request identity prevents duplicate uploads (759.394029ms)
+✔ Deleting an account during upload tracks and removes the late-written original (675.80727ms)
+✔ A changed stored original cannot be downloaded or parsed (445.888388ms)
+✔ Deleting an item or account while extraction has claimed its original cannot resurrect derived data (1652.950525ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9326.633823
