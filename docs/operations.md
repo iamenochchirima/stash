@@ -1,5 +1,8 @@
 # Stash operation and recovery
 
+Current application release: Library v2 and Projects, 15 October 2026. API/MCP source e514960 is live at Railway afc42040-d19e-4074-ad84-9dad32ce87c6 with migration 0022 and capture enabled. Consumer/admin source 722db70 was verified READY on both Vercel custom domains. Hosted mixed-item/PDF/summary/full-backup and Projects acceptance passed. Physical PDF deletion remains under observation until its ten-minute eligibility. See docs/evidence/library-v2/deployment.json and library-v2-rollout.md. Existing automatic-backup/alert limitations remain below.
+
+
 The user authorized public deployment on 12 October 2026: Railway for PostgreSQL and the API/MCP service, Vercel for the dashboard. The initial deployment disabled email. The user subsequently authorized reusing KasiTek Growth’s Resend credentials to enable verification and recovery. See [deployment evidence](evidence/hosted-deployment.json).
 
 Dashboard: https://stash.kasitek.co.za. API: https://api.stash.kasitek.co.za. MCP uses the same backend at `/mcp`. Railway project Stash: `4d983b61-c991-4730-9e3f-6ed0187d4683`. Vercel project: `stash`, scope `iamenochchirimas-projects`.

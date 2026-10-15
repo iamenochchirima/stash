@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-10-15T10:26:55.724Z",
+  "fixture": "Synthetic content and labelled Resend test recipients",
+  "passed": false,
+  "projectScope": true,
+  "failedAt": "locator.click: Timeout 30000ms exceeded.",
+  "disposableAccountsDeleted": true,
+  "accountIdsForCleanup": [
+    "261b97fe-3d23-4a0b-b955-65f8baa53ac9"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-15T10:28:41.121Z",
+  "fixture": "Synthetic content and labelled Resend test recipients",
+  "passed": true,
+  "projectScope": true,
+  "longDocumentReading": true,
+  "appendAndHistory": true,
+  "explicitPromotion": true,
+  "accountIsolation": true,
+  "archivedReadOnly": true,
+  "disposableAccountsDeleted": true,
+  "accountIdsForCleanup": [
+    "17f09c2a-0695-445e-b49b-2b934ca30484",
+    "0f0d4059-4e80-4486-8063-632ec0505cf8"
+  ]
+}

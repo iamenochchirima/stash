@@ -1,0 +1,28 @@
+{
+  "applicationSource": "e514960",
+  "railway": {
+    "gated": "252db9eb-32ab-4048-bfaf-b7f4d81e10c5",
+    "activated": "d7bc3194-c044-4633-aebc-653a74b5784b",
+    "final": "afc42040-d19e-4074-ad84-9dad32ce87c6",
+    "state": "SUCCESS",
+    "schema": "0022_storage_journal.sql",
+    "itemsEnabled": true
+  },
+  "clients": {
+    "consumer": {
+      "id": "dpl_67Tg8WmzQdtQU2fypX9dvCiUNc6j",
+      "url": "stash-hbnlo5vr4-iamenochchirimas-projects.vercel.app",
+      "readyState": "READY",
+      "source": "722db705d062bd899c264db62ae40f4681286582"
+    },
+    "admin": {
+      "id": "dpl_8rmwJbCYPZPton7mXdpz5hEWQ3WK",
+      "url": "stash-admin-j8m95wmfu-iamenochchirimas-projects.vercel.app",
+      "readyState": "READY",
+      "source": "722db705d062bd899c264db62ae40f4681286582"
+    }
+  },
+  "hostedLibraryAcceptanceSource": "a1c32f9, activated before final import-gate-only patch",
+  "hostedProjectsAcceptanceSource": "e514960",
+  "physicalCleanup": "pending normal eligibility"
+}

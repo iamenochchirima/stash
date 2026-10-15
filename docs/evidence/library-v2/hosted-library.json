@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-10-15T10:23:07.747Z",
+  "fixture": "Synthetic content and labelled Resend test recipients",
+  "passed": true,
+  "emailVerification": true,
+  "mixedCapture": true,
+  "cardNavigation": true,
+  "searchableExtraction": true,
+  "originalBytesMatch": true,
+  "realSummary": true,
+  "hostedMcpRetrieval": true,
+  "lifecycle": true,
+  "backupDownload": true,
+  "accountIsolation": true,
+  "fullRestore": true,
+  "restoredBytesMatch": true,
+  "privateCachesEmpty": true,
+  "disposableAccountsDeleted": true,
+  "accountIdsForCleanup": [
+    "560a3c96-6340-4b82-bd14-022a25abff6a",
+    "bcb419ab-726b-4ad3-bf3e-b11b918c2648"
+  ]
+}

@@ -93,3 +93,7 @@ Read PROJECTS_IMPLEMENTATION.md and docs/features/projects.md. Run `pnpm exec ts
 ## Draft and restored-file checks
 
 Run tests/browser/drafts.spec.ts and tests/browser/lifecycle.spec.ts in fresh harness batches. Verify actual selection, conflict recovery, draft discard, storage-full warnings, stale-account write rejection and cross-tab sign-out/deletion. Do not weaken signup limits to combine rapid account fixtures. Run tests/storage-journal.test.ts and `node --env-file=.env.local --import tsx scripts/check-file-recovery.ts` after other fixture suites finish. The drill restores only its disposable schema and must track the post-snapshot original as well as snapshot files, replay both journals and remove every original. It must never restart a shared PostgreSQL cluster.
+
+## Hosted acceptance
+
+Use `STASH_HOSTED_ACCEPTANCE=true pnpm exec tsx scripts/check-hosted-library.ts` only for the authorised production release. It creates labelled Resend test recipients, follows actual verification emails privately, checks mixed capture/PDF/summary/MCP/full backup restore, then deletes every disposable account in finally. It never changes production account verification records directly. Direct transfer requests must include the browser Origin. No private email bodies, tokens or client output belong in evidence. `scripts/check-hosted-projects.ts` checks the separately scoped Projects journey with the same explicit flag and cleanup. Confirm physical originals are gone after the ten-minute eligibility delay; account deletion alone is insufficient proof.
