@@ -49,7 +49,7 @@ export function library(db: Database, userId: string) {
             ),
           )
       : [];
-    return rows.map(({ userId: _, importOriginId: _origin, ...row }) => ({
+    return rows.map(({ userId: _, importOriginId: _origin, extractedText: _extracted, ...row }) => ({
       ...row,
       url: row.url!,
       collectionIds: memberships
@@ -263,3 +263,5 @@ export function library(db: Database, userId: string) {
 }
 
 export { items } from "./items.js";
+
+export { readPdfPages } from "./pdf.js";

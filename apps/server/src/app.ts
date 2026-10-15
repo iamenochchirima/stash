@@ -28,11 +28,15 @@ import { registerOAuth } from "./oauth.js";
 import { requestPath } from "./request-path.js";
 import { registerAdminRoutes } from "./admin-routes.js";
 import { registerLibraryMaintenance } from "./library-maintenance.js";
+import { registerPdfWorker } from "./pdf-worker.js";
+import { registerPdfRoutes } from "./pdf-routes.js";
+import type { FileStore } from "./file-store.js";
 import { registerItems } from "./item-routes.js";
 import { fetchMetadata } from "./metadata.js";
 export async function createApp(
   db: Database,
   options: {
+    fileStore?: FileStore;
     requestRateLimit?: number;
     itemsEnabled?: boolean;
     adminOrigin?: string;
@@ -127,6 +131,11 @@ export async function createApp(
       .header("X-Content-Type-Options", "nosniff")
       .header("Cache-Control", "no-store");
     const path = requestPath(request);
+    if (path.startsWith("/uploads/") || path.startsWith("/downloads/")) {
+      if (request.headers.origin !== origin) throw new AppError(403, "Origin not allowed.");
+      reply.header("Access-Control-Allow-Origin", origin).header("Vary", "Origin").header("Access-Control-Allow-Methods", "GET, POST, OPTIONS").header("Access-Control-Allow-Headers", "Authorization, Content-Type");
+      if (request.method === "OPTIONS") return reply.code(204).send();
+    }
     const publicProtocol =
       path === "/mcp" ||
       path.startsWith("/oauth/") ||
@@ -211,6 +220,8 @@ export async function createApp(
       }),
   });
   registerLibraryMaintenance(app, db);
+  if (options.fileStore) registerPdfWorker(app, db, options.fileStore);
+  registerPdfRoutes(app, db, { production: options.production, enabled: options.itemsEnabled ?? !options.production, store: options.fileStore, origin, publicApiUrl });
   registerItems(app, db, { production: options.production, enabled: options.itemsEnabled ?? !options.production });
   app.get("/api/resources", async (request) =>
     library(db, (await authentication.user(request)).id).list(

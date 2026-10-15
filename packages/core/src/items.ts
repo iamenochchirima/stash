@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { and, eq, desc, sql, inArray, isNull, isNotNull, gt } from "drizzle-orm";
-import { resources, collections, resourceCollections, itemRequests, users, type Database } from "@stash/db";
+import { resources, attachments, collections, resourceCollections, itemRequests, users, type Database } from "@stash/db";
 import { LIMITS, type ItemInput, type ItemUpdate, type ItemListInput } from "@stash/shared";
 import { AppError, normalizeUrl } from "./index.js";
 const retention = 30 * 86400_000;
@@ -13,7 +13,9 @@ export function items(db: Database, userId: string) {
   }
   async function present(rows: Row[], preview = false) {
     const membership = rows.length ? await db.select().from(resourceCollections).where(and(eq(resourceCollections.userId, userId), inArray(resourceCollections.resourceId, rows.map(r => r.id)))) : [];
-    return rows.map(({ userId: _, importOriginId: _origin, ...row }) => ({ ...row,
+    const pdfs = rows.length ? await db.select({ resourceId: attachments.resourceId, filename: attachments.filename, byteSize: attachments.byteSize, state: attachments.state, pageCount: attachments.pageCount, errorCode: attachments.errorCode }).from(attachments).where(and(eq(attachments.userId, userId), inArray(attachments.resourceId, rows.map(r => r.id)))) : [];
+    return rows.map(({ userId: _, importOriginId: _origin, extractedText: _extracted, ...row }) => ({ ...row,
+      pdf: row.kind === "pdf" ? pdfs.find(p => p.resourceId === row.id) || null : null,
       body: preview ? row.body.slice(0, 300) : row.body,
       notes: preview ? row.notes.slice(0, 300) : row.notes,
       bodyTruncated: preview && row.body.length > 300,

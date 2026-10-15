@@ -583,7 +583,7 @@ function Dashboard({
                       >
                         {item.title}
                       </Link>
-                      <div className="resource-domain">{item.url ? new URL(item.url).hostname : item.kind === "idea" ? "Idea" : item.kind === "pdf" ? "PDF" : "Note"}{item.favourite && <Star size={12} aria-label="Favourite" />}</div>
+                      <div className="resource-domain">{item.url ? new URL(item.url).hostname : item.kind === "idea" ? "Idea" : item.kind === "pdf" ? item.pdf?.filename || "PDF" : "Note"}{item.favourite && <Star size={12} aria-label="Favourite" />}</div>
                       {(item.body || item.notes || item.description) && <p className="resource-notes">{item.body || item.notes || item.description}</p>}
                       <div className="tags">
                         {item.tags.map((t) => (

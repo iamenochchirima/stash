@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   pgTable,
   boolean,
@@ -65,6 +66,7 @@ export const resources = pgTable(
     url: text("url"),
   kind: text("kind", { enum: ["link", "note", "idea", "pdf"] }).notNull().default("link"),
   body: text("body").notNull().default(""),
+  extractedText: text("extracted_text").notNull().default(""),
   importOriginId: uuid("import_origin_id"),
   revision: integer("revision").notNull().default(1),
   favourite: boolean("favourite").notNull().default(false),
@@ -244,3 +246,30 @@ export const itemRequests = pgTable("item_requests", {
   itemId: uuid("item_id").notNull().references(() => resources.id, { onDelete: "cascade" }),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
 }, t => [primaryKey({ columns: [t.userId, t.requestId] })]);
+
+export const attachments = pgTable("attachments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  resourceId: uuid("resource_id").references(() => resources.id, { onDelete: "cascade" }).unique(),
+  storageKey: text("storage_key").notNull().unique(),
+  filename: text("filename").notNull(), byteSize: integer("byte_size").notNull(), contentHash: text("content_hash"),
+  state: text("state", { enum: ["pending", "uploading", "queued", "processing", "ready", "failed"] }).notNull().default("pending"),
+  uploadTokenHash: text("upload_token_hash").unique(), uploadExpiresAt: timestamp("upload_expires_at", { withTimezone: true }).notNull(),
+  pages: jsonb("pages").$type<{ page: number; text: string }[]>().notNull().default([]), pageCount: integer("page_count"), parserVersion: text("parser_version"), errorCode: text("error_code"),
+  createdAt: createdAt(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const blobCleanup = pgTable("blob_cleanup", {
+  id: uuid("id").defaultRandom().primaryKey(), userId: uuid("user_id").notNull(), storageKey: text("storage_key").notNull().unique(),
+  attempts: integer("attempts").notNull().default(0), notBefore: timestamp("not_before", { withTimezone: true }).notNull().default(sql`now()+interval '10 minutes'`),
+  leaseUntil: timestamp("lease_until", { withTimezone: true }), createdAt: createdAt(),
+});
+export const itemJobs = pgTable("item_jobs", {
+  id: uuid("id").defaultRandom().primaryKey(), userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  resourceId: uuid("resource_id").notNull().references(() => resources.id, { onDelete: "cascade" }), keyId: uuid("key_id"),
+  kind: text("kind", { enum: ["extract", "summary"] }).notNull(),
+  state: text("state", { enum: ["queued", "running", "succeeded", "failed", "cancelled", "unknown"] }).notNull().default("queued"),
+  inputRevision: integer("input_revision").notNull(), attempts: integer("attempts").notNull().default(0),
+  runAfter: timestamp("run_after", { withTimezone: true }).notNull().defaultNow(), leaseUntil: timestamp("lease_until", { withTimezone: true }),
+  errorCode: text("error_code"), sourceHash: text("source_hash"), sourceSnapshot: text("source_snapshot"), result: jsonb("result"),
+  createdAt: createdAt(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

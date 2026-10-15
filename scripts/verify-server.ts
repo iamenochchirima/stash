@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { inviteAdmin } from "../apps/server/src/admin-auth.js";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { localFileStore } from "../apps/server/src/file-store.js";
 import { fixture } from "../tests/helpers.js";
 import { createApp } from "../apps/server/src/app.js";
 import { createMailer } from "../apps/server/src/mail.js";
@@ -17,6 +18,7 @@ const adminOptions = {
   mailer: createMailer({ directory: resolve(".data/verification-mail"), production: false }),
 };
 const app = await createApp(f.db, {
+  fileStore: localFileStore(resolve(`.data/verification-files/${f.schema}`)),
   requestRateLimit: 3000,
   adminOrigin: adminOptions.origin,
   adminEncryptionKey: adminOptions.encryptionKey,

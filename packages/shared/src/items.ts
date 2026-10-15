@@ -41,6 +41,7 @@ export type ItemInput = z.infer<typeof itemInput>;
 export type ItemUpdate = z.infer<typeof itemUpdate>;
 export type ItemListInput = z.infer<typeof itemListInput>;
 export type Item = {
+  pdf?: { filename: string; byteSize: number; state: "pending" | "uploading" | "queued" | "processing" | "ready" | "failed"; pageCount: number | null; errorCode: string | null } | null;
   id: string; kind: "link" | "note" | "idea" | "pdf"; url: string | null;
   title: string; body: string; notes: string; tags: string[]; collectionIds: string[];
   description: string; status: "unread" | "reading" | "done"; sourceAgent: string;

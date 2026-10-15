@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
-import { library, items, AppError } from "@stash/core";
+import { library, items, AppError, readPdfPages } from "@stash/core";
 import { eq, sql } from "drizzle-orm";
 import { users } from "@stash/db";
 import { fetchMetadata } from "./metadata.js";
@@ -134,6 +134,7 @@ export async function handleMcp(
     server.registerTool("list_items", { description: "Browse saved links, notes, ideas and PDFs. Results contain previews; use get_item for complete content. Library excludes Archive and Trash unless explicitly requested.", inputSchema: itemListInput.shape, annotations: { readOnlyHint: true } }, args => run(() => itemService.list(itemListInput.parse(args)), true));
     server.registerTool("search_items", { description: "Search your private items by content, title, tags or collection. Includes URL-free notes and ideas.", inputSchema: itemListInput.shape, annotations: { readOnlyHint: true } }, args => run(() => itemService.list(itemListInput.parse(args)), true));
     server.registerTool("get_item", { description: "Read a complete private item by ID. Trashed items require an explicit trash request.", inputSchema: { id: z.string().uuid(), trash: z.boolean().optional() }, annotations: { readOnlyHint: true } }, ({ id, trash }) => run(() => itemService.get(id, trash), true));
+    server.registerTool("read_pdf", { description: "Read extracted PDF text with page references. Returns up to five pages and 30,000 characters; request a later from page to continue. Scanned documents need unsupported OCR. Original files remain private.", inputSchema: { id: z.string().uuid(), from: z.number().int().min(1).max(100).default(1) }, annotations: { readOnlyHint: true } }, ({ id, from }) => run(() => readPdfPages(db, key.userId, id, from), true));
     if (key.scope === "write") {
       server.registerTool("save_item", { description: "Save a link, standalone note or idea. Notes/ideas need body content and no URL. Use requestId to safely retry a save. PDF uploads use the web upload flow. Existing links retain their original content.", inputSchema: {
         kind: z.enum(["link", "note", "idea"]), url: resourceInput.shape.url.optional(), body: z.string().trim().min(1).max(50000).optional(),

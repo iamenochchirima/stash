@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-10-15T06:45:23.802Z",
+  "provider": "Backblaze B2",
+  "fixture": "Synthetic PDF only",
+  "reference": "https://www.backblaze.com/docs/cloud-storage-s3-compatible-api",
+  "upload": true,
+  "downloadMatches": true,
+  "anonymousDownloadDenied": true,
+  "deleted": true,
+  "passed": true
+}

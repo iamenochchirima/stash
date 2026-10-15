@@ -169,9 +169,9 @@ Acceptance: an agent can save an idea without a URL, another can retrieve/update
 ### V6 PDF capture and processing
 
 - [ ] V6.1 Select private object storage, agree on storage quota/cost and add required attachment/extraction/job migrations.
-- [ ] V6.2 Implement authorised upload/complete/download, size/content checks, abandoned-upload cleanup and per-account byte accounting.
-- [ ] V6.3 Implement isolated extraction with deadlines/concurrency/page-text mapping, durable states and retry controls.
-- [ ] V6.4 Build PDF capture/detail, useful failure states, text/page reading and Download original; integrate extracted text with search and bounded MCP retrieval.
+- [x] V6.2 Implement authorised upload/complete/download, size/content checks, abandoned-upload cleanup and per-account byte accounting.
+- [x] V6.3 Implement isolated extraction with deadlines/concurrency/page-text mapping, durable states and retry controls.
+- [x] V6.4 Build PDF capture/detail, useful failure states, text/page reading and Download original; integrate extracted text with search and bounded MCP retrieval.
 - [ ] V6.5 Extend archive/trash/purge, account deletion/journal replay and orphan cleanup to stored files and derived content.
 - [ ] V6.6 Implement full PDF backup ZIP export/import and explicit JSON-only limitations.
 - [ ] V6.7 Verify hostile/malformed/oversized/encrypted/image-only fixtures, ownership, quota races, worker restarts, storage outages and deletion during processing.
@@ -227,7 +227,7 @@ Use disposable PostgreSQL schemas for automated tests, never live user data. Rec
 
 ## Scope decisions and deferred work
 
-The user approved adding text-based PDF ingestion and on-demand article/PDF summaries to the proposed links/notes/ideas, plain Markdown editor, favourites, archive and 30-day trash release. The user selected Backblaze private storage (credentials to follow) and OpenRouter using credentials from the Lina project. Storage quota and AI model/budget remain explicit configuration gates. The user authorised implementation to completion; preserve these agreed defaults while resolving provider/storage configuration. The first deliverable is card navigation/detail, so the reported issue is addressed early rather than waiting for every feature.
+The user approved adding text-based PDF ingestion and on-demand article/PDF summaries to the proposed links/notes/ideas, plain Markdown editor, favourites, archive and 30-day trash release. The user selected Backblaze private storage (credentials supplied and synthetic provider checks passed on 15 October) and OpenRouter using credentials from the Lina project. Storage quota and AI model/budget remain explicit configuration gates. The user authorised implementation to completion; preserve these agreed defaults while resolving provider/storage configuration. The first deliverable is card navigation/detail, so the reported issue is addressed early rather than waiting for every feature.
 
 Automatic summaries on save, suggested tags, OCR, non-PDF attachments, semantic/vector search, browser extensions, shared collections, public profiles/publishing, automatic conversation ingestion, rich block editors, idea kanban boards and cross-item knowledge graphs remain outside this chunk. A note can contain pasted text or code, but there is no automatic client conversation import or dedicated snippet type.
 
@@ -238,3 +238,10 @@ Implementation started at the user's request. Execute the checklist in order and
 The local foundation has 15 focused integration tests and 10 browser journeys passing, plus typecheck and all production builds. Evidence is in docs/evidence/library-v2. The first browser run exposed mobile navigation overflow and a selector-label mismatch; a later aggregate run hit the default global rate limit. These were corrected and the full focused browser set passed. The harness uses a larger global ceiling for rapid combined journeys; production and authentication/MFA limits are unchanged. A populated pre-upgrade migration fixture passed.
 
 Checked items above refer to the non-PDF foundation only. PDF extraction/storage, PDF backup, summary generation, file-aware deletion/recovery, admin metadata adaptation and final hosted/client acceptance remain unfinished. No v2 changes have been pushed or deployed.
+
+
+### PDF checkpoint, 15 October 2026
+
+V6.2–V6.4 are implemented locally. Real B2 synthetic acceptance verified private ACL, upload, identical original download and deletion of all versions. Consumer PDF upload/read/download/edit flows passed at desktop/mobile widths with accessibility checks. Integration checks cover malformed, encrypted, oversized and no-text inputs, quota reservation races, expired uploads, worker lease recovery, storage outages, account deletion and bounded MCP reads. Storage defaults are 500 MiB per account and 5 GiB globally, including pending uploads. Two global uploads and one extraction job are allowed concurrently. These conservative defaults do not provision or upgrade a hosting/storage plan.
+
+V6.1 remains unchecked pending final operational quota/cost documentation and rollout. V6.5–V6.7 remain unchecked for journal/recovery coverage, ZIP backup, deletion-during-processing and broader concurrency/security acceptance. V7 summaries and V8 deployment remain pending. Credentials supplied in root files are excluded from source control and deployment contexts. No v2 code has been pushed or deployed at this checkpoint.

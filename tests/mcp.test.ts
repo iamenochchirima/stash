@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { sql } from "drizzle-orm";
 import assert from "node:assert/strict";
 import { fixture } from "./helpers.js";
 import { createApp } from "../apps/server/src/app.js";
@@ -202,4 +203,36 @@ test("Mixed-item MCP sharing, editing conflicts, lifecycle and read-only boundar
     assert.equal(data(await reader.callTool({ name: "get_item", arguments: { id: idea.id } })).body, "Developed across agents");
     assert.ok((await reader.callTool({ name: "save_item", arguments: { kind: "note", body: "Not allowed" } })).isError);
   } finally { for (const client of clients) await client.close(); if (server) await server.close(); await f.close(); }
+});
+
+
+test("PDF MCP reads are bounded and retain account and Trash checks", async () => {
+  const f = await fixture(); let server: Awaited<ReturnType<typeof createApp>> | undefined;
+  const clients: Client[] = [];
+  try {
+    const a = await f.signup(), b = await f.signup();
+    for (const account of [a, b]) await f.request("POST", "/api/auth/verify", { token: f.token("verify", account.email) });
+    const inserted = await f.db.execute(sql`insert into resources(user_id,kind,title,url) values(${a.user.id},'pdf','Synthetic PDF',null) returning id`);
+    const id = String(inserted.rows[0].id);
+    await f.db.execute(sql`insert into attachments(user_id,resource_id,storage_key,filename,byte_size,state,pages,page_count,upload_expires_at)
+      values(${a.user.id},${id},${a.user.id+"/"+id+".pdf"},'Synthetic.pdf',100,'ready',${JSON.stringify(Array.from({length:6},(_,i)=>({page:i+1,text:"Reference ".repeat(5000)})))}::jsonb,6,now())`);
+    const port = await freePort(), endpoint = `http://127.0.0.1:${port}`;
+    server = await createApp(f.db, { publicApiUrl: endpoint, mailer: { async send() {} } });
+    await server.listen({ port, host: "127.0.0.1" });
+    async function reader(cookie: string) {
+      const key = (await f.request("POST", "/api/keys", { name: "PDF reader", scope: "read" }, cookie)).json();
+      const client = new Client({ name: "pdf-reader-test", version: "1" });
+      await client.connect(new StreamableHTTPClientTransport(new URL(`${endpoint}/mcp`), { requestInit: { headers: { Authorization: `Bearer ${key.token}` } } }));
+      clients.push(client); return client;
+    }
+    const own = await reader(a.cookie), foreign = await reader(b.cookie);
+    assert.ok((await own.listTools()).tools.some(t=>t.name==="read_pdf"));
+    const first = data(await own.callTool({ name: "read_pdf", arguments: { id } }));
+    assert.equal(first.pages.length, 5); assert.equal(first.pages.reduce((n:number,p:{text:string})=>n+p.text.length,0),30000);
+    assert.ok(first.pages[0].truncated);
+    assert.equal(data(await own.callTool({ name: "read_pdf", arguments: { id, from: 6 } })).pages[0].page, 6);
+    assert.ok((await foreign.callTool({ name: "read_pdf", arguments: { id } })).isError);
+    await f.request("POST", `/api/items/${id}/lifecycle`, { action: "trash" }, a.cookie);
+    assert.ok((await own.callTool({ name: "read_pdf", arguments: { id } })).isError);
+  } finally { for(const client of clients) await client.close(); if(server)await server.close(); await f.close(); }
 });

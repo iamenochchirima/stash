@@ -1,11 +1,12 @@
 import pg from "pg";
+import type { FileStore } from "../apps/server/src/file-store.js";
 import { randomUUID } from "node:crypto";
 import { openDatabase } from "@stash/db";
 import { createApp } from "../apps/server/src/app.js";
 import type { Mail } from "../apps/server/src/mail.js";
 export const BASE =
   process.env.TEST_DATABASE_URL || "postgresql://127.0.0.1:55432/stash_test";
-export async function fixture(options: { adminEncryptionKey?: string; adminOrigin?: string; deletionJournalDir?: string; mailFailure?: () => boolean } = {}) {
+export async function fixture(options: { fileStore?: FileStore; adminEncryptionKey?: string; adminOrigin?: string; deletionJournalDir?: string; mailFailure?: () => boolean } = {}) {
   const url = new URL(BASE);
   if (!url.pathname.endsWith("_test"))
     throw new Error("Test database name must end in _test.");

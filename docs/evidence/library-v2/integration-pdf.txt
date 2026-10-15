@@ -1,0 +1,15 @@
+✔ T13/E03 MCP SDK lifecycle, scopes, errors, revocation, and persisted retrieval milestones (2772.553527ms)
+✔ Mixed-item MCP sharing, editing conflicts, lifecycle and read-only boundaries (2773.805839ms)
+✔ PDF MCP reads are bounded and retain account and Trash checks (2913.544384ms)
+✔ PDF parser extracts real page text and safely rejects malformed and image-only files (3243.385425ms)
+✔ Private PDF upload, extraction, search, ownership, retry rejection and durable cleanup (2595.914232ms)
+✔ PDF reservations serialize quota races and expired uploads leave a tracked cleanup task (1255.024192ms)
+✔ PDF worker recovers an expired lease and retains cleanup work across storage outages (3122.463617ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 24663.756175

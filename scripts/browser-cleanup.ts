@@ -41,6 +41,7 @@ export default async function cleanup() {
     );
     if (result.rows.length)
       throw new Error("Browser verification schema was not removed.");
+    await rm(`.data/verification-files/${schema}`, { recursive: true, force: true });
     await rm(".data/browser-schema.json", { force: true });
   } finally {
     await pool.end();

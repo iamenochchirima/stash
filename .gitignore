@@ -16,3 +16,8 @@ apps/server/dist/
 .env*
 
 !.env.example
+
+# Private storage setup files supplied locally
+/backblaze key
+/Pasted image.png
+/Pasted image (2).png

@@ -11,3 +11,8 @@ test-results
 playwright-report
 .env
 .env.*
+
+# Private storage setup files supplied locally
+/backblaze key
+/Pasted image.png
+/Pasted image (2).png
