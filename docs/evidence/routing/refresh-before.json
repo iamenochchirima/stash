@@ -1,0 +1,8 @@
+{
+  "command": "pnpm test:browser tests/browser/routing.spec.ts",
+  "passed": false,
+  "authenticatedHtmlContainsPublicHero": true,
+  "assertion": "Authenticated HTML must not contain class=\"site-hero",
+  "cause": "Root rendered Landing while the client session request was pending.",
+  "rawEvidence": "Ignored .data/routing-before.txt; full HTML and trace not published."
+}

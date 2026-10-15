@@ -45,9 +45,9 @@ for (const width of [1440, 375]) {
     await expect(page).toHaveURL(/\/signin$/);
     await expect(page).toHaveTitle("Sign in · Stash");
     await expect(page.getByRole("heading", { name: "Sign in to Stash" })).toBeVisible();
-    await page.getByRole("button", { name: "Forgot your password?" }).click();
+    await page.getByRole("link", { name: "Forgot your password?" }).click();
     await expect(page.getByRole("heading", { name: "Reset your password" })).toBeVisible();
-    await page.getByRole("button", { name: "Back to sign in" }).click();
+    await page.getByRole("link", { name: "Back to sign in" }).click();
     await expect(page.getByRole("heading", { name: "Sign in to Stash" })).toBeVisible();
     await page.getByRole("link", { name: "Back to home" }).click();
     await expect(page).toHaveURL(/\/$/);

@@ -48,7 +48,7 @@ test("T16 accessibility of signup, library, save dialog, and profile", async ({
   await expect(page.getByRole("dialog")).toBeVisible();
   await check("save-dialog");
   await page.keyboard.press("Escape");
-  await page.getByRole("button", { name: "Open profile" }).click();
+  await page.getByRole("link", { name: "Open profile" }).click();
   await check("profile");
   await writeFile(
     "docs/evidence/accessibility.json",

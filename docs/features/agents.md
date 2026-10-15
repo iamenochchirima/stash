@@ -11,3 +11,6 @@ OAuth uses the same MCP URL alongside bearer keys. The /oauth/consent browser pa
 The canonical hosted MCP endpoint is https://api.stash.kasitek.co.za/mcp. Both agent keys and OAuth use this address. Connections configured with the earlier Railway MCP URL must update their endpoint; OAuth clients must reconnect because issuer/resource URLs changed. Agent keys remain valid. The Vercel dashboard proxy still reaches the same backend through its Railway service hostname.
 
 Multiple OAuth assistants coexist independently. The regression test in tests/oauth.test.ts connects two clients on one account, verifies both listed and usable after refreshing, then revokes one and verifies only that connection disappears. A client can call /oauth/revoke itself; a missing row can therefore reflect client-initiated disconnection rather than replacement by another assistant.
+
+
+Agent connections now live at `/connections`, with independent loading, key creation/revocation and setup components. Refreshing or bookmarking that address retains the page. Unauthenticated access redirects to sign-in with `/connections` as the return destination. No React Router dependency was added; the consumer uses the existing Next.js App Router.

@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { api, ApiError } from "../../api";
+import { api, ApiError } from "../../../lib/api";
 import { BookOpen, Check, PenLine } from "lucide-react";
 type Pending = {
   clientName: string;

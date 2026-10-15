@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import AxeBuilder from "@axe-core/playwright";
 import { pdf } from "../pdf-fixture.js";
-import { openBackup } from "../../apps/web/app/backup-archive.js";
+import { openBackup } from "../../apps/web/lib/backups/archive.js";
 
 for(const width of [1440,375])test(`Stream, restore and repair a full PDF backup at ${width}px`,async({page})=>{
  await page.setViewportSize({width,height:1000});

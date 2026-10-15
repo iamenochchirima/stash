@@ -11,7 +11,7 @@ import { localFileStore } from "../apps/server/src/file-store.js";
 import { processPdfJob,cleanPdfFiles } from "../apps/server/src/pdf-worker.js";
 import { createBackupExport } from "../apps/server/src/backup-export.js";
 import { finishBackupRestore } from "../apps/server/src/backup-restore-routes.js";
-import { openBackup,type OpenBackup } from "../apps/web/app/backup-archive.js";
+import { openBackup,type OpenBackup } from "../apps/web/lib/backups/archive.js";
 const hash=(bytes:Uint8Array)=>createHash("sha256").update(bytes).digest("hex"),mime="application/vnd.stash.backup+json";
 async function collect(stream:NodeJS.ReadableStream){const chunks:Buffer[]=[];for await(const chunk of stream as AsyncIterable<Buffer>)chunks.push(Buffer.from(chunk));return Buffer.concat(chunks);}
 async function start(f:Awaited<ReturnType<typeof fixture>>,cookie:string,backup:OpenBackup){

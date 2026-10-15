@@ -10,7 +10,7 @@ import { pdf } from "./pdf-fixture.js";
 import { localFileStore } from "../apps/server/src/file-store.js";
 import { processPdfJob } from "../apps/server/src/pdf-worker.js";
 import { createBackupExport } from "../apps/server/src/backup-export.js";
-import { openBackup } from "../apps/web/app/backup-archive.js";
+import { openBackup } from "../apps/web/lib/backups/archive.js";
 import { sql } from "drizzle-orm";
 import { BACKUP_LIMITS } from "@stash/shared";
 async function collect(stream:NodeJS.ReadableStream){const chunks:Buffer[]=[];for await(const part of stream as AsyncIterable<Buffer>)chunks.push(Buffer.from(part));return Buffer.concat(chunks);}

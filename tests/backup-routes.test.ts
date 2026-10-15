@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { sql } from "drizzle-orm";
 import { fixture } from "./helpers.js";
-import { openBackup } from "../apps/web/app/backup-archive.js";
+import { openBackup } from "../apps/web/lib/backups/archive.js";
 
 test("Full backup grants are private, single-use, session-bound and account-scoped",async()=>{
  const f=await fixture();

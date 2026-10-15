@@ -1,0 +1,50 @@
+
+> stash@ test:browser /home/enoch/aworkspace/agents/stash
+> playwright test tests/browser/drafts.spec.ts tests/browser/journeys.spec.ts tests/browser/routing.spec.ts --grep 'draft|Draft|Session|recovery|Authenticated refresh|Workspace pages'
+
+[WebServer] (node:281687) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:281698) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:281714) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:281714) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:281731) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:281746) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:281762) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:281922) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:282298) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:282320) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:282367) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 9 tests using 1 worker
+
+(node:282527) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:282746) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:282762) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/browser/drafts.spec.ts:9:1 › Capture drafts survive close/reopen, discard explicitly and save with a deterministic title (7.4s)
+[WebServer] (node:282822) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:282958) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 tests/browser/drafts.spec.ts:21:1 › Conflict review preserves typed changes and shows the latest saved context before retry (3.4s)
+  ✓  3 tests/browser/drafts.spec.ts:30:1 › An old editor cannot save its draft into a newly signed-in account (4.0s)
+  ✓  4 tests/browser/drafts.spec.ts:36:41 › Session signout clears drafts and private editors in other tabs without a discard prompt (5.7s)
+  ✓  5 tests/browser/drafts.spec.ts:36:41 › Session delete clears drafts and private editors in other tabs without a discard prompt (5.4s)
+  ✓  6 tests/browser/drafts.spec.ts:45:1 › A full browser draft store warns honestly and still saves the entered item (3.1s)
+  ✓  7 tests/browser/journeys.spec.ts:251:1 › T15/E05 browser password recovery and invalid reused links (10.5s)
+  ✓  8 tests/browser/routing.spec.ts:3:1 › Authenticated refresh serves the library without rendering the public landing page (2.7s)
+  ✓  9 tests/browser/routing.spec.ts:10:1 › Workspace pages have durable routes, refresh cleanly and preserve library navigation (8.3s)
+
+  9 passed (1.1m)

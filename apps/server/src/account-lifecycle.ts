@@ -26,7 +26,7 @@ export async function prepareAccountEmail(tx: Database, user: typeof users.$infe
   const token = randomBytes(32).toString("base64url"), hash = digest(token);
   await tx.delete(accountTokens).where(and(eq(accountTokens.userId,user.id),eq(accountTokens.purpose,purpose)));
   await tx.insert(accountTokens).values({ hash, userId: user.id, purpose, expiresAt: new Date(Date.now() + (purpose === "verify" ? LIMITS.verifyMinutes : LIMITS.resetMinutes)*60000) });
-  return { hash, mail: { to: user.email, subject: purpose === "verify" ? "Verify your Stash email" : "Reset your Stash password", text: `${purpose === "verify" ? "Verify your email" : "Reset your password"}: ${options.origin}/?${purpose}=${token}\nThis link expires in ${purpose === "verify" ? LIMITS.verifyMinutes : LIMITS.resetMinutes} minutes. If you did not request this, ignore this message.` } };
+  return { hash, mail: { to: user.email, subject: purpose === "verify" ? "Verify your Stash email" : "Reset your Stash password", text: `${purpose === "verify" ? "Verify your email" : "Reset your password"}: ${options.origin}/account/${purpose}?${purpose}=${token}\nThis link expires in ${purpose === "verify" ? LIMITS.verifyMinutes : LIMITS.resetMinutes} minutes. If you did not request this, ignore this message.` } };
 }
 export async function sendAccountEmail(db: Database, userId: string, purpose: "verify" | "reset", options: { origin: string; emailDisabled?: boolean; mailer: Mailer }) {
   const prepared = await db.transaction(async tx => {

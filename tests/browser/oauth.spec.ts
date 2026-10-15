@@ -139,7 +139,7 @@ test("OAuth SDK discovery, browser signup/verification/consent, MCP save/retriev
       page.getByRole("link", { name: "OAuth saved article" }),
     ).toBeVisible();
     await page
-      .getByRole("button", { name: "Agent connections", exact: true })
+      .getByRole("link", { name: "Agent connections", exact: true })
       .click();
     await expect(
       page.getByText("Browser OAuth", { exact: true }),

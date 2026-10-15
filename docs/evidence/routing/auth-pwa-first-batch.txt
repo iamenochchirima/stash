@@ -1,0 +1,103 @@
+
+> stash@ test:browser /home/enoch/aworkspace/agents/stash
+> playwright test tests/browser/lifecycle.spec.ts tests/browser/oauth.spec.ts tests/browser/pwa.spec.ts tests/browser/landing.spec.ts tests/browser/journeys.spec.ts --grep 'Card text|OAuth SDK|installs separately|offline storage|Landing|recovery'
+
+[WebServer] (node:278283) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:278306) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:278322) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:278322) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:278399) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:278410) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:278426) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:278455) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:278466) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:278482) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:278510) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 9 tests using 1 worker
+
+(node:278748) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/browser/journeys.spec.ts:251:1 › T15/E05 browser password recovery and invalid reused links (18.0s)
+(node:279052) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 tests/browser/landing.spec.ts:4:3 › Landing and dedicated account pages at 1440px (10.7s)
+  ✓  3 tests/browser/landing.spec.ts:4:3 › Landing and dedicated account pages at 375px (11.0s)
+[WebServer] (node:279313) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:279323) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:279330) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  4 tests/browser/lifecycle.spec.ts:5:30 › Card text selection, Trash Undo, restore and permanent deletion at 1440px (9.5s)
+[WebServer] (node:279513) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:279534) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:279567) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  5 tests/browser/lifecycle.spec.ts:5:30 › Card text selection, Trash Undo, restore and permanent deletion at 375px (7.4s)
+  ✓  6 tests/browser/oauth.spec.ts:16:1 › OAuth SDK discovery, browser signup/verification/consent, MCP save/retrieve and dashboard revocation (8.7s)
+  ✓  7 tests/browser/pwa.spec.ts:6:3 › Stash installs separately and keeps offline storage public (2.8s)
+[WebServer] (node:279948) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:279966) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  8 tests/browser/pwa.spec.ts:6:3 › Stash Admin installs separately and keeps offline storage public (2.8s)
+[WebServer] (node:279999) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  9 tests/browser/pwa.spec.ts:69:1 › Signed-in library responses never enter offline storage (3.5s)
+
+
+  1) tests/browser/journeys.spec.ts:251:1 › T15/E05 browser password recovery and invalid reused links
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('If that email has an account')
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('If that email has an account') with timeout 10000ms
+      - waiting for getByText('If that email has an account')
+
+
+      260 |   await page.getByLabel("Email address").fill(email);
+      261 |   await page.getByRole("button", { name: "Send reset link" }).click();
+    > 262 |   await expect(page.getByText("If that email has an account")).toBeVisible();
+          |                                                                ^
+      263 |   const token = await mailToken(email, "reset");
+      264 |   await page.goto(`/?reset=${token}`);
+      265 |   await page.getByLabel("New password").fill("Newpass8");
+        at /home/enoch/aworkspace/agents/stash/tests/browser/journeys.spec.ts:262:64
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/journeys-T15-E05-browser-p-37241-ry-and-invalid-reused-links/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/journeys-T15-E05-browser-p-37241-ry-and-invalid-reused-links/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/journeys-T15-E05-browser-p-37241-ry-and-invalid-reused-links/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/journeys-T15-E05-browser-p-37241-ry-and-invalid-reused-links/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests/browser/journeys.spec.ts:251:1 › T15/E05 browser password recovery and invalid reused links
+  8 passed (1.6m)
+ ELIFECYCLE  Command failed with exit code 1.

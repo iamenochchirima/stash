@@ -6,7 +6,7 @@ import { readFile,writeFile,mkdir } from 'node:fs/promises';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { pdf } from '../tests/pdf-fixture.js';
-import { openBackup } from '../apps/web/app/backup-archive.js';
+import { openBackup } from '../apps/web/lib/backups/archive.js';
 if(process.env.STASH_HOSTED_ACCEPTANCE!=='true')throw Error('Explicit hosted acceptance flag required');
 const web='https://stash.kasitek.co.za',api='https://api.stash.kasitek.co.za',headers={origin:web};
 const password=randomBytes(24).toString('base64url'),label=randomUUID(),report:Record<string,unknown>={checkedAt:new Date().toISOString(),fixture:'Synthetic content and labelled Resend test recipients',passed:false};

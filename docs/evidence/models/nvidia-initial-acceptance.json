@@ -1,0 +1,36 @@
+{
+  "checkedAt": "2026-10-15T12:23:07.816Z",
+  "model": "nvidia/nemotron-3-super-120b-a12b:free",
+  "paidRouting": false,
+  "promptVersion": "stash-summary-v3",
+  "cases": [
+    {
+      "case": "pdf-api",
+      "fixture": "Disposable account, real PDF extraction and real provider",
+      "state": "failed",
+      "errorCode": "provider_rejected",
+      "usage": [
+        {
+          "actual_tokens": null,
+          "cost_usd": "0.00000000"
+        }
+      ],
+      "qualityExpected": "Correct 82/61 comparison and explicit untested safety limitation",
+      "qualityPassed": false,
+      "passed": false
+    },
+    {
+      "case": "injection",
+      "checkedAt": "2026-10-15T12:23:13.776Z",
+      "passed": false,
+      "errorCode": "provider_rejected"
+    },
+    {
+      "case": "article",
+      "checkedAt": "2026-10-15T12:23:13.815Z",
+      "passed": false,
+      "errorCode": "provider_rejected"
+    }
+  ],
+  "passed": false
+}

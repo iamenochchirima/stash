@@ -6,7 +6,7 @@ import { pdf } from "../tests/pdf-fixture.js";
 import { backblazeFileStore } from "../apps/server/src/file-store.js";
 import { processPdfJob } from "../apps/server/src/pdf-worker.js";
 import { createBackupExport } from "../apps/server/src/backup-export.js";
-import { openBackup,type OpenBackup } from "../apps/web/app/backup-archive.js";
+import { openBackup,type OpenBackup } from "../apps/web/lib/backups/archive.js";
 const evidence:Record<string,unknown>={checkedAt:new Date().toISOString(),provider:"Backblaze B2",fixture:"Synthetic PDF, two disposable accounts and a disposable PostgreSQL schema"};
 const store=backblazeFileStore({endpoint:process.env.B2_ENDPOINT!,region:process.env.B2_REGION!,bucket:process.env.B2_BUCKET!,keyId:process.env.B2_KEY_ID!,applicationKey:process.env.B2_APPLICATION_KEY!}),keys=new Set<string>();
 const tracked={...store,async put(key:string,bytes:Buffer){keys.add(key);await store.put(key,bytes);}};

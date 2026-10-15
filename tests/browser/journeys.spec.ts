@@ -12,7 +12,7 @@ async function signup(page: Page) {
   await page.getByLabel("Email address").fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/library$/);
   await expect(
     page.getByRole("heading", { name: "Your library" }),
   ).toBeVisible();
@@ -78,6 +78,7 @@ async function save(
 test("T15/E01/E06 complete account, library, organization, connections, import/export, and deletion journey", async ({
   page,
 }) => {
+  test.setTimeout(120000);
   await page.setViewportSize({ width: 1440, height: 1000 });
   const email = await signup(page);
   const setup = page.locator("details.onboarding");
@@ -118,7 +119,7 @@ test("T15/E01/E06 complete account, library, organization, connections, import/e
   ).toBeVisible();
   await page.getByLabel("Search your library").fill("");
   await page
-    .getByRole("button", { name: "Agent research", exact: true })
+    .getByRole("link", { name: "Agent research", exact: true })
     .click();
   await page.getByRole("button", { name: "Manage collection" }).click();
   await page
@@ -132,7 +133,8 @@ test("T15/E01/E06 complete account, library, organization, connections, import/e
   await expect(
     page.getByRole("heading", { name: "Research projects" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "All items" }).click();
+  await page.getByRole("link", { name: "All items" }).click();
+  await expect(page.getByRole("heading",{name:"Your library",exact:true})).toBeVisible();
   await page.getByRole("button", { name: "Import / export" }).click();
   const transfer = page.getByRole("dialog");
   const downloadPromise = page.waitForEvent("download");
@@ -161,7 +163,7 @@ test("T15/E01/E06 complete account, library, organization, connections, import/e
     page.getByRole("link", { name: "Imported article" }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Agent connections", exact: true })
+    .getByRole("link", { name: "Agent connections", exact: true })
     .click();
   await page.getByRole("button", { name: "Create an agent key" }).click();
   await page
@@ -182,7 +184,8 @@ test("T15/E01/E06 complete account, library, organization, connections, import/e
   await expect(
     page.getByText("Browser test agent", { exact: true }),
   ).not.toBeVisible();
-  await page.getByRole("button", { name: "All items" }).click();
+  await page.getByRole("link", { name: "All items" }).click();
+  await expect(page.getByRole("heading",{name:"Your library",exact:true})).toBeVisible();
   await save(page, "Temporary resource", "https://example.test/temporary");
   await page.getByRole("link", { name: "Temporary resource", exact: true }).click();
   await page.getByText("More", { exact: true }).click();
@@ -190,7 +193,7 @@ test("T15/E01/E06 complete account, library, organization, connections, import/e
   await expect(
     page.getByRole("link", { name: "Temporary resource" }),
   ).not.toBeVisible();
-  await page.getByRole("button", { name: "Open profile" }).click();
+  await page.getByRole("link", { name: "Open profile" }).click();
   const png = await sharp({
     create: { width: 10, height: 10, channels: 3, background: "#ff0000" },
   })
@@ -232,7 +235,7 @@ test("T15/E01/E06 complete account, library, organization, connections, import/e
     path: "docs/evidence/browser/library-desktop.png",
     fullPage: true,
   });
-  await page.getByRole("button", { name: "Open profile" }).click();
+  await page.getByRole("link", { name: "Open profile" }).click();
   await page
     .getByRole("button", { name: "Delete account", exact: true })
     .click();
@@ -250,10 +253,11 @@ test("T15/E05 browser password recovery and invalid reused links", async ({
 }) => {
   const email = await signup(page);
   await save(page, "Recovery guide");
-  await page.getByRole("button", { name: "Open profile" }).click();
+  await page.getByRole("link", { name: "Open profile" }).click();
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await page.getByRole("link", { name: "Sign in", exact: true }).click();
-  await page.getByRole("button", { name: "Forgot your password?" }).click();
+  await page.getByRole("link", { name: "Forgot your password?" }).click();
+  await expect(page).toHaveURL(/\/forgot-password$/);
   await page.getByLabel("Email address").fill(email);
   await page.getByRole("button", { name: "Send reset link" }).click();
   await expect(page.getByText("If that email has an account")).toBeVisible();
@@ -265,7 +269,7 @@ test("T15/E05 browser password recovery and invalid reused links", async ({
     .click();
   await expect(page.getByText("Password changed.")).toBeVisible();
   await page.getByRole("button", { name: "Continue to Stash" }).click();
-  await page.getByRole("link", { name: "Sign in", exact: true }).click();
+  await expect(page).toHaveURL(/\/signin$/);
   await page.getByLabel("Email address").fill(email);
   await page
     .getByLabel("Password", { exact: true })

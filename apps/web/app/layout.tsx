@@ -2,10 +2,24 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import "./pwa.css";
-import { Pwa } from "./pwa";
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#ffffff" };
-const bodyFont = localFont({ src: "../public/fonts/dm-sans.woff2", weight: "400 700", variable: "--font-public-body", display: "swap" });
-const headingFont = localFont({ src: "../public/fonts/manrope.woff2", weight: "400 700", variable: "--font-public-heading", display: "swap" });
+import { Pwa } from "../components/pwa/pwa";
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#ffffff",
+};
+const bodyFont = localFont({
+  src: "../public/fonts/dm-sans.woff2",
+  weight: "400 700",
+  variable: "--font-public-body",
+  display: "swap",
+});
+const headingFont = localFont({
+  src: "../public/fonts/manrope.woff2",
+  weight: "400 700",
+  variable: "--font-public-heading",
+  display: "swap",
+});
 export const metadata: Metadata = {
   title: "Stash · Save as you go",
   appleWebApp: { capable: true, title: "Stash", statusBarStyle: "default" },
@@ -20,7 +34,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${bodyFont.variable} ${headingFont.variable}`}><Pwa name="Stash">{children}</Pwa></body>
+      <body className={`${bodyFont.variable} ${headingFont.variable}`}>
+        <Pwa name="Stash">{children}</Pwa>
+      </body>
     </html>
   );
 }
