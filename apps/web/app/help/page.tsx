@@ -5,8 +5,8 @@ export default function Help() {
       <h1>Stash help and privacy</h1>
       <h2>Your account and library</h2>
       <p>
-        Your profile and library are private. Create an account, save a link
-        with notes, and organize it into any number of collections. You can save
+        Your profile and library are private. Save links, notes, ideas or PDFs,
+        then add tags or collections to find them later. You can save
         and search immediately. When email delivery is enabled, verify your
         email before creating agent keys.
       </p>
@@ -80,16 +80,15 @@ export default function Help() {
         enabled, your email is verified. Revoke a key to stop future requests
         immediately.
       </p>
+      <h2>Save and find things in conversation</h2>
+      <p>Try &quot;Stash this idea: compare the two approaches before choosing.&quot; You can save a note or idea without a link. Later, ask &quot;Find my notes about the two approaches.&quot;</p>
+      <p>Agents use save_item for links, notes and ideas, search_items to find them, and get_item to read them. PDF originals are uploaded in Stash; agents can read their extracted text with page references. Research saved in Projects stays separate from your main library unless you include it in a search.</p>
+      <p>Archive hides an item from default lists and keeps its content. Trash keeps it recoverable for 30 days; restoring keeps its earlier archive state. Ask explicitly to search Archive or Trash. New edits use the latest revision, so another agent's changes are not silently overwritten.</p>
       <h2>Bring in bookmarks and export your data</h2>
       <p>
-        Use Import / export in your library. Import browser bookmark HTML or a
-        version 1 Stash JSON export. Preview the counts before starting. Valid
-        entries save separately; failures are reported. Existing URLs keep their
-        original notes and tags. JSON imports support up to 10,000 entries and
-        128 MiB; bookmark HTML is limited to 1 MiB. Imports remap collections
-        and ignore ownership IDs. Profile details are included in exports for
-        reference; importing resources does not replace your account profile.
+        Use Import / export for browser bookmarks, Stash JSON v1/v2 or a full backup ZIP. Review the preview before starting. Existing items keep their content; an original missing from an earlier data-only import can be added from a full backup. Choose the same ZIP again to continue an interrupted restore.
       </p>
+      <p>Full backups include original PDFs, saved text, summaries, collections and project history. Data-only JSON omits original files. Bookmark HTML contains library link titles and URLs only, and reports other items it leaves out. JSON imports support up to 10,000 items and 128 MiB; bookmark imports support up to 1 MiB. Imports never replace your account profile or credentials.</p>
       <h2>Metadata and saved content</h2>
       <p>
         When a title is empty, Stash tries to read basic metadata from the URL.
@@ -100,11 +99,10 @@ export default function Help() {
       </p>
       <h2>Deletion and retention</h2>
       <p>
-        Delete a resource to remove it from the live library. Deleting a
-        collection keeps its resources. Account deletion requires your current
+        Move an item to Trash to remove it from your library. You can restore it for 30 days, or delete it permanently with confirmation. Deleting a collection keeps its items. Account deletion requires your current
         password and typing DELETE. It removes your profile, avatar, resources,
         collections, tokens, and agent keys from the live database and ends
-        browser sessions.
+        browser sessions. PDF originals are removed through a durable cleanup queue, including all stored versions. Processing and late uploads cannot restore access to a deleted account.
       </p>
       <p>
         Production backup retention is planned at 7 days and must be configured

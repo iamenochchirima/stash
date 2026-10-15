@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-10-15T08:53:24.733Z",
+  "provider": "Backblaze B2",
+  "fixture": "Synthetic PDF, two disposable accounts and a disposable PostgreSQL schema",
+  "exportOriginalMatches": true,
+  "restoredTextMatches": true,
+  "restoredOriginalMatches": true,
+  "accountIsolation": true,
+  "accountsDeleted": true,
+  "passed": true,
+  "originalsWritten": 2,
+  "originalsRemoved": 2,
+  "allVersionsCleanup": true
+}

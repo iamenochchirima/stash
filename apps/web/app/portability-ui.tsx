@@ -1,7 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState,useEffect,useRef } from "react";
 import { api } from "./api";
+import { prepareBackup,restoreBackup } from "./backup-restore";
+import type { OpenBackup } from "./backup-archive";
+import { downloadBackup } from "./backup-download";
 type Preview = {
+  missingOriginals?: number;
   collectionsToCreate: number;
   total: number;
   valid: number;
@@ -21,7 +25,11 @@ export function Portability({
     [preview, setPreview] = useState<Preview | null>(null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
-    [report, setReport] = useState("");
+    [report, setReport] = useState(""),
+    [bookmarkCounts,setBookmarkCounts]=useState<{links:number;omitted:number}|null>(null);
+  const [backup,setBackup]=useState<{archive:OpenBackup;pdfs:number;missingOriginals:number}|null>(null),[progress,setProgress]=useState("");
+  const active=useRef<{controller:AbortController;archive?:OpenBackup}|null>(null);
+  useEffect(()=>()=>{active.current?.controller.abort();void active.current?.archive?.close();},[]);
   return (
     <div>
       <p className="muted">
@@ -31,10 +39,12 @@ export function Portability({
         Choose an import file
         <input
           type="file"
-          accept=".json,.html,.htm,application/json,text/html"
+          accept=".zip,.json,.html,.htm,application/zip,application/json,text/html"
           disabled={busy}
           onChange={async (e) => {
             const file = e.target.files?.[0];
+            active.current?.controller.abort();await active.current?.archive?.close();
+            active.current=null;setBackup(null);setProgress("");
             setInput(null);
             setPreview(null);
             setReport("");
@@ -42,6 +52,10 @@ export function Portability({
             if (!file) return;
             setBusy(true);
             try {
+              if(file.name.toLowerCase().endsWith(".zip")){
+                const controller=new AbortController();active.current={controller};
+                const prepared=await prepareBackup(file,controller.signal,setProgress);active.current.archive=prepared.archive;setBackup(prepared);setProgress("");return;
+              }
               const format = file.name.toLowerCase().endsWith(".json")
                 ? "json"
                 : "html";
@@ -68,7 +82,18 @@ export function Portability({
           }}
         />
       </label>
-      {busy && <p role="status">Processing your file…</p>}
+      {busy && <p role="status">{progress||"Processing your file…"}</p>}
+      {backup&&<div className="import-preview"><h3>Restore backup</h3>
+        <p>{backup.archive.manifest.items.length} {backup.archive.manifest.items.length===1?"item":"items"} · {backup.pdfs} original {backup.pdfs===1?"PDF":"PDFs"} · {backup.archive.manifest.projects.length} {backup.archive.manifest.projects.length===1?"project":"projects"}</p>
+        {!!backup.missingOriginals&&<p>{backup.missingOriginals} PDFs have saved text only.</p>}
+        <button className="button primary full" disabled={busy} onClick={async()=>{
+          setBusy(true);setError("");setReport("");
+          try{
+            const result=await restoreBackup(backup.archive,active.current!.controller.signal,setProgress);
+            setReport(`${result.saved} restored, ${result.duplicates} existing, ${result.originals} ${result.originals===1?"original":"originals"} added.`);setBackup(null);await backup.archive.close();active.current=null;await onImported();
+          }catch(e){setError(`${(e as Error).message} Existing content is preserved. You can retry this backup.`);}
+          finally{setBusy(false);setProgress("");}
+        }}>Restore backup</button></div>}
       {preview && (
         <div className="import-preview">
           <h3>Import preview</h3>
@@ -81,6 +106,7 @@ export function Portability({
             {preview.total} entries · {preview.toSave} new ·{" "}
             {preview.duplicates} duplicates · {preview.rejected.length} rejected
           </p>
+          {!!preview.missingOriginals && <p>{preview.missingOriginals} {preview.missingOriginals===1?"PDF will be restored without its original file.":"PDFs will be restored without their original files."} Use a full backup to include originals.</p>}
           {preview.rejected.length > 0 && (
             <details>
               <summary>Rejected entries</summary>
@@ -130,7 +156,7 @@ export function Portability({
             }}
           >
             {preview.toSave
-              ? `Import ${preview.toSave} resources`
+              ? `Import ${preview.toSave} items`
               : "Import collections"}
           </button>
         </div>
@@ -147,9 +173,12 @@ export function Portability({
       )}
       <hr />
       <h3>Take your library with you</h3>
-      <p className="muted">
-        Export item content, organisation and profile details as JSON. Original PDF files require a full backup. Passwords and credentials are excluded.
-      </p>
+      <p className="muted">A full backup includes your items and original PDFs. Data-only exports include saved text and organisation.</p>
+      <button className="button primary full" disabled={busy} onClick={async()=>{
+        setBusy(true);setError("");setReport("");
+        try{await downloadBackup(()=>setReport("Your full backup has downloaded."),setError);setReport("Your backup is downloading. Keep this page open until it finishes.");}
+        catch(e){setError((e as Error).message);}finally{setBusy(false);}
+      }}>Download full backup</button>
       <button
         className="button secondary full"
         disabled={busy}
@@ -157,18 +186,8 @@ export function Portability({
           setBusy(true);
           setError("");
           try {
-            const data = await api("/items/export");
-            const url = URL.createObjectURL(
-              new Blob([JSON.stringify(data, null, 2)], {
-                type: "application/json",
-              }),
-            );
-            const anchor = document.createElement("a");
-            anchor.href = url;
-            anchor.download = "stash-export.json";
-            anchor.click();
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-            setReport("Your library export is ready.");
+            await downloadBackup(()=>setReport("Your data export has downloaded."),setError,"json");
+            setReport("Your data export is downloading.");
           } catch (e) {
             setError((e as Error).message);
           } finally {
@@ -176,8 +195,15 @@ export function Portability({
           }
         }}
       >
-        Export my library
+        Export data only
       </button>
+      <button className="button secondary full" disabled={busy} onClick={async()=>{
+        setBusy(true);setError("");try{setBookmarkCounts(await api<{links:number;omitted:number}>("/items/bookmarks"));}catch(e){setError((e as Error).message);}finally{setBusy(false);}
+      }}>Export bookmarks</button>
+      {bookmarkCounts&&<div className="import-preview"><p>{bookmarkCounts.links} {bookmarkCounts.links===1?"link":"links"} · {bookmarkCounts.omitted} other {bookmarkCounts.omitted===1?"item":"items"} omitted</p><p className="muted">Link titles and URLs only. Use a Stash backup to keep notes, files and organisation.</p>
+        <button className="button secondary full" disabled={busy||!bookmarkCounts.links} onClick={async()=>{
+          setBusy(true);setError("");try{await downloadBackup(()=>setReport("Your bookmarks have downloaded."),setError,"bookmarks");setReport("Your bookmarks are downloading.");}catch(e){setError((e as Error).message);}finally{setBusy(false);}
+        }}>Download bookmarks</button></div>}
     </div>
   );
 }

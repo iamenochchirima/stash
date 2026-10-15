@@ -1,3 +1,6 @@
+import { registerBackupRestoreRoutes } from "./backup-restore-routes.js";
+import { registerBackupRoutes } from "./backup-routes.js";
+import { registerProjects } from "./project-routes.js";
 import Fastify from "fastify";
 import cookie from "@fastify/cookie";
 import rateLimit from "@fastify/rate-limit";
@@ -135,7 +138,7 @@ export async function createApp(
       .header("X-Content-Type-Options", "nosniff")
       .header("Cache-Control", "no-store");
     const path = requestPath(request);
-    if (path.startsWith("/uploads/") || path.startsWith("/downloads/")) {
+    if (path.startsWith("/uploads/") || path.startsWith("/downloads/") || path.startsWith("/backup-transfers/")) {
       if (request.headers.origin !== origin) throw new AppError(403, "Origin not allowed.");
       reply.header("Access-Control-Allow-Origin", origin).header("Vary", "Origin").header("Access-Control-Allow-Methods", "GET, POST, OPTIONS").header("Access-Control-Allow-Headers", "Authorization, Content-Type");
       if (request.method === "OPTIONS") return reply.code(204).send();
@@ -230,6 +233,9 @@ export async function createApp(
   registerSummaryRoutes(app, db, { production: options.production, available: !!options.summaryProvider && (options.itemsEnabled ?? !options.production) });
   if (options.fileStore) registerPdfWorker(app, db, options.fileStore);
   registerPdfRoutes(app, db, { production: options.production, enabled: options.itemsEnabled ?? !options.production, store: options.fileStore, origin, publicApiUrl });
+  registerBackupRoutes(app,db,{production:options.production,store:options.fileStore,publicApiUrl});
+  registerBackupRestoreRoutes(app,db,{production:options.production,enabled:options.itemsEnabled??!options.production,storageAvailable:!!options.fileStore,publicApiUrl});
+  registerProjects(app,db,!!options.production);
   registerItems(app, db, { production: options.production, enabled: options.itemsEnabled ?? !options.production });
   app.get("/api/resources", async (request) =>
     library(db, (await authentication.user(request)).id).list(

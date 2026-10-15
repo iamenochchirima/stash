@@ -208,8 +208,10 @@ function Dashboard({
   const [kind, setKind] = useState(() => new URLSearchParams(location.search).get("kind") || "");
   const [itemLocation, setItemLocation] = useState(() => new URLSearchParams(location.search).get("location") || "library");
   const [favourites, setFavourites] = useState(() => new URLSearchParams(location.search).get("favourite") === "true");
+  const [includeProjects,setIncludeProjects]=useState(()=>new URLSearchParams(location.search).get("includeProjects")==="true");
   const libraryParams = new URLSearchParams();
   if (query) libraryParams.set("q", query);
+  if(query.trim()&&includeProjects)libraryParams.set("includeProjects","true");
   if (collection) libraryParams.set("collectionId", collection);
   if (status) libraryParams.set("status", status);
   if (offset) libraryParams.set("offset", String(offset));
@@ -246,13 +248,14 @@ function Dashboard({
     if (status) params.set("status", status);
     if (kind) params.set("kind", kind);
     if (favourites) params.set("favourite", "true");
+    if(query.trim()&&includeProjects)params.set("includeProjects","true");
     params.set("location", itemLocation);
     const result = await api<{ items: Item[]; total: number }>(
       `/items?${params}`,
     );
     setItems(result.items);
     setTotal(result.total);
-  }, [query, collection, status, offset, kind, favourites, itemLocation]);
+  }, [query, collection, status, offset, kind, favourites, itemLocation, includeProjects]);
   useEffect(() => {
     try {
       const previous = sessionStorage.getItem("stash-active-user");
@@ -275,6 +278,7 @@ function Dashboard({
         if (status) params.set("status", status);
     if (kind) params.set("kind", kind);
     if (favourites) params.set("favourite", "true");
+    if(query.trim()&&includeProjects)params.set("includeProjects","true");
     params.set("location", itemLocation);
         const result = await api<{ items: Item[]; total: number }>(
           `/items?${params}`,
@@ -293,7 +297,7 @@ function Dashboard({
       active = false;
       clearTimeout(timer);
     };
-  }, [query, collection, status, offset, kind, favourites, itemLocation]);
+  }, [query, collection, status, offset, kind, favourites, itemLocation, includeProjects]);
   useEffect(() => {
     if (notice) {
       const timer = setTimeout(() => setNotice(""), 5000);
@@ -318,6 +322,7 @@ function Dashboard({
       >
         <Brand />
         <nav aria-label="Main navigation">
+          <Link href="/projects" className="nav-item"><Folder size={19} />Projects</Link>
           <button
             className={
               view === "library" && !collection && itemLocation === "library" && !favourites ? "nav-item active" : "nav-item"
@@ -550,6 +555,7 @@ function Dashboard({
                   <option value="done">Finished</option>
                 </select>
               </div>
+              {query.trim()&&<label className="project-search-toggle"><input type="checkbox" checked={includeProjects} onChange={e=>{setIncludeProjects(e.target.checked);setOffset(0);}} />Include project research</label>}
               <div className="results-heading">
                 <span>
                   {total} {total === 1 ? "item" : "items"}
@@ -583,7 +589,7 @@ function Dashboard({
                       >
                         {item.title}
                       </Link>
-                      <div className="resource-domain">{item.url ? new URL(item.url).hostname : item.kind === "idea" ? "Idea" : item.kind === "pdf" ? item.pdf?.filename || "PDF" : "Note"}{item.favourite && <Star size={12} aria-label="Favourite" />}</div>
+                      <div className="resource-domain">{item.url ? new URL(item.url).hostname : item.kind === "idea" ? "Idea" : item.kind === "pdf" ? item.pdf?.filename || "PDF" : "Note"}{item.projectId&&<span> · Project research</span>}{item.favourite && <Star size={12} aria-label="Favourite" />}</div>
                       {(item.body || item.notes || item.description) && <p className="resource-notes">{item.body || item.notes || item.description}</p>}
                       <div className="tags">
                         {item.tags.map((t) => (

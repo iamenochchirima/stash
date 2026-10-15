@@ -1,0 +1,79 @@
+
+> stash@ build /home/enoch/.codex/worktrees/pwa-release/stash
+> pnpm --filter @stash/server build && pnpm --filter @stash/web build && pnpm --filter @stash/admin build
+
+
+> @stash/server@ build /home/enoch/.codex/worktrees/pwa-release/stash/apps/server
+> tsup && cp -R ../../packages/db/migrations dist/migrations
+
+CLI Building entry: src/bootstrap-admin.ts, src/index.ts, src/maintain-admin.ts, src/migrate.ts, src/recover-admin.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Using tsup config: /home/enoch/.codex/worktrees/pwa-release/stash/apps/server/tsup.config.ts
+CLI Target: es2022
+CLI Cleaning output folder
+ESM Build start
+ESM dist/bootstrap-admin.js 24.84 KB
+ESM dist/recover-admin.js   25.05 KB
+ESM dist/maintain-admin.js  16.20 KB
+ESM dist/migrate.js         15.44 KB
+ESM dist/index.js           129.46 KB
+ESM ⚡️ Build success in 54ms
+
+> @stash/web@ build /home/enoch/.codex/worktrees/pwa-release/stash/apps/web
+> next build
+
+▲ Next.js 16.4.0 (Turbopack)
+✓ Running next.config.ts took 31ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 4.4s
+  Running TypeScript ...
+  Finished TypeScript in 5.0s ...
+  Collecting page data using 10 workers ...
+  Generating static pages using 10 workers (0/9) ...
+  Generating static pages using 10 workers (2/9)
+  Generating static pages using 10 workers (4/9)
+  Generating static pages using 10 workers (6/9)
+✓ Generating static pages using 10 workers (9/9) in 1001ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /help
+├ ○ /manifest.webmanifest
+├ ○ /oauth/consent
+├ ○ /signin
+└ ○ /signup
+
+
+○  (Static)  prerendered as static content
+
+
+> @stash/admin@ build /home/enoch/.codex/worktrees/pwa-release/stash/apps/admin
+> next build
+
+▲ Next.js 16.4.0 (Turbopack)
+✓ Running next.config.ts took 32ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 4.3s
+  Running TypeScript ...
+  Finished TypeScript in 5.1s ...
+  Collecting page data using 6 workers ...
+  Generating static pages using 6 workers (0/4) ...
+  Generating static pages using 6 workers (1/4)
+  Generating static pages using 6 workers (2/4)
+  Generating static pages using 6 workers (3/4)
+✓ Generating static pages using 6 workers (4/4) in 811ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /_not-found
+├ ƒ /[[...route]]
+└ ○ /manifest.webmanifest
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand

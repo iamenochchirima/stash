@@ -1,0 +1,11 @@
+✔ Full ZIP contains complete item JSON, checked originals, empty collections and project associations (1164.468406ms)
+✔ Backup validation rejects corrupt indexes, oversized entries, traversal, symlinks and checksum changes (9.613566ms)
+✔ Full backup preserves the legal maximum project document and twenty prior bodies (1390.091838ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3443.121564

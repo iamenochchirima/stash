@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-10-15T08:21:54.021Z",
+  "results": [
+    {
+      "app": "web",
+      "origin": "https://stash.kasitek.co.za",
+      "manifest": true,
+      "matchingAssets": true,
+      "installation": {
+        "installabilityErrors": []
+      },
+      "nativePromptAvailable": false,
+      "offlineRecovery": true,
+      "publicCacheEntries": 5
+    },
+    {
+      "app": "admin",
+      "origin": "https://admin.stash.kasitek.co.za",
+      "manifest": true,
+      "matchingAssets": true,
+      "installation": {
+        "installabilityErrors": []
+      },
+      "nativePromptAvailable": false,
+      "offlineRecovery": true,
+      "publicCacheEntries": 5
+    }
+  ]
+}

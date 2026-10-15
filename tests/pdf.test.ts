@@ -80,6 +80,10 @@ test("PDF reservations serialize quota races and expired uploads leave a tracked
     await cleanPdfFiles(f.db, store);
     assert.equal((await f.db.execute(sql`select * from attachments where id=${ticket.id}`)).rows.length, 0);
     assert.equal((await f.db.execute(sql`select * from blob_cleanup`)).rows.length, 1);
+    assert.equal((await f.request("POST","/api/items/uploads",{filename:"Wait for deletion.pdf",byteSize:20*1024*1024},a.cookie)).statusCode,409);
+    await f.db.execute(sql`update blob_cleanup set not_before=now()`);
+    await cleanPdfFiles(f.db,store);
+    assert.equal((await f.request("POST","/api/items/uploads",{filename:"Space released.pdf",byteSize:20*1024*1024},a.cookie)).statusCode,200);
   } finally { await f.close(); await rm(directory, { recursive: true, force: true }); }
 });
 
@@ -152,4 +156,21 @@ test("Deleting an account during upload tracks and removes the late-written orig
     await f.db.execute(sql`update blob_cleanup set not_before=now()`);await cleanPdfFiles(f.db,store);await assert.rejects(store.get(key));
     assert.equal((await f.db.execute(sql`select * from resources where user_id=${a.user.id}`)).rows.length,0);
   } finally {release();await f.close();await rm(directory,{recursive:true,force:true});}
+});
+
+
+test("A changed stored original cannot be downloaded or parsed",async()=>{
+ const directory=await mkdtemp(join(tmpdir(),"stash-integrity-test-")),base=localFileStore(directory);
+ let changed=false;
+ const store={...base,async get(key:string){const original=await base.get(key);if(!changed)return original;const corrupt=Buffer.from(original);corrupt[corrupt.length-1]^=1;return corrupt;}};
+ const f=await fixture({fileStore:store});try{
+  const a=await f.signup(),bytes=pdf();
+  const ticket=(await f.request("POST","/api/items/uploads",{filename:"Original.pdf",byteSize:bytes.length},a.cookie)).json();
+  const saved=await f.request("POST",`/uploads/${ticket.id}`,bytes,undefined,{authorization:`Bearer ${ticket.token}`,"content-type":"application/pdf"});assert.equal(saved.statusCode,200);const id=saved.json().item.id;
+  changed=true;
+  const permission=(await f.request("POST",`/api/items/${id}/download`,{},a.cookie)).json();
+  const download=await f.request("GET",`/downloads/${id}`,undefined,undefined,{authorization:`Bearer ${permission.token}`});assert.equal(download.statusCode,409);assert.match(download.body,/integrity/);
+  await processPdfJob(f.db,store);
+  const pages=(await f.request("GET",`/api/items/${id}/pages`,undefined,a.cookie)).json();assert.equal(pages.state,"failed");assert.equal(pages.errorCode,"original_changed");assert.deepEqual(pages.pages,[]);
+ }finally{await f.close();await rm(directory,{recursive:true,force:true});}
 });

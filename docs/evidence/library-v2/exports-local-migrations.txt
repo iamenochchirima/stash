@@ -1,0 +1,9 @@
+
+> stash@ db:migrate /home/enoch/aworkspace/agents/stash
+> pnpm --filter @stash/server migrate
+
+
+> @stash/server@ migrate /home/enoch/aworkspace/agents/stash/apps/server
+> tsx src/migrate.ts
+
+Stash database migrations applied.

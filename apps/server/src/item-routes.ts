@@ -1,3 +1,4 @@
+import { exportBookmarks } from "@stash/core/bookmarks";
 import type { FastifyInstance } from "fastify";
 import type { Database } from "@stash/db";
 import { exportItems, previewItemsImport, importItems } from "@stash/core/items-portability";
@@ -10,6 +11,7 @@ import { fetchMetadata } from "./metadata.js";
 export function registerItems(app: FastifyInstance, db: Database, options: { production?: boolean; enabled?: boolean }) {
   const authentication = auth(db, !!options.production);
   const id = (params: unknown) => z.object({ id: z.string().uuid() }).parse(params).id;
+  app.get("/api/items/bookmarks",async req=>{const result=await exportBookmarks(db,(await authentication.user(req)).id);return{links:result.links,omitted:result.omitted};});
   app.get("/api/items/export", async req => exportItems(db, (await authentication.user(req)).id));
   app.post("/api/items/import/preview", { bodyLimit: LIMITS.importBytes * 2 + 1024 }, async req => previewItemsImport(db, (await authentication.user(req)).id, req.body));
   app.post("/api/items/import", { bodyLimit: LIMITS.importBytes * 2 + 1024 }, async req => importItems(db, (await authentication.user(req)).id, req.body));

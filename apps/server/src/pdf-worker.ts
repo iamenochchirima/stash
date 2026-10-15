@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { createHash } from "node:crypto";
 import { sql } from "drizzle-orm";
 import type { Database } from "@stash/db";
 import type { FileStore } from "./file-store.js";
@@ -23,12 +24,16 @@ export async function processPdfJob(db: Database, store: FileStore) {
     where id in(select id from candidate) returning *`);
   });
   const job = claimed.rows[0]; if (!job) return false;
-  const attachment = await db.execute(sql`update attachments set state='processing',updated_at=now() where resource_id=${job.resource_id} returning storage_key`);
+  const attachment = await db.execute(sql`update attachments set state='processing',updated_at=now() where resource_id=${job.resource_id} and storage_key is not null returning storage_key,content_hash,byte_size`);
   if (!attachment.rows.length) return true;
   let extraction: Awaited<ReturnType<typeof extractPdf>> | undefined, errorCode: string | undefined;
-  try { extraction = await extractPdf(await store.get(String(attachment.rows[0].storage_key))); }
+  try {
+    const file=attachment.rows[0],content=await store.get(String(file.storage_key));
+    if(content.length!==Number(file.byte_size)||file.content_hash&&createHash("sha256").update(content).digest("hex")!==file.content_hash)throw new Error("original_changed");
+    extraction=await extractPdf(content);
+  }
   catch (error) {
-    const codes = ["password_protected", "too_many_pages", "too_much_text", "no_extractable_text", "invalid_pdf", "processing_timeout", "processing_failed", "processing_memory_limit"];
+    const codes = ["original_changed", "password_protected", "too_many_pages", "too_much_text", "no_extractable_text", "invalid_pdf", "processing_timeout", "processing_failed", "processing_memory_limit"];
     errorCode = error instanceof Error && codes.includes(error.message) ? error.message : "storage_unavailable";
   }
   await db.transaction(async tx => {

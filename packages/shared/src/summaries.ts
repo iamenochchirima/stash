@@ -4,7 +4,7 @@ export const summaryResult = z.object({ overview: summaryClaim, points: z.array(
 export type SummaryResult = z.infer<typeof summaryResult>;
 export type SummarySource = { id: string; label: string; text: string; page?: number };
 export type SummarySnapshot = { kind: "link" | "pdf"; url?: string; sources: SummarySource[]; partial: boolean; totalCharacters: number; includedCharacters: number };
-export type SavedSummary = { result: SummaryResult; model: string; createdAt: string; sourceRevision: number; sourceHash: string; sources: (Omit<SummarySource, "text"> & { excerpt: string })[]; partial: boolean; stale: boolean };
+export type SavedSummary = { imported: boolean; result: SummaryResult; model: string; createdAt: string; sourceRevision: number; sourceHash: string; sources: (Omit<SummarySource, "text"> & { excerpt: string })[]; partial: boolean; stale: boolean };
 export type SummaryStatus = {
  available: boolean; saved: SavedSummary | null;
  job: { id: string; state: "queued" | "running" | "succeeded" | "failed" | "cancelled" | "unknown"; errorCode: string | null; createdAt: string } | null;

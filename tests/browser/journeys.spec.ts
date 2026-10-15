@@ -134,7 +134,7 @@ test("T15/E01/E06 complete account, library, organization, connections, import/e
   await page.getByRole("button", { name: "Import / export" }).click();
   const transfer = page.getByRole("dialog");
   const downloadPromise = page.waitForEvent("download");
-  await transfer.getByRole("button", { name: "Export my library" }).click();
+  await transfer.getByRole("button", { name: "Export data only" }).click();
   const download = await downloadPromise;
   const exported = JSON.parse(await readFile((await download.path())!, "utf8"));
   expect(exported.version).toBe(2);
@@ -150,7 +150,7 @@ test("T15/E01/E06 complete account, library, organization, connections, import/e
   await expect(
     transfer.getByText("2 entries · 1 new · 0 duplicates · 1 rejected"),
   ).toBeVisible();
-  await transfer.getByRole("button", { name: "Import 1 resources" }).click();
+  await transfer.getByRole("button", { name: "Import 1 items" }).click();
   await expect(
     transfer.getByText("1 saved, 0 duplicates, 1 rejected."),
   ).toBeVisible();

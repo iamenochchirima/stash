@@ -1,0 +1,76 @@
+
+> stash@ test:browser /home/enoch/.codex/worktrees/pwa-release/stash
+> playwright test tests/browser/pwa.spec.ts tests/browser/admin.spec.ts
+
+[WebServer] (node:208914) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:208925) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:208941) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:208941) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:208967) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:208978) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:208994) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:209023) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:209034) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:209050) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:209080) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 5 tests using 1 worker
+
+(node:209088) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:209175) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:209195) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/browser/admin.spec.ts:10:1 › Admin enrolment, private account metadata, suspension/restoration, audit and responsive navigation (1.0m)
+(node:209866) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:209958) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 tests/browser/admin.spec.ts:187:1 › Admin unavailable-server message can be retried without exposing credentials (673ms)
+(node:209980) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  3 tests/browser/pwa.spec.ts:6:3 › Stash installs separately and keeps offline storage public (1.5s)
+[WebServer] (node:210105) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  4 tests/browser/pwa.spec.ts:6:3 › Stash Admin installs separately and keeps offline storage public (1.3s)
+[WebServer] (node:210119) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  5 tests/browser/pwa.spec.ts:69:1 › Signed-in library responses never enter offline storage (2.1s)
+
+
+  1) tests/browser/admin.spec.ts:10:1 › Admin enrolment, private account metadata, suspension/restoration, audit and responsive navigation
+
+    Test timeout of 60000ms exceeded.
+
+    Error: locator.click: Test timeout of 60000ms exceeded.
+    Call log:
+      - waiting for getByText('Library details', { exact: true })
+
+
+      33 |   await expect(page.getByRole("heading",{name:"Overview",exact:true})).toBeVisible();
+      34 |   await expect(page.getByText("System status",{exact:true})).toBeVisible();
+    > 35 |   await page.getByText("Library details",{exact:true}).click();
+         |                                                        ^
+      36 |   await expect(page.getByText("Summary requests today",{exact:true})).toBeVisible();
+      37 |   await page.getByText("Library details",{exact:true}).click();
+      38 |   const thirtyDays=page.waitForResponse(r=>r.url().includes("/admin-api/overview?days=30")&&r.status()===200);
+        at /home/enoch/.codex/worktrees/pwa-release/stash/tests/browser/admin.spec.ts:35:56
+
+    Error Context: test-results/admin-Admin-enrolment-priv-663e4-t-and-responsive-navigation/error-context.md
+
+  1 failed
+    tests/browser/admin.spec.ts:10:1 › Admin enrolment, private account metadata, suspension/restoration, audit and responsive navigation
+  4 passed (1.2m)
+ ELIFECYCLE  Command failed with exit code 1.

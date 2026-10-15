@@ -1,0 +1,12 @@
+✔ Full ZIP contains complete item JSON, checked originals, empty collections and project associations (1274.630172ms)
+✔ Backup validation rejects corrupt indexes, oversized entries, traversal, symlinks and checksum changes (12.657443ms)
+✔ Full backup grants are private, single-use, session-bound and account-scoped (896.253518ms)
+✔ Backup expiry, pending limits and suspended accounts prevent export (456.359951ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4951.01468

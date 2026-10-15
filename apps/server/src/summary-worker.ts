@@ -88,7 +88,7 @@ export async function processSummaryJob(db: Database, provider: SummaryProvider,
     if (completion && !failure) {
       await tx.execute(sql`insert into item_summaries(resource_id,user_id,source_revision,source_hash,source_snapshot,result,model,prompt_version)
         values(${job.resource_id},${job.user_id},${job.source_revision},${hash!},${JSON.stringify(snapshot)}::jsonb,${JSON.stringify(completion.result)}::jsonb,${completion.model},'stash-summary-v2')
-        on conflict(resource_id) do update set source_revision=excluded.source_revision,source_hash=excluded.source_hash,source_snapshot=excluded.source_snapshot,result=excluded.result,model=excluded.model,prompt_version=excluded.prompt_version,created_at=now()`);
+        on conflict(resource_id) do update set source_revision=excluded.source_revision,source_hash=excluded.source_hash,source_snapshot=excluded.source_snapshot,result=excluded.result,model=excluded.model,prompt_version=excluded.prompt_version,imported_at=null,created_at=now()`);
       await tx.execute(sql`update item_jobs set state='succeeded',source_snapshot=null,lease_until=null,updated_at=now() where id=${job.id}`);
     } else {
       await tx.execute(sql`update item_jobs set state=${failure?.ambiguous ? "unknown" : "failed"},error_code=${failure?.code || "generation_failed"},source_snapshot=null,lease_until=null,updated_at=now() where id=${job.id}`);

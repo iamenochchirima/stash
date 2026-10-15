@@ -1,0 +1,16 @@
+✔ Full backup grants are private, single-use, session-bound and account-scoped (814.69031ms)
+✔ Backup expiry, pending limits and suspended accounts prevent export (430.040792ms)
+✔ Bookmark export includes only owned library link titles/URLs, escapes HTML and reports omissions (889.228317ms)
+✔ Data-only JSON downloads keep the v2 contract and one-use permissions (425.701436ms)
+✔ T13/E03 MCP SDK lifecycle, scopes, errors, revocation, and persisted retrieval milestones (952.975149ms)
+✔ Mixed-item MCP sharing, editing conflicts, lifecycle and read-only boundaries (925.52514ms)
+✔ PDF MCP reads are bounded and retain account and Trash checks (811.837829ms)
+✔ MCP summaries require write scope, deduplicate across clients and retain account isolation (6099.27575ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14284.763269

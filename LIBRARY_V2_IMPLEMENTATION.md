@@ -150,8 +150,8 @@ Acceptance: a user can quickly capture an idea, reopen and develop it, organise 
 - [ ] V4.1 Implement Trash, restore, permanent deletion and explicit confirmation/undo feedback.
 - [x] V4.2 Implement 30-day purge processing with bounded batches, retry/race protection and deployment scheduling.
 - [ ] V4.3 Preserve account-deletion journal/cascade semantics for every item state and pending draft.
-- [ ] V4.4 Add JSON v2 export/import and v1 compatibility, preserving all item types, memberships and state.
-- [ ] V4.5 Keep bookmark import/export honest about its links-only scope.
+- [x] V4.4 Add JSON v2 export/import and v1 compatibility, preserving all item types, memberships and state.
+- [x] V4.5 Keep bookmark import/export honest about its links-only scope.
 - [ ] V4.6 Verify restore/duplicate conflicts, purge boundaries and re-import into an isolated account.
 
 Acceptance: accidental deletion is recoverable before expiry; expired trash is actually purged; full export/import preserves note/idea content and organisation; account deletion removes everything immediately.
@@ -161,7 +161,7 @@ Acceptance: accidental deletion is recoverable before expiry; expired trash is a
 - [x] V5.1 Add mixed-item MCP schemas/tools, bounded previews and explicit lifecycle actions.
 - [x] V5.2 Verify legacy tools/request shapes and read-only/write permissions.
 - [x] V5.3 Verify two independently connected clients can save/retrieve/edit the same account's items safely, including revision conflicts.
-- [ ] V5.4 Update agent setup/help and tool descriptions with URL-free examples and clear archive/trash behaviour.
+- [x] V5.4 Update agent setup/help and tool descriptions with URL-free examples and clear archive/trash behaviour.
 - [x] V5.5 Update admin counts/metadata responses and account lifecycle behaviour without exposing private content.
 
 Acceptance: an agent can save an idea without a URL, another can retrieve/update it, and both remain constrained by account ownership and scopes. Existing link clients continue to work.
@@ -173,7 +173,7 @@ Acceptance: an agent can save an idea without a URL, another can retrieve/update
 - [x] V6.3 Implement isolated extraction with deadlines/concurrency/page-text mapping, durable states and retry controls.
 - [x] V6.4 Build PDF capture/detail, useful failure states, text/page reading and Download original; integrate extracted text with search and bounded MCP retrieval.
 - [ ] V6.5 Extend archive/trash/purge, account deletion/journal replay and orphan cleanup to stored files and derived content.
-- [ ] V6.6 Implement full PDF backup ZIP export/import and explicit JSON-only limitations.
+- [x] V6.6 Implement full PDF backup ZIP export/import and explicit JSON-only limitations.
 - [ ] V6.7 Verify hostile/malformed/oversized/encrypted/image-only fixtures, ownership, quota races, worker restarts, storage outages and deletion during processing.
 
 Acceptance: upload a real text PDF, refresh, read/search its extracted content and download the identical original. Other accounts cannot access it. Unsupported files fail honestly; deleted files do not survive indefinitely as untracked objects.
@@ -254,3 +254,12 @@ V7.1–V7.5, V7.7 and V7.8 are implemented and verified locally. The selected Op
 The real-provider acceptance set passed a complete local PDF upload/extraction/job/result flow, a public RFC article source and a prompt-injection fixture, all with reported $0 usage. Browser journeys use a separate provider test double and passed at desktop/mobile widths. They are not a substitute for the real-provider check. Admin aggregation and SDK scope/account boundaries were verified without exposing content. Request aliases survive completion, and known changed article content marks an older result stale even if regeneration fails.
 
 V7.6 remains unchecked pending the final partial-coverage browser case and broader labelled acceptance review. Full backup ZIP, derivative JSON round-trip, file-aware recovery verification, draft/undo refinements, full regressions, native-client checks, deployment and hosted acceptance remain open. This checkpoint does not complete the release goal. No Library v2 commit has been pushed or deployed.
+
+
+Backup checkpoint, 15 October 2026: complete PDF/summary data-only JSON roundtrip and missing-original reading are locally verified. Full ZIP export now streams through session-bound one-use grants and a separate memory-only browser worker. Archive validation covers indexes, traversal, symlinks, checksums, bounded expansion and the legal maximum project body plus 20 prior bodies. Download/extraction reject changed originals, and queued deletion bytes stay charged until actual cleanup. Four focused backup route/archive tests, three later archive capacity cases, seven PDF checks, the real browser download/data-only restore journey, root typecheck and all production builds passed. Evidence is under docs/evidence/library-v2/backup-*.txt and pdf-integrity.txt. Full ZIP restore remains unfinished, so V6.6 stays unchecked. No Library v2 or Projects changes have been pushed or deployed.
+
+
+Full ZIP restore checkpoint, 15 October 2026: V4.4 and V6.6 are now locally verified. All original and derived item content, collection memberships, project history/source links, summary provenance and lifecycle states roundtrip without claiming missing files or overwriting later edits. ZIP validation precedes import in the browser and is repeated on each direct API request. Retry is durable and scoped to the account/session; original adoption is atomic. Evidence includes 26 combined backup/PDF/project tests, five final restore lifecycle tests, seven JSON v1/v2/legacy checks, two desktop/mobile browser journeys and a real Backblaze two-account byte-exact roundtrip with all-version cleanup. Root typecheck passed. Root typecheck and all API/consumer/admin production builds passed. Native-client checks, remaining recovery/draft/bookmark/summary coverage and coordinated hosted deployment still remain; the goal is not complete. Local additive migrations through 0020 are frozen and applied to 127.0.0.1:55432/stash only.
+
+
+Export/help checkpoint, 15 October 2026: V4.5 and V5.4 are locally verified. Bookmark HTML contains owned main-library link titles and URLs, includes archived links, excludes Trash/project research and all non-link content, escapes text/attributes and reports omitted counts before and inside the download. JSON and bookmark downloads now use the same session-bound direct API path as ZIP, with incremental output and no private worker caching. A multi-megabyte JSON test checks bounded per-item chunks. Agent help includes URL-free save/find examples, explicit archive/Trash and project scope, PDF reading and current backup behavior. Eight export/ZIP/MCP tests, eight final streaming/backup tests and the real mobile export plus complete account browser journey passed. Root typecheck and API/consumer/admin production builds passed. Local migration 0021 is frozen/applied only to development. Remaining draft verification must include changing accounts in another tab before saving an old draft, explicit discard and conflict recovery. These items remain unchecked until demonstrated. No v2/Projects push or deployment has occurred.

@@ -1,6 +1,6 @@
 import { api, ApiError } from "./api";
 import type { Item } from "@stash/shared";
-export async function uploadPdf(file: File, progress: (percent: number) => void, details: { title: string; notes: string; tags: string[]; collectionIds: string[]; status: string; requestId: string }): Promise<Item> {
+export async function uploadPdf(file: File, progress: (percent: number) => void, details: { projectId?: string; title: string; notes: string; tags: string[]; collectionIds: string[]; status: string; requestId: string }): Promise<Item> {
   const ticket = await api<{ token: string; uploadUrl: string; item?: Item }>("/items/uploads", { method: "POST", body: JSON.stringify({ filename: file.name, byteSize: file.size, ...details }) });
   if (ticket.item) return ticket.item;
   return new Promise((resolve, reject) => {

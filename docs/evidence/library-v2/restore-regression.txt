@@ -1,0 +1,34 @@
+✔ Full ZIP contains complete item JSON, checked originals, empty collections and project associations (1168.014715ms)
+✔ Backup validation rejects corrupt indexes, oversized entries, traversal, symlinks and checksum changes (10.909582ms)
+✔ Full backup preserves the legal maximum project document and twenty prior bodies (1232.071554ms)
+✔ ZIP restore preserves project history, copied sources, Trash state and original bytes without overwriting edits (1903.197122ms)
+✔ Restore validates permissions/checksums before writes, rejects foreign origins and finalises expired partial projects (764.467727ms)
+✔ Full restore repairs a data-only original and preserves imported summary provenance and later notes (1409.365785ms)
+✔ Logout revokes a partial restore immediately and retained cleanup restores archive state (725.185846ms)
+✔ Deleting an account during original restore denies adoption and keeps a durable cleanup task (1246.716663ms)
+✔ Full backup grants are private, single-use, session-bound and account-scoped (816.943805ms)
+✔ Backup expiry, pending limits and suspended accounts prevent export (442.30006ms)
+✔ JSON v2 preserves full mixed content and states; repeated imports preserve edits (889.809789ms)
+✔ Data-only JSON restores PDF text and summary provenance without claiming an original (810.524701ms)
+✔ JSON import identity survives request expiry and rejected snapshots do not create partial items (478.409066ms)
+✔ PDF parser extracts real page text and safely rejects malformed and image-only files (1656.241702ms)
+✔ Private PDF upload, extraction, search, ownership, retry rejection and durable cleanup (1231.977647ms)
+✔ PDF reservations serialize quota races and expired uploads leave a tracked cleanup task (470.823888ms)
+✔ PDF worker recovers an expired lease and retains cleanup work across storage outages (1135.580179ms)
+✔ PDF details save atomically and request identity prevents duplicate uploads (822.439292ms)
+✔ Deleting an account during upload tracks and removes the late-written original (749.699794ms)
+✔ A changed stored original cannot be downloaded or parsed (469.477204ms)
+✔ Projects isolate research, URLs and long documents with owned archive and append rules (1079.665593ms)
+✔ Project account exports round-trip scope, history and archive state without leaking foreign projects (1150.936866ms)
+✔ Project MCP supports bounded research reads and write-scoped, retry-safe appends (1066.333269ms)
+✔ Project document history retains 20 revisions and rejects unsafe repository URLs (670.295556ms)
+✔ PDF capture stays inside its project and an archive during upload prevents finalisation (498.580453ms)
+✔ Project text quota includes archived research and retained history (2896.957608ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 31564.996885

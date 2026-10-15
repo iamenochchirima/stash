@@ -1,6 +1,6 @@
 import { load } from "cheerio";
 import { z } from "zod";
-import { and, eq } from "drizzle-orm";
+import { sql, and, eq } from "drizzle-orm";
 import { resources, collections, users, type Database } from "@stash/db";
 import { resourceInput, listInput, LIMITS } from "@stash/shared";
 import { library, normalizeUrl, AppError } from "./index.js";
@@ -120,7 +120,7 @@ export async function previewImport(
   const rows = await db
     .select({ url: resources.url })
     .from(resources)
-    .where(eq(resources.userId, userId));
+    .where(and(eq(resources.userId, userId), sql`${resources.projectId} is null`));
   const seen = new Set(rows.map((r) => r.url));
   let duplicates = 0;
   for (const item of parsed.entries) {

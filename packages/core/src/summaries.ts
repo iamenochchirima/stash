@@ -1,3 +1,4 @@
+import { requireProject } from "./projects.js";
 import { sql } from "drizzle-orm";
 import type { Database } from "@stash/db";
 import { SUMMARY_LIMITS, summaryResult, type SummarySnapshot, type SavedSummary } from "@stash/shared";
@@ -14,7 +15,7 @@ export async function summaryStatus(db: Database, userId: string, id: string, av
   if (saved.rows.length) {
     const row = saved.rows[0], snapshot = row.source_snapshot as SummarySnapshot;
     const result = summaryResult.parse(row.result), cited = new Set([result.overview,...result.points].flatMap(c=>c.sourceIds));
-    stored = { result, model: String(row.model), createdAt: new Date(String(row.created_at)).toISOString(), sourceRevision: Number(row.source_revision), sourceHash: String(row.source_hash), sources: snapshot.sources.filter(s=>cited.has(s.id)).map(({text,...source})=>({...source,excerpt:text.slice(0,300).trim()})), partial: snapshot.partial, stale: item.sourceRevision !== Number(row.source_revision) };
+    stored = { imported: !!row.imported_at, result, model: String(row.model), createdAt: new Date(String(row.created_at)).toISOString(), sourceRevision: Number(row.source_revision), sourceHash: String(row.source_hash), sources: snapshot.sources.filter(s=>cited.has(s.id)).map(({text,...source})=>({...source,excerpt:text.slice(0,300).trim()})), partial: snapshot.partial, stale: item.sourceRevision !== Number(row.source_revision) };
   }
   const job = jobs.rows[0];
   return { available, saved: stored, job: job ? { id: String(job.id), state: String(job.state), errorCode: job.error_code ? String(job.error_code) : null, createdAt: new Date(String(job.created_at)).toISOString() } : null,
@@ -31,7 +32,7 @@ export async function queueSummary(db: Database, userId: string, id: string, inp
       const key = await tx.execute(sql`select id from api_keys where id=${keyId} and user_id=${userId} and scope='write' and (expires_at is null or expires_at>now())`);
       if (!key.rows.length) throw new AppError(401, "This agent connection is no longer available.");
     }
-    const rows = await tx.execute(sql`select kind,revision,source_revision from resources where id=${id} and user_id=${userId} and deleted_at is null for update`);
+    const rows = await tx.execute(sql`select kind,revision,source_revision,project_id from resources where id=${id} and user_id=${userId} and deleted_at is null for update`);
     const item = rows.rows[0];
     if (!item) throw new AppError(404, "Item not found.");
     if (!["link", "pdf"].includes(String(item.kind))) throw new AppError(400, "Summaries are available for articles and PDFs.");
@@ -46,6 +47,7 @@ export async function queueSummary(db: Database, userId: string, id: string, inp
       await tx.execute(sql`insert into summary_requests(user_id,request_id,job_id,resource_id,requested_revision) values(${userId},${input.requestId},${running.rows[0].id},${id},${input.revision})`);
       return { id: String(running.rows[0].id), state: String(running.rows[0].state), repeated: true };
     }
+    if(item.project_id)await requireProject(tx,userId,String(item.project_id),true);
     if (Number(item.revision) !== input.revision) throw new AppError(409, "This item changed. Reload it before requesting a summary.");
     if (item.kind === "pdf") {
       const ready = await tx.execute(sql`select id from attachments where resource_id=${id} and user_id=${userId} and state='ready'`);

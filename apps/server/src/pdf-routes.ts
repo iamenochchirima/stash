@@ -1,3 +1,6 @@
+import { requirePdfCapacity } from "./pdf-reservations.js";
+import { commitRestoredOriginal,validateRestoreUpload } from "./backup-originals.js";
+import { requireProject } from "@stash/core/projects";
 import type { FastifyInstance } from "fastify";
 import { randomBytes, randomUUID, createHash } from "node:crypto";
 import { sql, and, eq, inArray } from "drizzle-orm";
@@ -7,7 +10,7 @@ import { LIMITS } from "@stash/shared";
 import { z } from "zod";
 import { auth, digest } from "./auth.js";
 import { MAX_PDF_BYTES, type FileStore } from "./file-store.js";
-const ticketInput = z.object({ filename: z.string().trim().min(1).max(200).refine(n => /\.pdf$/i.test(n) && !/[\x00-\x1f/\\]/.test(n), "Choose a PDF file."), byteSize: z.number().int().min(1).max(MAX_PDF_BYTES), requestId: z.string().uuid().optional(),
+const ticketInput = z.object({ projectId: z.string().uuid().optional(), filename: z.string().trim().min(1).max(200).refine(n => /\.pdf$/i.test(n) && !/[\x00-\x1f/\\]/.test(n), "Choose a PDF file."), byteSize: z.number().int().min(1).max(MAX_PDF_BYTES), requestId: z.string().uuid().optional(),
   title: z.string().trim().max(200).default(""), notes: z.string().trim().max(10000).default(""),
   tags: z.array(z.string().trim().min(1).max(40)).max(20).default([]), collectionIds: z.array(z.string().uuid()).max(20).default([]),
   status: z.enum(["unread","reading","done"]).default("unread"),
@@ -19,6 +22,7 @@ export function registerPdfRoutes(app: FastifyInstance, db: Database, options: {
   app.get("/api/items/uploads/status", async req => { await authentication.user(req); return { available: !!options.store && options.enabled !== false, maxBytes: MAX_PDF_BYTES }; });
   app.post("/api/items/uploads", async req => {
     available(); const user = await authentication.user(req), input = ticketInput.parse(req.body);
+    if(input.projectId && input.collectionIds.length)throw new AppError(400,"Collections belong to the main library.");
     const token = randomBytes(32).toString("base64url"), id = randomUUID();
     const fingerprint = createHash("sha256").update(JSON.stringify(input)).digest("hex");
     const result = await db.transaction(async tx => {
@@ -40,18 +44,12 @@ export function registerPdfRoutes(app: FastifyInstance, db: Database, options: {
           return { id: String(prior.id), itemId: null };
         }
       }
-      const globalUsage = await tx.execute(sql`select coalesce(sum(byte_size),0)::bigint as bytes from attachments`);
-      if (Number(globalUsage.rows[0].bytes) + input.byteSize > 5 * 1024 * 1024 * 1024) throw new AppError(503, "PDF storage is full. Try again later.");
       if (input.collectionIds.length) {
         const owned = await tx.select({ id: collections.id }).from(collections).where(and(eq(collections.userId,user.id),inArray(collections.id,input.collectionIds)));
         if (owned.length !== new Set(input.collectionIds).size) throw new AppError(404, "Collection not found.");
       }
-      const usage = await tx.execute(sql`select coalesce(sum(byte_size),0)::bigint as bytes, count(*) filter(where resource_id is null)::int as pending from attachments where user_id=${user.id}`);
-      const used = usage.rows[0] as { bytes: string; pending: number };
-      if (Number(used.bytes) + input.byteSize > 500 * 1024 * 1024) throw new AppError(409, "Your PDF storage limit has been reached.");
-      if (used.pending >= 3) throw new AppError(429, "Finish your current uploads before adding another.");
-      const count = await tx.execute(sql`select count(*)::int as total from resources where user_id=${user.id}`);
-      if (Number(count.rows[0].total) + used.pending >= LIMITS.resources) throw new AppError(409, "Your item limit has been reached.");
+      if(input.projectId) await requireProject(tx,user.id,input.projectId,true);
+      await requirePdfCapacity(tx,user.id,input.byteSize);
       await tx.insert(attachments).values({ id, userId: user.id, storageKey: `${user.id}/${id}.pdf`, filename: input.filename, byteSize: input.byteSize, captureInput: input, requestId: input.requestId, requestFingerprint: fingerprint, uploadTokenHash: digest(token), uploadExpiresAt: new Date(Date.now() + 5 * 60_000) });
       return { id, itemId: null };
     });
@@ -68,9 +66,10 @@ export function registerPdfRoutes(app: FastifyInstance, db: Database, options: {
       // Serialize reservations across instances before accepting a large request body.
       await db.transaction(async tx => {
         await tx.execute(sql`select pg_advisory_xact_lock(78134922)`);
-        const found = await tx.execute(sql`select user_id from attachments where id=${id} and upload_token_hash=${digest(token)}`);
+        const found = await tx.execute(sql`select user_id,capture_input from attachments where id=${id} and upload_token_hash=${digest(token)}`);
         if (!found.rows.length) throw new AppError(401, "Upload permission has expired. Choose the file again.");
         const userId = String(found.rows[0].user_id);
+        await validateRestoreUpload(tx,userId,found.rows[0].capture_input);
         const active = await tx.execute(sql`select id from users where id=${userId} and suspended_at is null for update`);
         if (!active.rows.length) throw new AppError(403, "This account is unavailable.");
         const busy = await tx.execute(sql`select count(*)::int as total, count(*) filter(where user_id=${userId})::int as own from attachments where state='uploading' and upload_expires_at>now()`);
@@ -87,21 +86,25 @@ export function registerPdfRoutes(app: FastifyInstance, db: Database, options: {
     const content = req.body;
     try {
       if (!Buffer.isBuffer(content) || content.length !== Number(attachment.byte_size) || !content.subarray(0, 1024).includes(Buffer.from("%PDF-"))) throw new AppError(400, "This file is not a valid PDF or its size changed.");
+      await validateRestoreUpload(db,String(attachment.user_id),attachment.capture_input,content);
       await store.put(String(attachment.storage_key), content);
       const resourceId = await db.transaction(async tx => {
         const active = await tx.execute(sql`select id from users where id=${attachment.user_id} and suspended_at is null for update`);
         if (!active.rows.length) throw new AppError(403, "This account is unavailable.");
         const claim = await tx.execute(sql`select id from attachments where id=${id} and state='uploading' and upload_expires_at>now() for update`);
         if (!claim.rows.length) throw new AppError(409, "Upload expired. Choose the file again.");
+        const restored=await commitRestoredOriginal(tx,attachment,content);
+        if(restored)return restored;
         const count = await tx.execute(sql`select count(*)::int as total from resources where user_id=${attachment.user_id}`);
         if (Number(count.rows[0].total) >= LIMITS.resources) throw new AppError(409, "Your item limit has been reached.");
         const details = ticketInput.parse({ filename: attachment.filename, byteSize: Number(attachment.byte_size), ...(attachment.capture_input as Record<string,unknown>) });
+        if(details.projectId) await requireProject(tx,String(attachment.user_id),details.projectId,true);
         const groupIds = [...new Set(details.collectionIds)];
         if (groupIds.length) {
           const owned = await tx.select({ id: collections.id }).from(collections).where(and(eq(collections.userId,String(attachment.user_id)),inArray(collections.id,groupIds)));
           if (owned.length !== groupIds.length) throw new AppError(404, "Collection not found.");
         }
-        const [item] = await tx.insert(resources).values({ userId: String(attachment.user_id), kind: "pdf", title: details.title || String(attachment.filename).replace(/\.pdf$/i, ""), notes: details.notes, tags: [...new Set(details.tags.map(t=>t.toLowerCase()))], status: details.status, url: null, sourceAgent: "web" }).returning();
+        const [item] = await tx.insert(resources).values({ userId: String(attachment.user_id), projectId: details.projectId || null, kind: "pdf", title: details.title || String(attachment.filename).replace(/\.pdf$/i, ""), notes: details.notes, tags: [...new Set(details.tags.map(t=>t.toLowerCase()))], status: details.status, url: null, sourceAgent: "web" }).returning();
         if (groupIds.length) {
           await tx.insert(resourceCollections).values(groupIds.map(collectionId=>({userId:item.userId,resourceId:item.id,collectionId})));
           await tx.update(users).set({ firstOrganizedAt: sql`coalesce(first_organized_at,now())` }).where(sql`id=${item.userId}`);
@@ -111,6 +114,7 @@ export function registerPdfRoutes(app: FastifyInstance, db: Database, options: {
         await tx.update(users).set({ firstSavedAt: sql`coalesce(first_saved_at,now())` }).where(sql`id=${item.userId}`);
         return item.id;
       });
+      if((attachment.capture_input as {restore?:unknown})?.restore)return{restored:true,itemId:resourceId};
       return { item: await items(db, String(attachment.user_id)).get(resourceId) };
     } catch (error) {
       await db.execute(sql`delete from attachments where id=${id} and resource_id is null`);
@@ -124,7 +128,7 @@ export function registerPdfRoutes(app: FastifyInstance, db: Database, options: {
     await db.transaction(async tx => {
       const active = await tx.execute(sql`select id from users where id=${user.id} and suspended_at is null for update`);
       if (!active.rows.length) throw new AppError(403, "This account is unavailable.");
-      const pdf = await tx.execute(sql`select a.id from attachments a join resources r on r.id=a.resource_id where r.id=${id} and r.user_id=${user.id} and r.deleted_at is null for update of r`);
+      const pdf = await tx.execute(sql`select a.id from attachments a join resources r on r.id=a.resource_id where r.id=${id} and r.user_id=${user.id} and r.deleted_at is null and a.storage_key is not null for update of r`);
       if (!pdf.rows.length) throw new AppError(404, "PDF not found.");
       await tx.execute(sql`delete from file_downloads where expires_at<now()`);
       const pending = await tx.execute(sql`select count(*)::int as total from file_downloads where user_id=${user.id}`);
@@ -143,13 +147,14 @@ export function registerPdfRoutes(app: FastifyInstance, db: Database, options: {
       const userId = String(found.rows[0].user_id);
       const active = await tx.execute(sql`select id from users where id=${userId} and suspended_at is null for update`);
       if (!active.rows.length) throw new AppError(403, "This account is unavailable.");
-      const result = await tx.execute(sql`select a.storage_key,a.filename from attachments a join resources r on r.id=a.resource_id where r.id=${id} and r.user_id=${userId} and r.deleted_at is null for update of r`);
+      const result = await tx.execute(sql`select a.storage_key,a.filename,a.content_hash,a.byte_size from attachments a join resources r on r.id=a.resource_id where r.id=${id} and r.user_id=${userId} and r.deleted_at is null and a.storage_key is not null for update of r`);
       if (!result.rows.length) throw new AppError(404, "PDF not found.");
       const used = await tx.execute(sql`delete from file_downloads where token_hash=${digest(token)} and expires_at>now() returning token_hash`);
       if (!used.rows.length) throw new AppError(401, "Download permission has expired.");
       return { ...result.rows[0], userId };
     });
     const content = await store.get(String(file.storage_key));
+    if(content.length!==Number(file.byte_size)||file.content_hash&&createHash("sha256").update(content).digest("hex")!==file.content_hash)throw new AppError(409,"The stored PDF failed its integrity check. Your saved text and notes are unchanged.");
     const stillAllowed = await db.execute(sql`select r.id from resources r join users u on u.id=r.user_id where r.id=${id} and r.user_id=${file.userId} and r.deleted_at is null and u.suspended_at is null`);
     if (!stillAllowed.rows.length) throw new AppError(404, "PDF not found.");
     return reply.type("application/pdf").header("Content-Disposition", `attachment; filename="document.pdf"; filename*=UTF-8''${encodeURIComponent(String(file.filename)).replace(/['()]/g, c => "%"+c.charCodeAt(0).toString(16))}`).send(content);

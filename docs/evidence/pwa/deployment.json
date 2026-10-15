@@ -1,0 +1,32 @@
+{
+  "sourceRevision": "0244c61",
+  "baseRevision": "d911c7ec3b093dce495cf07a24e478c80b793793",
+  "checkedAt": "2026-10-15T08:21:57.372Z",
+  "deployments": [
+    {
+      "id": "dpl_CU7d6K9rS59unBqdqnS59Ucg9dDg",
+      "name": "stash",
+      "state": "READY",
+      "url": "stash-1872900ab-iamenochchirimas-projects.vercel.app",
+      "aliases": [
+        "stash.kasitek.co.za",
+        "stash-tau-seven.vercel.app",
+        "stash-iamenochchirimas-projects.vercel.app"
+      ],
+      "sourceRevision": "0244c6175810bbf67d5d2233901ecac80b98dd31"
+    },
+    {
+      "id": "dpl_4xkPky2V7geRe9c7Yv27CSyV4iru",
+      "name": "stash-admin",
+      "state": "READY",
+      "url": "stash-admin-oz6kjf0m8-iamenochchirimas-projects.vercel.app",
+      "aliases": [
+        "stash-admin.vercel.app",
+        "admin.stash.kasitek.co.za",
+        "stash-admin-iamenochchirimas-projects.vercel.app"
+      ],
+      "sourceRevision": "0244c6175810bbf67d5d2233901ecac80b98dd31"
+    }
+  ],
+  "apiReadyStatus": 200
+}

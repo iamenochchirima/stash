@@ -1,0 +1,111 @@
+
+> stash@ test:browser /home/enoch/.codex/worktrees/pwa-verification/stash
+> playwright test tests/browser/pwa.spec.ts tests/browser/journeys.spec.ts tests/browser/admin.spec.ts
+
+[WebServer] (node:200937) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:200948) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:200964) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:200964) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:201047) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:201058) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:201074) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:201152) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:201163) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:201179) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:201241) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 10 tests using 1 worker
+
+(node:201251) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:201346) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:201437) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:201482) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:201509) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:201534) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:201545) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:201567) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:201611) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:201623) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:201652) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:201877) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/browser/admin.spec.ts:10:1 › Admin enrolment, private account metadata, suspension/restoration, audit and responsive navigation (21.9s)
+[WebServer] (node:201954) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   2 tests/browser/admin.spec.ts:187:1 › Admin unavailable-server message can be retried without exposing credentials (1.2s)
+[WebServer] (node:201987) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+(node:202004) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:202297) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   3 tests/browser/journeys.spec.ts:77:1 › T15/E01/E06 complete account, library, organization, connections, import/export, and deletion journey (16.5s)
+  ✓   4 tests/browser/journeys.spec.ts:246:1 › T15/E05 browser password recovery and invalid reused links (6.3s)
+  ✓   5 tests/browser/journeys.spec.ts:285:3 › T16/E07 responsive layout and keyboard dialog at 375px (2.1s)
+  ✓   6 tests/browser/journeys.spec.ts:285:3 › T16/E07 responsive layout and keyboard dialog at 768px (2.6s)
+  ✓   7 tests/browser/journeys.spec.ts:321:1 › T12 older search responses cannot replace newer results (2.9s)
+  ✓   8 tests/browser/pwa.spec.ts:6:3 › Stash installs separately and keeps offline storage public (2.3s)
+[WebServer] (node:202563) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   9 tests/browser/pwa.spec.ts:6:3 › Stash Admin installs separately and keeps offline storage public (2.9s)
+[WebServer] (node:202630) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  10 tests/browser/pwa.spec.ts:68:1 › Signed-in library responses never enter offline storage (846ms)
+
+
+  1) tests/browser/pwa.spec.ts:68:1 › Signed-in library responses never enter offline storage ──────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 201
+    Received: 200
+
+      71 |   expect(signup.status()).toBe(201);
+      72 |   const saved = await page.request.post("/api/items", { headers, data: { kind: "note", title: "Private offline sentinel", body: "This content must stay out of CacheStorage." } });
+    > 73 |   expect(saved.status()).toBe(201);
+         |                          ^
+      74 |   await page.goto("/");
+      75 |   await expect(page.getByRole("link", { name: "Private offline sentinel", exact: true })).toBeVisible();
+      76 |   await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
+        at /home/enoch/.codex/worktrees/pwa-verification/stash/tests/browser/pwa.spec.ts:73:26
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/pwa-Signed-in-library-responses-never-enter-offline-storage/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/pwa-Signed-in-library-responses-never-enter-offline-storage/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pwa-Signed-in-library-responses-never-enter-offline-storage/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/pwa-Signed-in-library-responses-never-enter-offline-storage/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests/browser/pwa.spec.ts:68:1 › Signed-in library responses never enter offline storage ───────
+  9 passed (1.3m)
+ ELIFECYCLE  Command failed with exit code 1.

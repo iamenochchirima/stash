@@ -1,0 +1,16 @@
+✔ Full ZIP contains complete item JSON, checked originals, empty collections and project associations (1116.328724ms)
+✔ Backup validation rejects corrupt indexes, oversized entries, traversal, symlinks and checksum changes (8.827924ms)
+✔ Full backup preserves the legal maximum project document and twenty prior bodies (1340.232574ms)
+✔ Full backup grants are private, single-use, session-bound and account-scoped (845.470307ms)
+✔ Backup expiry, pending limits and suspended accounts prevent export (463.017339ms)
+✔ Bookmark export includes only owned library link titles/URLs, escapes HTML and reports omissions (864.110265ms)
+✔ Data-only JSON downloads keep the v2 contract and one-use permissions (438.781495ms)
+✔ Large data-only exports stream bounded items rather than one complete payload (773.835588ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8530.209379

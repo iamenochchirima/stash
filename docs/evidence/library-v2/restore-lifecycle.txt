@@ -1,0 +1,13 @@
+✔ ZIP restore preserves project history, copied sources, Trash state and original bytes without overwriting edits (1898.264181ms)
+✔ Restore validates permissions/checksums before writes, rejects foreign origins and finalises expired partial projects (741.152337ms)
+✔ Full restore repairs a data-only original and preserves imported summary provenance and later notes (1689.812917ms)
+✔ Logout revokes a partial restore immediately and retained cleanup restores archive state (840.581371ms)
+✔ Deleting an account during original restore denies adoption and keeps a durable cleanup task (1584.900716ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7884.844588

@@ -1,0 +1,180 @@
+
+> stash@ test:browser /home/enoch/.codex/worktrees/pwa-release/stash
+> playwright test tests/browser/pwa.spec.ts tests/browser/journeys.spec.ts tests/browser/admin.spec.ts
+
+[WebServer] (node:206861) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:206911) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:206927) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:206927) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:206958) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:206975) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:206992) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:207047) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:207058) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:207074) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:207180) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 10 tests using 1 worker
+
+(node:207226) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:207353) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:207370) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:207380) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:207388) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:207398) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:207584) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:207638) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   1 tests/browser/admin.spec.ts:10:1 › Admin enrolment, private account metadata, suspension/restoration, audit and responsive navigation (10.4s)
+(node:207661) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:207779) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   2 tests/browser/admin.spec.ts:184:1 › Admin unavailable-server message can be retried without exposing credentials (2.0s)
+[WebServer] (node:207804) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+(node:207817) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   3 tests/browser/journeys.spec.ts:77:1 › T15/E01/E06 complete account, library, organization, connections, import/export, and deletion journey (12.6s)
+  ✓   4 tests/browser/journeys.spec.ts:252:1 › T15/E05 browser password recovery and invalid reused links (7.4s)
+  ✓   5 tests/browser/journeys.spec.ts:291:3 › T16/E07 responsive layout and keyboard dialog at 375px (4.1s)
+  ✓   6 tests/browser/journeys.spec.ts:291:3 › T16/E07 responsive layout and keyboard dialog at 768px (4.9s)
+  ✓   7 tests/browser/journeys.spec.ts:327:1 › T12 older search responses cannot replace newer results (3.0s)
+  ✘   8 tests/browser/pwa.spec.ts:6:3 › Stash installs separately and keeps offline storage public (12.1s)
+(node:208452) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:208542) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:208558) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   9 tests/browser/pwa.spec.ts:6:3 › Stash Admin installs separately and keeps offline storage public (11.3s)
+(node:208585) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  10 tests/browser/pwa.spec.ts:68:1 › Signed-in library responses never enter offline storage (1.6s)
+
+
+  1) tests/browser/admin.spec.ts:10:1 › Admin enrolment, private account metadata, suspension/restoration, audit and responsive navigation
+
+    Error: locator.click: Error: strict mode violation: getByRole('link', { name: /Research user/ }) resolved to 2 elements:
+        1) <a href="/users/b6c1fe60-b764-4e47-9c19-ae9333730904">Research user</a> aka getByRole('link', { name: 'Research user' }).first()
+        2) <a href="/users/b6c1fe60-b764-4e47-9c19-ae9333730904">Research user</a> aka getByRole('link', { name: 'Research user' }).nth(1)
+
+    Call log:
+      - waiting for getByRole('link', { name: /Research user/ })
+        - waiting for "http://127.0.0.1:3101/activity?q=admin-browser-f5cf2e98-aa6c-448d-8f5e-e03c1e5ad820%40example.test&outcome=all" navigation to finish...
+        - navigated to "http://127.0.0.1:3101/activity?q=admin-browser-f5cf2e98-aa6c-448d-8f5e-e03c1e5ad820%40example.test&outcome=all"
+
+
+       95 |   await page.getByRole("link",{name:"Activity",exact:true}).click();
+       96 |   await expect(page.getByText("Account suspended",{exact:true})).toBeVisible();
+    >  97 |   await page.getByRole("link",{name:"Users",exact:true}).click();await page.getByLabel("Search",{exact:true}).fill(email);await page.getByRole("button",{name:"Apply",exact:true}).click();await page.getByRole("link",{name:new RegExp("Research user")}).click();
+          |                                                                                                                                                                                                                                                            ^
+       98 |   await page.getByText("Account actions",{exact:true}).click();await page.getByRole("button",{name:"Delete account",exact:true}).click();
+       99 |   await page.getByLabel("Reason").fill("Remove disposable acceptance account");await page.getByRole("dialog").getByRole("textbox").last().fill(email);await page.getByRole("dialog").getByRole("button",{name:"Delete account",exact:true}).click();
+      100 |   await expect(page.getByRole("heading",{name:"Users",exact:true})).toBeVisible();
+        at /home/enoch/.codex/worktrees/pwa-release/stash/tests/browser/admin.spec.ts:97:252
+
+    Error Context: test-results/admin-Admin-enrolment-priv-663e4-t-and-responsive-navigation/error-context.md
+
+  2) tests/browser/pwa.spec.ts:6:3 › Stash installs separately and keeps offline storage public ────
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  getByRole('button', { name: 'Install Stash', exact: true })
+    Expected: 0
+    Received: 1
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toHaveCount" getByRole('button', { name: 'Install Stash', exact: true }) with timeout 10000ms
+      - waiting for getByRole('button', { name: 'Install Stash', exact: true })
+        24 × locator resolved to 1 element
+           - unexpected value "1"
+
+
+      62 |     await expect(page.getByRole("heading", { name: "You’re offline." })).toHaveCount(0);
+      63 |     await page.evaluate(() => window.dispatchEvent(new Event("appinstalled")));
+    > 64 |     await expect(install).toHaveCount(0);
+         |                           ^
+      65 |   });
+      66 | }
+      67 |
+        at /home/enoch/.codex/worktrees/pwa-release/stash/tests/browser/pwa.spec.ts:64:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/pwa-Stash-installs-separat-c82f4-eeps-offline-storage-public/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/pwa-Stash-installs-separat-c82f4-eeps-offline-storage-public/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pwa-Stash-installs-separat-c82f4-eeps-offline-storage-public/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/pwa-Stash-installs-separat-c82f4-eeps-offline-storage-public/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) tests/browser/pwa.spec.ts:6:3 › Stash Admin installs separately and keeps offline storage public
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  getByRole('button', { name: 'Install Stash Admin', exact: true })
+    Expected: 0
+    Received: 1
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toHaveCount" getByRole('button', { name: 'Install Stash Admin', exact: true }) with timeout 10000ms
+      - waiting for getByRole('button', { name: 'Install Stash Admin', exact: true })
+        24 × locator resolved to 1 element
+           - unexpected value "1"
+
+
+      62 |     await expect(page.getByRole("heading", { name: "You’re offline." })).toHaveCount(0);
+      63 |     await page.evaluate(() => window.dispatchEvent(new Event("appinstalled")));
+    > 64 |     await expect(install).toHaveCount(0);
+         |                           ^
+      65 |   });
+      66 | }
+      67 |
+        at /home/enoch/.codex/worktrees/pwa-release/stash/tests/browser/pwa.spec.ts:64:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/pwa-Stash-Admin-installs-s-fcad3-eeps-offline-storage-public/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/pwa-Stash-Admin-installs-s-fcad3-eeps-offline-storage-public/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/pwa-Stash-Admin-installs-s-fcad3-eeps-offline-storage-public/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/pwa-Stash-Admin-installs-s-fcad3-eeps-offline-storage-public/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    tests/browser/admin.spec.ts:10:1 › Admin enrolment, private account metadata, suspension/restoration, audit and responsive navigation
+    tests/browser/pwa.spec.ts:6:3 › Stash installs separately and keeps offline storage public ─────
+    tests/browser/pwa.spec.ts:6:3 › Stash Admin installs separately and keeps offline storage public
+  7 passed (1.6m)
+ ELIFECYCLE  Command failed with exit code 1.

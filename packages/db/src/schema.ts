@@ -42,6 +42,14 @@ export const sessions = pgTable("sessions", {
     .references(() => users.id, { onDelete: "cascade" }),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
 });
+export const backupDownloads = pgTable("backup_downloads", {
+  format: text("format",{enum:["zip","json","bookmarks"]}).notNull().default("zip"),
+  tokenHash: text("token_hash").primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sessionHash: text("session_hash").notNull().references(() => sessions.hash, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true }),
+});
 export const collections = pgTable(
   "collections",
   {
@@ -57,10 +65,19 @@ export const collections = pgTable(
     uniqueIndex("collection_id_owner").on(t.id, t.userId),
   ],
 );
+export const projects = pgTable("projects", {
+ importOriginId: uuid("import_origin_id"),
+ id: uuid("id").defaultRandom().primaryKey(), userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+ name: text("name").notNull(), description: text("description").notNull().default(""), repositoryUrl: text("repository_url"),
+ revision: integer("revision").notNull().default(1), archivedAt: timestamp("archived_at", { withTimezone: true }),
+ createdAt: createdAt(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
 export const resources = pgTable(
   "resources",
   {
     id: uuid("id").defaultRandom().primaryKey(),
+    projectId: uuid("project_id").references(() => projects.id),
+    projectSourceId: uuid("project_source_id"),
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
@@ -95,7 +112,8 @@ export const resources = pgTable(
   },
   (t) => [
     uniqueIndex("resource_id_owner").on(t.id, t.userId),
-    uniqueIndex("resource_owner_url").on(t.userId, t.url),
+    uniqueIndex("resource_library_url").on(t.userId, t.url).where(sql`${t.projectId} is null`),
+    uniqueIndex("resource_project_url").on(t.userId, t.projectId, t.url).where(sql`${t.projectId} is not null`),
     index("resource_owner_created").on(t.userId, t.createdAt),
   ],
 );
@@ -254,16 +272,17 @@ export const attachments = pgTable("attachments", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   resourceId: uuid("resource_id").references(() => resources.id, { onDelete: "cascade" }).unique(),
-  storageKey: text("storage_key").notNull().unique(),
+  storageKey: text("storage_key").unique(),
   captureInput: jsonb("capture_input").$type<Record<string, unknown>>().notNull().default({}), requestId: uuid("request_id"), requestFingerprint: text("request_fingerprint"),
   filename: text("filename").notNull(), byteSize: integer("byte_size").notNull(), contentHash: text("content_hash"),
-  state: text("state", { enum: ["pending", "uploading", "queued", "processing", "ready", "failed"] }).notNull().default("pending"),
+  state: text("state", { enum: ["pending", "uploading", "queued", "processing", "ready", "failed", "missing"] }).notNull().default("pending"),
   uploadTokenHash: text("upload_token_hash").unique(), uploadExpiresAt: timestamp("upload_expires_at", { withTimezone: true }).notNull(),
   pages: jsonb("pages").$type<{ page: number; text: string }[]>().notNull().default([]), pageCount: integer("page_count"), parserVersion: text("parser_version"), errorCode: text("error_code"),
   createdAt: createdAt(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 export const blobCleanup = pgTable("blob_cleanup", {
-  id: uuid("id").defaultRandom().primaryKey(), userId: uuid("user_id").notNull(), storageKey: text("storage_key").notNull().unique(),
+  byteSize: integer("byte_size").notNull().default(20971520),
+  id: uuid("id").defaultRandom().primaryKey(), userId: uuid("user_id").notNull(), storageKey: text("storage_key").unique(),
   attempts: integer("attempts").notNull().default(0), notBefore: timestamp("not_before", { withTimezone: true }).notNull().default(sql`now()+interval '10 minutes'`),
   leaseUntil: timestamp("lease_until", { withTimezone: true }), createdAt: createdAt(),
 });
@@ -285,6 +304,7 @@ export const itemSummaries = pgTable("item_summaries", {
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   sourceRevision: integer("source_revision").notNull(), sourceHash: text("source_hash").notNull(),
   sourceSnapshot: jsonb("source_snapshot").notNull(), result: jsonb("result").notNull(),
+  importedAt: timestamp("imported_at", { withTimezone: true }),
   model: text("model").notNull(), promptVersion: text("prompt_version").notNull(), createdAt: createdAt(),
 });
 export const summaryUsage = pgTable("summary_usage", {
@@ -299,3 +319,20 @@ export const summaryRequests = pgTable("summary_requests", {
   jobId: uuid("job_id").notNull().references(()=>itemJobs.id,{onDelete:"cascade"}),
   resourceId: uuid("resource_id").notNull().references(()=>resources.id,{onDelete:"cascade"}), requestedRevision: integer("requested_revision").notNull(),createdAt:createdAt(),
 },t=>[primaryKey({columns:[t.userId,t.requestId]})]);
+
+export const backupRestores = pgTable("backup_restores", {
+  tokenHash: text("token_hash").primaryKey(),
+  userId: uuid("user_id").notNull().unique().references(() => users.id, { onDelete: "cascade" }),
+  sessionHash: text("session_hash").references(() => sessions.hash, { onDelete: "set null" }),
+  manifest: jsonb("manifest"), manifestHash: text("manifest_hash"),
+  createdProjects: uuid("created_projects").array().notNull().default(sql`'{}'`),
+  busyUntil: timestamp("busy_until", { withTimezone: true }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull().default(sql`now()+interval '30 minutes'`),
+  createdAt: createdAt(),
+});
+export const backupRestoreItems = pgTable("backup_restore_items", {
+  transferHash: text("transfer_hash").notNull().references(() => backupRestores.tokenHash, { onDelete: "cascade", onUpdate: "cascade" }),
+  originId: uuid("origin_id").notNull(),
+  resourceId: uuid("resource_id").references(() => resources.id, { onDelete: "set null" }),
+  sourceOriginId: uuid("source_origin_id"), created: boolean("created").notNull().default(false),
+}, t => [primaryKey({ columns: [t.transferHash,t.originId] })]);

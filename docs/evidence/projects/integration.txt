@@ -1,0 +1,25 @@
+✔ JSON v2 preserves full mixed content and states; repeated imports preserve edits (892.876524ms)
+✔ Data-only JSON restores PDF text and summary provenance without claiming an original (790.748042ms)
+✔ JSON import identity survives request expiry and rejected snapshots do not create partial items (477.692948ms)
+✔ Mixed item capture, legacy link compatibility, retry identity and edit conflicts (1273.629807ms)
+✔ Item archive, favourites, trash and restore preserve ownership and state (810.263052ms)
+✔ Expired trash is really purged and restore cannot resurrect a purged item (434.885055ms)
+✔ Mixed item validation and feature gating preserve existing links (438.562549ms)
+✔ T13/E03 MCP SDK lifecycle, scopes, errors, revocation, and persisted retrieval milestones (954.771735ms)
+✔ Mixed-item MCP sharing, editing conflicts, lifecycle and read-only boundaries (1057.024246ms)
+✔ PDF MCP reads are bounded and retain account and Trash checks (821.717375ms)
+✔ MCP summaries require write scope, deduplicate across clients and retain account isolation (6041.281868ms)
+✔ Projects isolate research, URLs and long documents with owned archive and append rules (881.196278ms)
+✔ Project account exports round-trip scope, history and archive state without leaking foreign projects (1053.403189ms)
+✔ Project MCP supports bounded research reads and write-scoped, retry-safe appends (1040.784029ms)
+✔ Project document history retains 20 revisions and rejects unsafe repository URLs (706.254872ms)
+✔ PDF capture stays inside its project and an archive during upload prevents finalisation (468.199048ms)
+✔ Project text quota includes archived research and retained history (2453.613652ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 24054.917486

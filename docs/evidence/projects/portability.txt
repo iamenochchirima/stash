@@ -1,0 +1,17 @@
+✔ JSON v2 preserves full mixed content and states; repeated imports preserve edits (894.069974ms)
+✔ Data-only JSON restores PDF text and summary provenance without claiming an original (798.197744ms)
+✔ JSON import identity survives request expiry and rejected snapshots do not create partial items (431.525984ms)
+✔ Projects isolate research, URLs and long documents with owned archive and append rules (927.80016ms)
+✔ Project account exports round-trip scope, history and archive state without leaking foreign projects (1049.661215ms)
+✔ Project MCP supports bounded research reads and write-scoped, retry-safe appends (1018.165909ms)
+✔ Project document history retains 20 revisions and rejects unsafe repository URLs (670.706716ms)
+✔ PDF capture stays inside its project and an archive during upload prevents finalisation (445.524647ms)
+✔ Project text quota includes archived research and retained history (2524.932811ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10798.981802

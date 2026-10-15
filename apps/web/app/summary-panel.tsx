@@ -52,7 +52,7 @@ export function SummaryPanel({ item, onPdfPage }: { item: Item; onPdfPage: (page
       {status.saved.partial && <p className="summary-note">Covers part of the source. Read the original for the full document.</p>}
       {status.saved.stale && <p className="summary-note">The source text changed since this summary was made.</p>}
       <details className="summary-sources" id="summary-references"><summary>Source references</summary>{status.saved.sources.map(source=><div id={`summary-source-${source.id}`} key={source.id}><h3>{source.label}</h3><blockquote>{source.excerpt}</blockquote></div>)}</details>
-      <p className="summary-note">Source snapshot summarised {new Date(status.saved.createdAt).toLocaleDateString()} · {status.saved.model}</p></div>}
+      <p className="summary-note">{status.saved.imported ? "Imported snapshot, summarised" : "Source snapshot summarised"} {new Date(status.saved.createdAt).toLocaleDateString()} · {status.saved.model}</p></div>}
     {active && <p className="summary-progress" role="status"><LoaderCircle className="spin" size={14} />{status?.job?.state === "queued" ? "Waiting to summarise…" : "Reading the source…"} You can return later.</p>}
     {status?.job?.state === "unknown" && <p className="summary-note">The provider's outcome could not be confirmed. This request will not retry automatically.{status.saved ? " Your previous summary is still saved." : ""}</p>}
     {status?.job?.state === "failed" && <p className="summary-note">{errors[status.job.errorCode || ""] || "The summary could not be completed. Try again later."}{status.saved ? " Your previous summary is still saved." : ""}</p>}

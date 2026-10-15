@@ -1,0 +1,84 @@
+
+> stash@ build /home/enoch/aworkspace/agents/stash
+> pnpm --filter @stash/server build && pnpm --filter @stash/web build && pnpm --filter @stash/admin build
+
+
+> @stash/server@ build /home/enoch/aworkspace/agents/stash/apps/server
+> tsup && cp -R ../../packages/db/migrations dist/migrations
+
+CLI Building entry: src/bootstrap-admin.ts, src/index.ts, src/maintain-admin.ts, src/migrate.ts, src/pdf-extract.mjs, src/recover-admin.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Using tsup config: /home/enoch/aworkspace/agents/stash/apps/server/tsup.config.ts
+CLI Target: es2022
+CLI Cleaning output folder
+ESM Build start
+ESM dist/bootstrap-admin.js 57.02 KB
+ESM dist/pdf-extract.js     1.74 KB
+ESM dist/maintain-admin.js  49.90 KB
+ESM dist/recover-admin.js   57.23 KB
+ESM dist/index.js           296.47 KB
+ESM dist/migrate.js         49.13 KB
+ESM ⚡️ Build success in 40ms
+
+> @stash/web@ build /home/enoch/aworkspace/agents/stash/apps/web
+> next build
+
+▲ Next.js 16.4.0 (Turbopack)
+✓ Running next.config.ts took 37ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 964ms
+  Running TypeScript ...
+  Finished TypeScript in 1826ms ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/10) ...
+  Generating static pages using 11 workers (2/10)
+  Generating static pages using 11 workers (4/10)
+  Generating static pages using 11 workers (7/10)
+✓ Generating static pages using 11 workers (10/10) in 261ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /help
+├ ƒ /items/[id]
+├ ○ /manifest.webmanifest
+├ ○ /oauth/consent
+├ ○ /projects
+├ ƒ /projects/[id]
+├ ○ /signin
+└ ○ /signup
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+> @stash/admin@ build /home/enoch/aworkspace/agents/stash/apps/admin
+> next build
+
+▲ Next.js 16.4.0 (Turbopack)
+✓ Running next.config.ts took 16ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 114ms
+  Running TypeScript ...
+  Finished TypeScript in 1110ms ...
+  Collecting page data using 6 workers ...
+  Generating static pages using 6 workers (0/4) ...
+  Generating static pages using 6 workers (1/4)
+  Generating static pages using 6 workers (2/4)
+  Generating static pages using 6 workers (3/4)
+✓ Generating static pages using 6 workers (4/4) in 494ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /_not-found
+├ ƒ /[[...route]]
+└ ○ /manifest.webmanifest
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand

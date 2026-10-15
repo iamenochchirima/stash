@@ -1,0 +1,15 @@
+✔ JSON v2 preserves full mixed content and states; repeated imports preserve edits (1163.679617ms)
+✔ Data-only JSON restores PDF text and summary provenance without claiming an original (1308.809783ms)
+✔ JSON import identity survives request expiry and rejected snapshots do not create partial items (712.838529ms)
+✔ T20/E06 preview, duplicate retry, rejection reporting, and collection-remapping round trip (1190.991006ms)
+✔ T07/T20 complete export beyond one page excludes secrets and ignores malicious ownership fields (2389.309588ms)
+✔ T20 empty collections survive an export/import round trip (1216.481448ms)
+✔ T20 import reports original file indexes for post-validation failures (646.659753ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11160.270812
