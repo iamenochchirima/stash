@@ -13,7 +13,7 @@ try {
     const pages = []; let length = 0;
     for (let pageNumber = 1; pageNumber <= doc.numPages; pageNumber++) {
       const page = await doc.getPage(pageNumber), content = await page.getTextContent();
-      const text = content.items.map(item => "str" in item ? item.str + (item.hasEOL ? "\n" : " ") : "").join("").trim();
+      const text = content.items.map(item => "str" in item ? item.str + (item.hasEOL ? "\n" : " ") : "").join("").replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "").trim();
       length += text.length;
       if (length > 250000) throw new Error("too_much_text");
       pages.push({ page: pageNumber, text }); page.cleanup();

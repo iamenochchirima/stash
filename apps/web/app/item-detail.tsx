@@ -6,11 +6,13 @@ import Markdown from "react-markdown";
 import { ArrowLeft, ArrowUpRight, Copy, LoaderCircle, Pencil, X, Star, Archive, Trash2, RotateCcw } from "lucide-react";
 import type { Item, Collection, Profile } from "@stash/shared";
 import { api, ApiError } from "./api";
+import { SummaryPanel } from "./summary-panel";
 import { PdfReader } from "./pdf-reader";
 import { ItemEditor } from "./item-editor";
 export function ItemDetail({ id }: { id: string }) {
   const router = useRouter();
   const [item, setItem] = useState<Item | null>(null), [userId, setUserId] = useState("");
+  const [pdfPage, setPdfPage] = useState(1);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [error, setError] = useState(""), [notice, setNotice] = useState("");
   const [editing, setEditing] = useState(false), [busy, setBusy] = useState(false);
@@ -51,7 +53,8 @@ export function ItemDetail({ id }: { id: string }) {
             <button className="button secondary" onClick={() => navigator.clipboard.writeText(`${location.origin}/items/${id}`).then(() => setNotice("Stash link copied.")).catch(() => setNotice("Clipboard unavailable. Copy the address from your browser."))}><Copy size={15} />Copy Stash link</button>
             <details className="item-more"><summary>More</summary><button className="button secondary" disabled={busy} onClick={() => void action(item.archivedAt ? "unarchive" : "archive")}><Archive size={15} />{item.archivedAt ? "Unarchive" : "Archive"}</button><button className="button secondary" disabled={busy} onClick={() => void action("trash")}><Trash2 size={15} />Move to Trash</button></details>
           </>}</div>
-          {item.kind === "pdf" && !trash && <PdfReader item={item} onReady={load} />}
+          {item.kind === "pdf" && !trash && <PdfReader item={item} onReady={load} page={pdfPage} />}
+          {["link", "pdf"].includes(item.kind) && !trash && <SummaryPanel item={item} onPdfPage={page => { setPdfPage(page); document.getElementById(`pdf-page-${page}`)?.scrollIntoView({ block: "start" }); }} />}
           {item.body && <div className="item-markdown"><Markdown skipHtml disallowedElements={["img"]} urlTransform={value => /^https?:\/\//i.test(value) ? value : ""} components={{ a: ({ children, href }) => <a href={href} target="_blank" rel="noopener noreferrer">{children}</a> }}>{item.body}</Markdown></div>}
           {(item.notes || item.description) && <section className="item-body"><h2>{item.notes ? "Your notes" : "About this link"}</h2><p>{item.notes || item.description}</p></section>}
           <div className="item-tags">{item.tags.map(tag => <span key={tag}>#{tag}</span>)}</div>

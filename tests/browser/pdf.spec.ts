@@ -6,6 +6,7 @@ for (const width of [1440, 375]) test(`Upload, read, download and edit a private
   await page.setViewportSize({ width, height: 1000 });
   const response = await page.request.post("/api/auth/signup", { headers: { origin: "http://127.0.0.1:3100" }, data: { name: "PDF reader", email: `pdf-${randomUUID()}@example.test`, password: "Research123" } });
   expect(response.status()).toBe(201);
+  const group=await page.request.post("/api/collections",{headers:{origin:"http://127.0.0.1:3100"},data:{name:"Research"}}); expect(group.status()).toBe(200);
   await page.goto("/");
   await page.getByRole("button", { name: "Add item", exact: true }).first().click();
   const form = page.getByRole("dialog");
@@ -13,10 +14,12 @@ for (const width of [1440, 375]) test(`Upload, read, download and edit a private
   await form.getByLabel("PDF file", { exact: true }).setInputFiles({ name: "Useful research.pdf", mimeType: "application/pdf", buffer: pdf() });
   await form.getByLabel("Title", { exact: true }).fill("Research worth keeping");
   await form.getByLabel("Why it matters").fill("Read this before the next project.");
+  await form.getByRole("checkbox",{name:"Research",exact:true}).check();
   await form.getByRole("button", { name: "Save item", exact: true }).click();
   await page.getByRole("link", { name: "Research worth keeping", exact: true }).click();
   await expect(page.getByText("Research survives the conversation", { exact: true })).toBeVisible({ timeout: 20000 });
   await expect(page.getByRole("heading", { name: "Page 1", exact: true })).toBeVisible();
+  await expect(page.locator(".item-meta").getByText("Research",{exact:true})).toBeVisible();
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Download PDF", exact: true }).click();
   const download = await downloadPromise;

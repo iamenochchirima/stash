@@ -456,3 +456,24 @@ test("AT08 account activity includes connection revocation without exposing anot
     assert.equal(after.total,1);assert.equal(after.items[0].targetKind,"unavailable");assert.ok(!JSON.stringify(after).includes(customer.email));
   }finally{await f.close();}
 });
+
+test("Library v2 admin counts include kinds, lifecycle and processing without private content",async()=>{
+ const f=await setup();
+ try {
+  const owner=await enroll(f),a=await f.signup();
+  const added=await f.db.execute(sql`insert into resources(user_id,kind,title,url,body,notes,archived_at,deleted_at) values
+    (${a.user.id},'link','DO_NOT_DISCLOSE_TITLE','https://private-source.example.test/secret','','DO_NOT_DISCLOSE_CONTEXT',null,null),
+    (${a.user.id},'note','DO_NOT_DISCLOSE_NOTE',null,'DO_NOT_DISCLOSE_BODY','',null,null),
+    (${a.user.id},'idea','DO_NOT_DISCLOSE_IDEA',null,'DO_NOT_DISCLOSE_IDEA_BODY','',now(),null),
+    (${a.user.id},'pdf','DO_NOT_DISCLOSE_DOCUMENT',null,'','',null,now()) returning id,kind`);
+  const pdf=added.rows.find(r=>r.kind==='pdf')!,link=added.rows.find(r=>r.kind==='link')!;
+  await f.db.execute(sql`insert into attachments(user_id,resource_id,storage_key,filename,byte_size,state,upload_expires_at) values(${a.user.id},${pdf.id},${a.user.id+'/'+pdf.id+'.pdf'},'DO_NOT_DISCLOSE_FILENAME.pdf',512,'failed',now())`);
+  const job=await f.db.execute(sql`insert into item_jobs(user_id,resource_id,kind,input_revision,state,source_snapshot) values(${a.user.id},${link.id},'summary',1,'queued','DO_NOT_DISCLOSE_PROMPT') returning id`);
+  await f.db.execute(sql`insert into summary_usage(job_id,user_id,reserved_tokens,actual_tokens) values(${job.rows[0].id},${a.user.id},123,123)`);
+  const response=await f.request("GET","/admin-api/overview",undefined,owner.cookie);assert.equal(response.statusCode,200,response.body);
+  const overview=response.json();assert.equal(overview.metrics.resources,4);
+  assert.deepEqual({links:overview.library.links,notes:overview.library.notes,ideas:overview.library.ideas,pdfs:overview.library.pdfs,active:overview.library.active,archived:overview.library.archived,trash:overview.library.trash},{links:1,notes:1,ideas:1,pdfs:1,active:2,archived:1,trash:1});
+  assert.equal(overview.library.storedBytes,512);assert.equal(overview.library.pdfFailed,1);assert.equal(overview.library.summaryPending,1);assert.equal(overview.library.summaryRequestsToday,1);assert.equal(overview.library.summaryTokensToday,123);assert.equal(overview.library.summaryCostMonth,0);
+  assert.doesNotMatch(response.body,/DO_NOT_DISCLOSE|private-source/);assert.equal(overview.health.storage,'unconfigured');assert.equal(overview.health.summaries,'unconfigured');
+ } finally {await f.close();}
+});

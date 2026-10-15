@@ -1,3 +1,4 @@
+import { openRouterProvider } from "./summary-provider.js";
 import { backblazeFileStore, localFileStore } from "./file-store.js";
 import { mfaCipher } from "./admin-crypto.js";
 import { resolve } from "node:path";
@@ -48,11 +49,14 @@ export function config(env: NodeJS.ProcessEnv = process.env) {
     !["smtp:", "smtps:"].includes(new URL(env.SMTP_URL).protocol)
   )
     throw new Error("SMTP_URL must use smtp or smtps.");
+  if (!!env.OPENROUTER_API_KEY !== !!env.OPENROUTER_MODEL) throw new Error("Summary configuration requires both OPENROUTER_API_KEY and OPENROUTER_MODEL.");
+  const summaryProvider = env.SUMMARIES_ENABLED !== "false" && env.OPENROUTER_API_KEY && env.OPENROUTER_MODEL ? openRouterProvider({ apiKey: env.OPENROUTER_API_KEY, model: env.OPENROUTER_MODEL }) : undefined;
   const b2Configured = [env.B2_ENDPOINT, env.B2_REGION, env.B2_BUCKET, env.B2_KEY_ID, env.B2_APPLICATION_KEY];
   if (b2Configured.some(Boolean) && !b2Configured.every(Boolean)) throw new Error("Backblaze storage configuration is incomplete.");
   const fileStore = b2Configured.every(Boolean) ? backblazeFileStore({ endpoint: env.B2_ENDPOINT!, region: env.B2_REGION!, bucket: env.B2_BUCKET!, keyId: env.B2_KEY_ID!, applicationKey: env.B2_APPLICATION_KEY! }) : !production ? localFileStore(resolve(env.FILE_DIR || "../../.data/files")) : undefined;
   return {
     fileStore,
+    summaryProvider,
     itemsEnabled: env.LIBRARY_V2_ENABLED === "true" || !production,
     adminOrigin,
     adminEncryptionKey: env.ADMIN_ENCRYPTION_KEY,

@@ -14,7 +14,7 @@ export function items(db: Database, userId: string) {
   async function present(rows: Row[], preview = false) {
     const membership = rows.length ? await db.select().from(resourceCollections).where(and(eq(resourceCollections.userId, userId), inArray(resourceCollections.resourceId, rows.map(r => r.id)))) : [];
     const pdfs = rows.length ? await db.select({ resourceId: attachments.resourceId, filename: attachments.filename, byteSize: attachments.byteSize, state: attachments.state, pageCount: attachments.pageCount, errorCode: attachments.errorCode }).from(attachments).where(and(eq(attachments.userId, userId), inArray(attachments.resourceId, rows.map(r => r.id)))) : [];
-    return rows.map(({ userId: _, importOriginId: _origin, extractedText: _extracted, ...row }) => ({ ...row,
+    return rows.map(({ userId: _, importOriginId: _origin, extractedText: _extracted, knownSourceHash: _knownHash, ...row }) => ({ ...row,
       pdf: row.kind === "pdf" ? pdfs.find(p => p.resourceId === row.id) || null : null,
       body: preview ? row.body.slice(0, 300) : row.body,
       notes: preview ? row.notes.slice(0, 300) : row.notes,
@@ -110,7 +110,7 @@ export function items(db: Database, userId: string) {
         if (input.body !== undefined && !["note", "idea"].includes(row.kind)) throw new AppError(400, "This item's source content cannot be edited.");
         if (input.status !== undefined && !["link", "pdf"].includes(row.kind)) throw new AppError(400, "Reading status applies to links and PDFs.");
         const { revision, collectionIds, ...fields } = input;
-        await tx.update(resources).set({ ...fields, tags: input.tags?.map(t => t.toLowerCase()).filter((t, i, all) => all.indexOf(t) === i), revision: revision + 1, updatedAt: new Date() }).where(owner(id));
+        await tx.update(resources).set({ ...fields, tags: input.tags?.map(t => t.toLowerCase()).filter((t, i, all) => all.indexOf(t) === i), sourceRevision: input.body !== undefined && input.body !== row.body ? row.sourceRevision + 1 : row.sourceRevision, revision: revision + 1, updatedAt: new Date() }).where(owner(id));
         if (collectionIds) await membership(tx, id, collectionIds);
       });
       return get(id);

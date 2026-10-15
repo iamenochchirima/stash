@@ -236,3 +236,32 @@ test("PDF MCP reads are bounded and retain account and Trash checks", async () =
     assert.ok((await own.callTool({ name: "read_pdf", arguments: { id } })).isError);
   } finally { for(const client of clients) await client.close(); if(server)await server.close(); await f.close(); }
 });
+
+test("MCP summaries require write scope, deduplicate across clients and retain account isolation",async()=>{
+ const f=await fixture(),clients:Client[]=[];let server:Awaited<ReturnType<typeof createApp>>|undefined,calls=0;
+ try{
+  const a=await f.signup(),b=await f.signup();for(const account of[a,b])await f.request("POST","/api/auth/verify",{token:f.token("verify",account.email)});
+  const keys=[];for(const[scope,cookie]of[["write",a.cookie],["read",a.cookie],["read",b.cookie]]as const)keys.push((await f.request("POST","/api/keys",{name:"Summary test",scope},cookie)).json());
+  const added=await f.db.execute(sql`insert into resources(user_id,kind,title,url,notes) values(${a.user.id},'pdf','Synthetic summary source',null,'Private notes stay separate') returning id`),id=String(added.rows[0].id);
+  const text="Researchers tested twelve filters over six weeks. Paper filters removed more sediment.";
+  await f.db.execute(sql`insert into attachments(user_id,resource_id,storage_key,filename,byte_size,state,pages,page_count,upload_expires_at) values(${a.user.id},${id},${a.user.id+'/'+id+'.pdf'},'Synthetic.pdf',100,'ready',${JSON.stringify([{page:1,text}])}::jsonb,1,now())`);
+  const port=await freePort(),endpoint=`http://127.0.0.1:${port}`;
+  server=await createApp(f.db,{publicApiUrl:endpoint,mailer:{async send(){}},summaryProvider:{model:"verification/provider:free",async preflight(){},async generate(){calls++;return{model:"verification/provider:free",tokens:200,cost:0,result:{overview:{text:"The trial compared filters over six weeks.",sourceIds:["s1"],quote:"Researchers tested twelve filters over six weeks."},points:[{text:"Paper filters removed more sediment.",sourceIds:["s1"],quote:"Paper filters removed more sediment."}]}};}}});
+  await server.listen({port,host:"127.0.0.1"});
+  for(const key of keys){const client=new Client({name:"summary-test",version:"1"});await client.connect(new StreamableHTTPClientTransport(new URL(`${endpoint}/mcp`),{requestInit:{headers:{Authorization:`Bearer ${key.token}`}}}));clients.push(client);}
+  const[writer,reader,foreign]=clients;
+  assert.ok((await writer.listTools()).tools.some(t=>t.name==="summarise_item"));assert.ok(!(await reader.listTools()).tools.some(t=>t.name==="summarise_item"));
+  assert.ok((await reader.callTool({name:"summarise_item",arguments:{id,revision:1,requestId:crypto.randomUUID()}})).isError);
+  const identity=crypto.randomUUID(),first=data(await writer.callTool({name:"summarise_item",arguments:{id,revision:1,requestId:identity}}));
+  const alias=crypto.randomUUID(),second=data(await writer.callTool({name:"summarise_item",arguments:{id,revision:1,requestId:alias}}));assert.equal(first.id,second.id);
+  const deadline=Date.now()+15000;let status;
+  do{status=data(await reader.callTool({name:"get_summary",arguments:{id}}));if(status.saved)break;await new Promise(r=>setTimeout(r,300));}while(Date.now()<deadline);
+  assert.equal(status.job.state,"succeeded");assert.equal(calls,1);assert.ok(status.saved);assert.equal(status.saved.sources[0].page,1);
+  assert.equal(data(await writer.callTool({name:"summarise_item",arguments:{id,revision:1,requestId:alias}})).state,"succeeded");assert.equal(calls,1);
+  assert.ok((await foreign.callTool({name:"get_summary",arguments:{id}})).isError);
+  assert.equal((await f.db.execute(sql`select key_id from item_jobs where id=${first.id}`)).rows[0].key_id,keys[0].id);
+  await writer.callTool({name:"summarise_item",arguments:{id,revision:1,requestId:crypto.randomUUID()}});
+  await writer.callTool({name:"cancel_summary",arguments:{id}});
+  const cancelled=data(await reader.callTool({name:"get_summary",arguments:{id}}));assert.equal(cancelled.job.state,"cancelled");assert.ok(cancelled.saved);
+ }finally{for(const client of clients)await client.close();if(server)await server.close();await f.close();}
+});

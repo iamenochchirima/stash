@@ -1,13 +1,17 @@
 import type { FastifyInstance } from "fastify";
 import { randomBytes, randomUUID, createHash } from "node:crypto";
-import { sql } from "drizzle-orm";
-import { type Database, resources, attachments, itemJobs, users } from "@stash/db";
+import { sql, and, eq, inArray } from "drizzle-orm";
+import { type Database, resources, attachments, itemJobs, users, resourceCollections, collections } from "@stash/db";
 import { AppError, items, readPdfPages } from "@stash/core";
 import { LIMITS } from "@stash/shared";
 import { z } from "zod";
 import { auth, digest } from "./auth.js";
 import { MAX_PDF_BYTES, type FileStore } from "./file-store.js";
-const ticketInput = z.object({ filename: z.string().trim().min(1).max(200).refine(n => /\.pdf$/i.test(n) && !/[\x00-\x1f/\\]/.test(n), "Choose a PDF file."), byteSize: z.number().int().min(1).max(MAX_PDF_BYTES) }).strict();
+const ticketInput = z.object({ filename: z.string().trim().min(1).max(200).refine(n => /\.pdf$/i.test(n) && !/[\x00-\x1f/\\]/.test(n), "Choose a PDF file."), byteSize: z.number().int().min(1).max(MAX_PDF_BYTES), requestId: z.string().uuid().optional(),
+  title: z.string().trim().max(200).default(""), notes: z.string().trim().max(10000).default(""),
+  tags: z.array(z.string().trim().min(1).max(40)).max(20).default([]), collectionIds: z.array(z.string().uuid()).max(20).default([]),
+  status: z.enum(["unread","reading","done"]).default("unread"),
+}).strict();
 const idInput = z.object({ id: z.string().uuid() });
 export function registerPdfRoutes(app: FastifyInstance, db: Database, options: { production?: boolean; enabled?: boolean; store?: FileStore; origin: string; publicApiUrl: string }) {
   const authentication = auth(db, !!options.production);
@@ -16,21 +20,43 @@ export function registerPdfRoutes(app: FastifyInstance, db: Database, options: {
   app.post("/api/items/uploads", async req => {
     available(); const user = await authentication.user(req), input = ticketInput.parse(req.body);
     const token = randomBytes(32).toString("base64url"), id = randomUUID();
-    await db.transaction(async tx => {
+    const fingerprint = createHash("sha256").update(JSON.stringify(input)).digest("hex");
+    const result = await db.transaction(async tx => {
       await tx.execute(sql`select pg_advisory_xact_lock(78134923)`);
-      const globalUsage = await tx.execute(sql`select coalesce(sum(byte_size),0)::bigint as bytes from attachments`);
-      if (Number(globalUsage.rows[0].bytes) + input.byteSize > 5 * 1024 * 1024 * 1024) throw new AppError(503, "PDF storage is full. Try again later.");
       const active = await tx.execute(sql`select id from users where id=${user.id} and suspended_at is null for update`);
       if (!active.rows.length) throw new AppError(403, "This account is unavailable.");
+      if (input.requestId) {
+        const previous = await tx.execute(sql`select id,resource_id,state,request_fingerprint from attachments where user_id=${user.id} and request_id=${input.requestId} for update`);
+        if (previous.rows.length) {
+          const prior = previous.rows[0];
+          if (prior.request_fingerprint !== fingerprint) throw new AppError(409, "This upload request was used for different details. Check your library before retrying.");
+          if (prior.resource_id) {
+            const item = await tx.execute(sql`select deleted_at from resources where id=${prior.resource_id} and user_id=${user.id}`);
+            if (item.rows[0]?.deleted_at) throw new AppError(409, "This PDF is in Trash. Restore it first.");
+            return { itemId: String(prior.resource_id), id: String(prior.id) };
+          }
+          if (prior.state === "uploading") throw new AppError(409, "This upload is in progress. Check your library before retrying.");
+          await tx.execute(sql`update attachments set upload_token_hash=${digest(token)},upload_expires_at=now()+interval '5 minutes',state='pending',updated_at=now() where id=${prior.id}`);
+          return { id: String(prior.id), itemId: null };
+        }
+      }
+      const globalUsage = await tx.execute(sql`select coalesce(sum(byte_size),0)::bigint as bytes from attachments`);
+      if (Number(globalUsage.rows[0].bytes) + input.byteSize > 5 * 1024 * 1024 * 1024) throw new AppError(503, "PDF storage is full. Try again later.");
+      if (input.collectionIds.length) {
+        const owned = await tx.select({ id: collections.id }).from(collections).where(and(eq(collections.userId,user.id),inArray(collections.id,input.collectionIds)));
+        if (owned.length !== new Set(input.collectionIds).size) throw new AppError(404, "Collection not found.");
+      }
       const usage = await tx.execute(sql`select coalesce(sum(byte_size),0)::bigint as bytes, count(*) filter(where resource_id is null)::int as pending from attachments where user_id=${user.id}`);
       const used = usage.rows[0] as { bytes: string; pending: number };
       if (Number(used.bytes) + input.byteSize > 500 * 1024 * 1024) throw new AppError(409, "Your PDF storage limit has been reached.");
       if (used.pending >= 3) throw new AppError(429, "Finish your current uploads before adding another.");
       const count = await tx.execute(sql`select count(*)::int as total from resources where user_id=${user.id}`);
       if (Number(count.rows[0].total) + used.pending >= LIMITS.resources) throw new AppError(409, "Your item limit has been reached.");
-      await tx.insert(attachments).values({ id, userId: user.id, storageKey: `${user.id}/${id}.pdf`, filename: input.filename, byteSize: input.byteSize, uploadTokenHash: digest(token), uploadExpiresAt: new Date(Date.now() + 5 * 60_000) });
+      await tx.insert(attachments).values({ id, userId: user.id, storageKey: `${user.id}/${id}.pdf`, filename: input.filename, byteSize: input.byteSize, captureInput: input, requestId: input.requestId, requestFingerprint: fingerprint, uploadTokenHash: digest(token), uploadExpiresAt: new Date(Date.now() + 5 * 60_000) });
+      return { id, itemId: null };
     });
-    return { id, token, uploadUrl: `${options.publicApiUrl}/uploads/${id}`, expiresIn: 300 };
+    if (result.itemId) return { item: await items(db,user.id).get(result.itemId), repeated: true };
+    return { id: result.id, token, uploadUrl: `${options.publicApiUrl}/uploads/${result.id}`, expiresIn: 300 };
   });
   app.addContentTypeParser("application/pdf", { parseAs: "buffer", bodyLimit: MAX_PDF_BYTES }, (_req, body, done) => done(null, body));
   app.post<{ Params: { id: string } }>("/uploads/:id", {
@@ -69,8 +95,18 @@ export function registerPdfRoutes(app: FastifyInstance, db: Database, options: {
         if (!claim.rows.length) throw new AppError(409, "Upload expired. Choose the file again.");
         const count = await tx.execute(sql`select count(*)::int as total from resources where user_id=${attachment.user_id}`);
         if (Number(count.rows[0].total) >= LIMITS.resources) throw new AppError(409, "Your item limit has been reached.");
-        const [item] = await tx.insert(resources).values({ userId: String(attachment.user_id), kind: "pdf", title: String(attachment.filename).replace(/\.pdf$/i, ""), url: null, sourceAgent: "web" }).returning();
-        await tx.execute(sql`update attachments set resource_id=${item.id},state='queued',upload_token_hash=null,content_hash=${createHash("sha256").update(content).digest("hex")},updated_at=now() where id=${id}`);
+        const details = ticketInput.parse({ filename: attachment.filename, byteSize: Number(attachment.byte_size), ...(attachment.capture_input as Record<string,unknown>) });
+        const groupIds = [...new Set(details.collectionIds)];
+        if (groupIds.length) {
+          const owned = await tx.select({ id: collections.id }).from(collections).where(and(eq(collections.userId,String(attachment.user_id)),inArray(collections.id,groupIds)));
+          if (owned.length !== groupIds.length) throw new AppError(404, "Collection not found.");
+        }
+        const [item] = await tx.insert(resources).values({ userId: String(attachment.user_id), kind: "pdf", title: details.title || String(attachment.filename).replace(/\.pdf$/i, ""), notes: details.notes, tags: [...new Set(details.tags.map(t=>t.toLowerCase()))], status: details.status, url: null, sourceAgent: "web" }).returning();
+        if (groupIds.length) {
+          await tx.insert(resourceCollections).values(groupIds.map(collectionId=>({userId:item.userId,resourceId:item.id,collectionId})));
+          await tx.update(users).set({ firstOrganizedAt: sql`coalesce(first_organized_at,now())` }).where(sql`id=${item.userId}`);
+        }
+        await tx.execute(sql`update attachments set resource_id=${item.id},state='queued',upload_token_hash=null,capture_input='{}'::jsonb,content_hash=${createHash("sha256").update(content).digest("hex")},updated_at=now() where id=${id}`);
         await tx.insert(itemJobs).values({ userId: item.userId, resourceId: item.id, kind: "extract", inputRevision: item.revision });
         await tx.update(users).set({ firstSavedAt: sql`coalesce(first_saved_at,now())` }).where(sql`id=${item.userId}`);
         return item.id;

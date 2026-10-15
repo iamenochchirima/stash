@@ -162,7 +162,7 @@ Acceptance: accidental deletion is recoverable before expiry; expired trash is a
 - [x] V5.2 Verify legacy tools/request shapes and read-only/write permissions.
 - [x] V5.3 Verify two independently connected clients can save/retrieve/edit the same account's items safely, including revision conflicts.
 - [ ] V5.4 Update agent setup/help and tool descriptions with URL-free examples and clear archive/trash behaviour.
-- [ ] V5.5 Update admin counts/metadata responses and account lifecycle behaviour without exposing private content.
+- [x] V5.5 Update admin counts/metadata responses and account lifecycle behaviour without exposing private content.
 
 Acceptance: an agent can save an idea without a URL, another can retrieve/update it, and both remain constrained by account ownership and scopes. Existing link clients continue to work.
 
@@ -180,14 +180,14 @@ Acceptance: upload a real text PDF, refresh, read/search its extracted content a
 
 ### V7 On-demand AI summaries
 
-- [ ] V7.1 Choose the provider/model and agree on request/token quotas, global budget and source-disclosure copy. Configure credentials privately.
-- [ ] V7.2 Implement safe article extraction and revision-bound PDF source access with input/page/response limits.
-- [ ] V7.3 Implement durable jobs, structured outputs, source references, atomic quota reservation, usage reconciliation, cancellation and bounded retries.
-- [ ] V7.4 Add the explicit Summarise action, saved/stale summaries, progress, unavailable/error states and regeneration that preserves user content.
-- [ ] V7.5 Add write-scoped summarise_item/status MCP flows and safe operational admin status/usage counts.
+- [x] V7.1 Choose the provider/model and agree on request/token quotas, global budget and source-disclosure copy. Configure credentials privately.
+- [x] V7.2 Implement safe article extraction and revision-bound PDF source access with input/page/response limits.
+- [x] V7.3 Implement durable jobs, structured outputs, source references, atomic quota reservation, usage reconciliation, cancellation and bounded retries.
+- [x] V7.4 Add the explicit Summarise action, saved/stale summaries, progress, unavailable/error states and regeneration that preserves user content.
+- [x] V7.5 Add write-scoped summarise_item/status MCP flows and safe operational admin status/usage counts.
 - [ ] V7.6 Verify source grounding on a small labelled article/PDF set, partial-source disclosure, stale content and prompt-injection fixtures.
-- [ ] V7.7 Verify timeouts, rate limits, budget exhaustion, duplicate requests, ambiguous provider failures and cancellation/account deletion races.
-- [ ] V7.8 Run real provider acceptance on disposable sources within the agreed budget, recording usage and content/provenance quality without exposing private text.
+- [x] V7.7 Verify timeouts, rate limits, budget exhaustion, duplicate requests, ambiguous provider failures and cancellation/account deletion races.
+- [x] V7.8 Run real provider acceptance on disposable sources within the agreed budget, recording usage and content/provenance quality without exposing private text.
 
 Acceptance: a user explicitly requests an article/PDF summary, receives a concise source-grounded result with references, can revisit it and regenerate it safely. No notes are overwritten, paid work stays within limits and real-provider acceptance has passed.
 
@@ -245,3 +245,12 @@ Checked items above refer to the non-PDF foundation only. PDF extraction/storage
 V6.2–V6.4 are implemented locally. Real B2 synthetic acceptance verified private ACL, upload, identical original download and deletion of all versions. Consumer PDF upload/read/download/edit flows passed at desktop/mobile widths with accessibility checks. Integration checks cover malformed, encrypted, oversized and no-text inputs, quota reservation races, expired uploads, worker lease recovery, storage outages, account deletion and bounded MCP reads. Storage defaults are 500 MiB per account and 5 GiB globally, including pending uploads. Two global uploads and one extraction job are allowed concurrently. These conservative defaults do not provision or upgrade a hosting/storage plan.
 
 V6.1 remains unchecked pending final operational quota/cost documentation and rollout. V6.5–V6.7 remain unchecked for journal/recovery coverage, ZIP backup, deletion-during-processing and broader concurrency/security acceptance. V7 summaries and V8 deployment remain pending. Credentials supplied in root files are excluded from source control and deployment contexts. No v2 code has been pushed or deployed at this checkpoint.
+
+
+### Summary checkpoint, 15 October 2026
+
+V7.1–V7.5, V7.7 and V7.8 are implemented and verified locally. The selected OpenRouter model is cohere/north-mini-code:free, with a $0 cap and paid models/fallbacks rejected. Defaults are five requests per account/UTC day, 300,000 reserved tokens per account/day, 100 requests globally/day and 1,000 globally/month. No paid inference or plan upgrade was authorised or performed. Provider routing/privacy limits are documented in docs/summary-processing.md.
+
+The real-provider acceptance set passed a complete local PDF upload/extraction/job/result flow, a public RFC article source and a prompt-injection fixture, all with reported $0 usage. Browser journeys use a separate provider test double and passed at desktop/mobile widths. They are not a substitute for the real-provider check. Admin aggregation and SDK scope/account boundaries were verified without exposing content. Request aliases survive completion, and known changed article content marks an older result stale even if regeneration fails.
+
+V7.6 remains unchecked pending the final partial-coverage browser case and broader labelled acceptance review. Full backup ZIP, derivative JSON round-trip, file-aware recovery verification, draft/undo refinements, full regressions, native-client checks, deployment and hosted acceptance remain open. This checkpoint does not complete the release goal. No Library v2 commit has been pushed or deployed.

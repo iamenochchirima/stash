@@ -48,7 +48,7 @@ export async function processPdfJob(db: Database, store: FileStore) {
     }
     if (extraction) {
       await tx.execute(sql`update attachments set state='ready',pages=${JSON.stringify(extraction.pages)}::jsonb,page_count=${extraction.pageCount},parser_version='pdfjs-6.4.299',error_code=null,updated_at=now() where resource_id=${job.resource_id}`);
-      await tx.execute(sql`update resources set extracted_text=${extraction.pages.map(p => p.text).join("\n\n")},revision=revision+1,updated_at=now() where id=${job.resource_id}`);
+      await tx.execute(sql`update resources set source_revision=source_revision+case when extracted_text<>${extraction.pages.map(p => p.text).join("\n\n")} then 1 else 0 end,extracted_text=${extraction.pages.map(p => p.text).join("\n\n")},revision=revision+1,updated_at=now() where id=${job.resource_id}`);
       await tx.execute(sql`update item_jobs set state='succeeded',lease_until=null,error_code=null,updated_at=now() where id=${job.id}`);
     } else {
       const retry = ["storage_unavailable", "processing_timeout", "processing_failed"].includes(errorCode!) && Number(job.attempts) < 3;

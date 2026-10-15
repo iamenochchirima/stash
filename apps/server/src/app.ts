@@ -28,6 +28,9 @@ import { registerOAuth } from "./oauth.js";
 import { requestPath } from "./request-path.js";
 import { registerAdminRoutes } from "./admin-routes.js";
 import { registerLibraryMaintenance } from "./library-maintenance.js";
+import { registerSummaryRoutes } from "./summary-routes.js";
+import { registerSummaryWorker } from "./summary-worker.js";
+import type { SummaryProvider } from "./summary-provider.js";
 import { registerPdfWorker } from "./pdf-worker.js";
 import { registerPdfRoutes } from "./pdf-routes.js";
 import type { FileStore } from "./file-store.js";
@@ -36,6 +39,7 @@ import { fetchMetadata } from "./metadata.js";
 export async function createApp(
   db: Database,
   options: {
+    summaryProvider?: SummaryProvider;
     fileStore?: FileStore;
     requestRateLimit?: number;
     itemsEnabled?: boolean;
@@ -180,6 +184,8 @@ export async function createApp(
     origin: options.adminOrigin || "http://127.0.0.1:3001",
     encryptionKey: options.adminEncryptionKey,
     consumerOrigin: origin,
+    storageConfigured: !!options.fileStore,
+    summariesConfigured: !!options.summaryProvider,
     production: !!options.production,
     mailer: options.mailer || createMailer({ directory: options.mailPath || "../../.data/mail", production: !!options.production, disabled: options.emailDisabled }),
     emailDisabled: options.emailDisabled,
@@ -220,6 +226,8 @@ export async function createApp(
       }),
   });
   registerLibraryMaintenance(app, db);
+  if (options.summaryProvider) registerSummaryWorker(app, db, options.summaryProvider);
+  registerSummaryRoutes(app, db, { production: options.production, available: !!options.summaryProvider && (options.itemsEnabled ?? !options.production) });
   if (options.fileStore) registerPdfWorker(app, db, options.fileStore);
   registerPdfRoutes(app, db, { production: options.production, enabled: options.itemsEnabled ?? !options.production, store: options.fileStore, origin, publicApiUrl });
   registerItems(app, db, { production: options.production, enabled: options.itemsEnabled ?? !options.production });
@@ -371,7 +379,7 @@ export async function createApp(
     return exportLibrary(db, user.id);
   });
   app.post("/mcp", async (request, reply) =>
-    handleMcp(db, await authentication.agent(request), request, reply, options.itemsEnabled ?? !options.production),
+    handleMcp(db, await authentication.agent(request), request, reply, options.itemsEnabled ?? !options.production, !!options.summaryProvider),
   );
   app.route({
     method: ["GET", "DELETE"],

@@ -2058,3 +2058,22 @@ textarea::placeholder {
 .pdf-pages p { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; }
 .pdf-pagination { margin-top: 20px; font-size: 13px; }
 form progress { width: 100%; height: 6px; accent-color: #6b8560; }
+
+.summary-panel { margin: 32px 0; padding: 24px 0; border-top: 1px solid #e2e5df; border-bottom: 1px solid #e2e5df; }
+.summary-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.summary-heading h2 { margin: 0; font-size: 18px; }
+.summary-content { margin-top: 20px; line-height: 1.75; }
+.summary-content li { margin: 12px 0; }
+.summary-note { font-size: 12px; color: #687168; line-height: 1.65; overflow-wrap: anywhere; margin: 14px 0 0; }
+.summary-citations { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: 7px; }
+.summary-citations a, .summary-citations button { font: inherit; font-size: 11px; color: #53684b; background: #f2f5ef; border: 0; padding: 0 5px; border-radius: 3px; cursor: pointer; text-decoration: none; }
+.summary-sources { margin-top: 18px; font-size: 13px; }
+.summary-sources summary { cursor: pointer; }
+.summary-sources h3 { font-size: 12px; margin: 16px 0 6px; }
+.summary-sources blockquote { border-left: 2px solid #dce4d5; margin: 8px 0; padding-left: 12px; color: #687168; }
+.summary-progress { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+
+.item-editor-fields { border: 0; padding: 0; margin: 0; min-width: 0; }
+
+.summary-privacy { font-size: 12px; color: #687168; margin-top: 10px; }
+.summary-privacy summary { cursor: pointer; }

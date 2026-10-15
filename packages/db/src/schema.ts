@@ -3,6 +3,7 @@ import {
   pgTable,
   boolean,
   bigint,
+  numeric,
   integer,
   jsonb,
   uuid,
@@ -68,6 +69,8 @@ export const resources = pgTable(
   body: text("body").notNull().default(""),
   extractedText: text("extracted_text").notNull().default(""),
   importOriginId: uuid("import_origin_id"),
+  knownSourceHash: text("known_source_hash"),
+  sourceRevision: integer("source_revision").notNull().default(1),
   revision: integer("revision").notNull().default(1),
   favourite: boolean("favourite").notNull().default(false),
   archivedAt: timestamp("archived_at", { withTimezone: true }),
@@ -252,6 +255,7 @@ export const attachments = pgTable("attachments", {
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   resourceId: uuid("resource_id").references(() => resources.id, { onDelete: "cascade" }).unique(),
   storageKey: text("storage_key").notNull().unique(),
+  captureInput: jsonb("capture_input").$type<Record<string, unknown>>().notNull().default({}), requestId: uuid("request_id"), requestFingerprint: text("request_fingerprint"),
   filename: text("filename").notNull(), byteSize: integer("byte_size").notNull(), contentHash: text("content_hash"),
   state: text("state", { enum: ["pending", "uploading", "queued", "processing", "ready", "failed"] }).notNull().default("pending"),
   uploadTokenHash: text("upload_token_hash").unique(), uploadExpiresAt: timestamp("upload_expires_at", { withTimezone: true }).notNull(),
@@ -268,8 +272,30 @@ export const itemJobs = pgTable("item_jobs", {
   resourceId: uuid("resource_id").notNull().references(() => resources.id, { onDelete: "cascade" }), keyId: uuid("key_id"),
   kind: text("kind", { enum: ["extract", "summary"] }).notNull(),
   state: text("state", { enum: ["queued", "running", "succeeded", "failed", "cancelled", "unknown"] }).notNull().default("queued"),
+  sourceRevision: integer("source_revision").notNull().default(1),
+  requestId: uuid("request_id"), dispatchedAt: timestamp("dispatched_at", { withTimezone: true }),
   inputRevision: integer("input_revision").notNull(), attempts: integer("attempts").notNull().default(0),
   runAfter: timestamp("run_after", { withTimezone: true }).notNull().defaultNow(), leaseUntil: timestamp("lease_until", { withTimezone: true }),
   errorCode: text("error_code"), sourceHash: text("source_hash"), sourceSnapshot: text("source_snapshot"), result: jsonb("result"),
   createdAt: createdAt(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const itemSummaries = pgTable("item_summaries", {
+  resourceId: uuid("resource_id").primaryKey().references(() => resources.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sourceRevision: integer("source_revision").notNull(), sourceHash: text("source_hash").notNull(),
+  sourceSnapshot: jsonb("source_snapshot").notNull(), result: jsonb("result").notNull(),
+  model: text("model").notNull(), promptVersion: text("prompt_version").notNull(), createdAt: createdAt(),
+});
+export const summaryUsage = pgTable("summary_usage", {
+  jobId: uuid("job_id").primaryKey(), userId: uuid("user_id").notNull(),
+  reservedTokens: integer("reserved_tokens").notNull(), actualTokens: integer("actual_tokens"),
+  costUsd: numeric("cost_usd", { precision: 14, scale: 8 }).notNull().default("0"),
+  outcome: text("outcome").notNull().default("reserved"), createdAt: createdAt(),
+});
+
+export const summaryRequests = pgTable("summary_requests", {
+  userId: uuid("user_id").notNull().references(()=>users.id,{onDelete:"cascade"}), requestId: uuid("request_id").notNull(),
+  jobId: uuid("job_id").notNull().references(()=>itemJobs.id,{onDelete:"cascade"}),
+  resourceId: uuid("resource_id").notNull().references(()=>resources.id,{onDelete:"cascade"}), requestedRevision: integer("requested_revision").notNull(),createdAt:createdAt(),
+},t=>[primaryKey({columns:[t.userId,t.requestId]})]);

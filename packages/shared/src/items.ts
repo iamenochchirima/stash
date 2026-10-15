@@ -46,6 +46,6 @@ export type Item = {
   title: string; body: string; notes: string; tags: string[]; collectionIds: string[];
   description: string; status: "unread" | "reading" | "done"; sourceAgent: string;
   metadataStatus: "manual" | "extracted" | "unavailable";
-  revision: number; favourite: boolean; archivedAt: string | null; deletedAt: string | null;
+  sourceRevision: number; revision: number; favourite: boolean; archivedAt: string | null; deletedAt: string | null;
   createdAt: string; updatedAt: string;
 };

@@ -32,6 +32,9 @@ test("Admin enrolment, private account metadata, suspension/restoration, audit a
   await page.getByRole("link",{name:"Continue to admin"}).click();
   await expect(page.getByRole("heading",{name:"Overview",exact:true})).toBeVisible();
   await expect(page.getByText("System status",{exact:true})).toBeVisible();
+  await page.getByText("Library details",{exact:true}).click();
+  await expect(page.getByText("Summary requests today",{exact:true})).toBeVisible();
+  await page.getByText("Library details",{exact:true}).click();
   const thirtyDays=page.waitForResponse(r=>r.url().includes("/admin-api/overview?days=30")&&r.status()===200);
   await page.getByRole("link",{name:"30 days",exact:true}).click();
   expect((await (await thirtyDays).json()).days).toBe(30);

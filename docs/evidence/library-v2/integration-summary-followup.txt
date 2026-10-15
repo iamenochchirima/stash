@@ -1,0 +1,22 @@
+✔ Summary source extraction blocks private redirects/paywalls and strips executable and navigation text (10.925803ms)
+✔ OpenRouter adapter enforces free pricing, routing, bounded structured citations and usage (3.340791ms)
+✔ Summary jobs deduplicate, preserve notes and previous results, reconcile usage and mark stale revisions (816.814712ms)
+✔ Atomic summary quota reservations do not overspend across concurrent items (451.119885ms)
+✔ Ambiguous generation is not retried and a reported charge halts already queued work (469.086771ms)
+✔ Account deletion aborts in-flight generation and removes source snapshots and summaries (881.082615ms)
+✔ Revoked connections and suspended accounts stop queued summaries; unconfigured API stays honest (442.298663ms)
+✔ Editing notes during generation preserves the new notes without making the source summary stale (437.639715ms)
+✔ Summary provider rejects rate limits, unknown outcomes and unexpected charges without paid fallback (1.340548ms)
+✔ Summary workers serialize globally and never replay expired dispatched work (385.355416ms)
+✔ Global summary request limits are reserved atomically across deleted-account usage (385.675487ms)
+✔ Summary reference excerpts come from the server and partial PDF coverage is explicit (361.003129ms)
+✔ User cancellation aborts in-flight generation and never stores the arriving result (880.966008ms)
+✔ A changed article stays marked stale even when regeneration fails before dispatch (500.04252ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6886.786621

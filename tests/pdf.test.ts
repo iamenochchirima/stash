@@ -112,3 +112,44 @@ test("PDF worker recovers an expired lease and retains cleanup work across stora
     assert.equal((await f.db.execute(sql`select * from blob_cleanup`)).rows.length, 0);
   } finally { await f.close(); await rm(directory, { recursive: true, force: true }); }
 });
+
+test("PDF details save atomically and request identity prevents duplicate uploads", async () => {
+  const directory=await mkdtemp(join(tmpdir(),"stash-upload-identity-")),store=localFileStore(directory),f=await fixture({fileStore:store});
+  try {
+    const a=await f.signup(),b=await f.signup(),content=pdf();
+    const group=(await f.request("POST","/api/collections",{name:"Reading"},a.cookie)).json().item;
+    const foreign=(await f.request("POST","/api/collections",{name:"Private"},b.cookie)).json().item;
+    const input={filename:"Atomic.pdf",byteSize:content.length,requestId:crypto.randomUUID(),title:"A useful document",notes:"Keep the context",tags:["Research"],collectionIds:[group.id],status:"reading"};
+    assert.equal((await f.request("POST","/api/items/uploads",{...input,collectionIds:[foreign.id]},a.cookie)).statusCode,404);
+    const first=(await f.request("POST","/api/items/uploads",input,a.cookie)).json();
+    const second=(await f.request("POST","/api/items/uploads",input,a.cookie)).json();
+    assert.equal(first.id,second.id);
+    assert.equal((await f.request("POST",`/uploads/${first.id}`,content,undefined,{authorization:`Bearer ${first.token}`,"content-type":"application/pdf"})).statusCode,401);
+    const saved=await f.request("POST",`/uploads/${second.id}`,content,undefined,{authorization:`Bearer ${second.token}`,"content-type":"application/pdf"});
+    assert.equal(saved.statusCode,200,saved.body);const item=saved.json().item;
+    assert.equal(item.title,input.title);assert.equal(item.notes,input.notes);assert.equal(item.status,"reading");assert.deepEqual(item.tags,["research"]);assert.deepEqual(item.collectionIds,[group.id]);
+    const repeated=await f.request("POST","/api/items/uploads",input,a.cookie);assert.equal(repeated.statusCode,200,repeated.body);assert.equal(repeated.json().item.id,item.id);
+    assert.equal((await f.request("POST","/api/items/uploads",{...input,notes:"Changed request"},a.cookie)).statusCode,409);
+    assert.equal((await f.db.execute(sql`select * from resources where user_id=${a.user.id}`)).rows.length,1);
+    await f.request("POST",`/api/items/${item.id}/lifecycle`,{action:"trash"},a.cookie);
+    assert.equal((await f.request("POST","/api/items/uploads",input,a.cookie)).statusCode,409);
+  } finally {await f.close();await rm(directory,{recursive:true,force:true});}
+});
+
+test("Deleting an account during upload tracks and removes the late-written original", async () => {
+  const directory=await mkdtemp(join(tmpdir(),"stash-upload-delete-")),store=localFileStore(directory);
+  let entered!:()=>void,release!:()=>void;const writing=new Promise<void>(r=>{entered=r;}),resume=new Promise<void>(r=>{release=r;});
+  const f=await fixture({fileStore:{...store,async put(key,content){entered();await resume;await store.put(key,content);}}});
+  try {
+    const a=await f.signup(),content=pdf();
+    const ticket=(await f.request("POST","/api/items/uploads",{filename:"Late upload.pdf",byteSize:content.length},a.cookie)).json();
+    const upload=f.request("POST",`/uploads/${ticket.id}`,content,undefined,{authorization:`Bearer ${ticket.token}`,"content-type":"application/pdf"});
+    await writing;
+    const deleted=await f.request("DELETE","/api/me",{password:"correct horse battery staple",confirmation:"DELETE"},a.cookie);assert.equal(deleted.statusCode,200,deleted.body);
+    release();assert.equal((await upload).statusCode,403);
+    const cleanup=await f.db.execute(sql`select storage_key from blob_cleanup`);assert.equal(cleanup.rows.length,1);
+    const key=String(cleanup.rows[0].storage_key);assert.ok((await store.get(key)).equals(content));
+    await f.db.execute(sql`update blob_cleanup set not_before=now()`);await cleanPdfFiles(f.db,store);await assert.rejects(store.get(key));
+    assert.equal((await f.db.execute(sql`select * from resources where user_id=${a.user.id}`)).rows.length,0);
+  } finally {release();await f.close();await rm(directory,{recursive:true,force:true});}
+});

@@ -24,7 +24,8 @@ export interface AdminAuditEvent {
 export interface AdminOverview {
   metrics: { users: number; newUsers: number; activeUsers: number; suspendedUsers: number; resources: number; connectedAccounts: number };
   days: 7 | 30;
-  health: { api: string; database: string; email: string; backups: string; alerts: string; checkedAt: string };
+  library: { links: number; notes: number; ideas: number; pdfs: number; active: number; archived: number; trash: number; storedBytes: number; pdfPending: number; pdfFailed: number; summaryPending: number; summaryFailed: number; summaryRequestsToday: number; summaryTokensToday: number; summaryCostMonth: number };
+  health: { storage: string; summaries: string; api: string; database: string; email: string; backups: string; alerts: string; checkedAt: string };
 }
 export const adminMutation = z.object({ reason: z.string().trim().min(5).max(300), confirmation: z.string().min(1).max(200), operationId: z.string().uuid() });
 

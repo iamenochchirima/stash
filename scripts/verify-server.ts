@@ -1,3 +1,4 @@
+import { verificationSummaryProvider } from "./verification-summary-provider.js";
 import { randomBytes } from "node:crypto";
 import { inviteAdmin } from "../apps/server/src/admin-auth.js";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -18,6 +19,7 @@ const adminOptions = {
   mailer: createMailer({ directory: resolve(".data/verification-mail"), production: false }),
 };
 const app = await createApp(f.db, {
+  summaryProvider: verificationSummaryProvider,
   fileStore: localFileStore(resolve(`.data/verification-files/${f.schema}`)),
   requestRateLimit: 3000,
   adminOrigin: adminOptions.origin,

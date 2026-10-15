@@ -1,0 +1,21 @@
+✔ Library migration preserves populated pre-upgrade links and memberships (211.767238ms)
+✔ JSON v2 preserves full mixed content and states; repeated imports preserve edits (1479.379378ms)
+✔ Mixed item capture, legacy link compatibility, retry identity and edit conflicts (952.650039ms)
+✔ Item archive, favourites, trash and restore preserve ownership and state (1091.49048ms)
+✔ Expired trash is really purged and restore cannot resurrect a purged item (683.638142ms)
+✔ Mixed item validation and feature gating preserve existing links (773.332076ms)
+✔ T07/T10/E04 strict isolation, many-to-many membership, and collection deletion (1242.288789ms)
+✔ T11 normalization preserves meaningful URLs and concurrent duplicates preserve original content (663.51046ms)
+✔ T10/T12 search, tags, filters, counts, boundaries, invalid URLs, and reading status (780.916142ms)
+✔ T20/E06 preview, duplicate retry, rejection reporting, and collection-remapping round trip (1811.023999ms)
+✔ T07/T20 complete export beyond one page excludes secrets and ignores malicious ownership fields (1497.261541ms)
+✔ T20 empty collections survive an export/import round trip (998.013427ms)
+✔ T20 import reports original file indexes for post-validation failures (608.187106ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 20575.291438
