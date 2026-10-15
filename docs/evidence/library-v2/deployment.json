@@ -24,5 +24,6 @@
   },
   "hostedLibraryAcceptanceSource": "a1c32f9, activated before final import-gate-only patch",
   "hostedProjectsAcceptanceSource": "e514960",
-  "physicalCleanup": "pending normal eligibility"
+  "physicalCleanup": "passed; zero Backblaze versions and zero queued cleanup",
+  "allLibraryV2ChecklistItemsComplete": true
 }

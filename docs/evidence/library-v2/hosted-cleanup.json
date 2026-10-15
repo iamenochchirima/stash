@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-10-15T10:35:32.367Z",
+  "fixtureAccounts": 7,
+  "passed": true,
+  "remaining": {
+    "users": 0,
+    "resources": 0,
+    "attachments": 0,
+    "projects": 0,
+    "project_item_history": 0,
+    "item_jobs": 0,
+    "item_summaries": 0,
+    "blob_cleanup": 0
+  },
+  "trackedFileKeys": 3,
+  "removalAcknowledgements": 3,
+  "backblazeVersionsRemaining": 0,
+  "summaryUsage": {
+    "requests": 1,
+    "cost": "0.00000000"
+  }
+}

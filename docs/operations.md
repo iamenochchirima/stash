@@ -1,6 +1,6 @@
 # Stash operation and recovery
 
-Current application release: Library v2 and Projects, 15 October 2026. API/MCP source e514960 is live at Railway afc42040-d19e-4074-ad84-9dad32ce87c6 with migration 0022 and capture enabled. Consumer/admin source 722db70 was verified READY on both Vercel custom domains. Hosted mixed-item/PDF/summary/full-backup and Projects acceptance passed. Physical PDF deletion remains under observation until its ten-minute eligibility. See docs/evidence/library-v2/deployment.json and library-v2-rollout.md. Existing automatic-backup/alert limitations remain below.
+Current application release: Library v2 and Projects, 15 October 2026. API/MCP source e514960 is live at Railway afc42040-d19e-4074-ad84-9dad32ce87c6 with migration 0022 and capture enabled. Consumer/admin source 722db70 was verified READY on both Vercel custom domains. Hosted mixed-item/PDF/summary/full-backup and Projects acceptance passed. Physical PDF deletion passed after its ten-minute eligibility, with zero remaining Backblaze versions. See docs/evidence/library-v2/deployment.json and library-v2-rollout.md. Existing automatic-backup/alert limitations remain below.
 
 
 The user authorized public deployment on 12 October 2026: Railway for PostgreSQL and the API/MCP service, Vercel for the dashboard. The initial deployment disabled email. The user subsequently authorized reusing KasiTek Growth’s Resend credentials to enable verification and recovery. See [deployment evidence](evidence/hosted-deployment.json).
@@ -132,3 +132,6 @@ The file wrapper appends durable put/removal intent before touching storage and 
 
 
 Library v2 backend phase is deployed at a1c32f9, Railway 252db9eb-32ab-4048-bfaf-b7f4d81e10c5, with migration 0022 and new item creation disabled. Existing aggregates and readiness passed. Retain this mixed-item-aware artifact for rollback after activation; do not use the earlier URL-required server. Private provider variables and /data/deletions are configured. Consumer/admin rollout and hosted mixed-item acceptance remain pending. See library-v2-rollout.md.
+
+
+Library v2 release acceptance is complete. Source e514960 is live at Railway afc42040-d19e-4074-ad84-9dad32ce87c6, migration 0022, capture enabled. Consumer/admin compatible source 722db70 remains READY on the custom domains. Actual mixed capture, PDF/extraction/original integrity, real free summary, MCP retrieval, full backup restore, Projects and account isolation passed. All seven disposable fixture accounts and their private data were removed; three tracked file keys have all-version removal acknowledgements and no queued cleanup. Both journals survived redeployment on the existing volume. A private pre-release snapshot is retained under ignored .data/private-backups with directory 0700/file 0600. This manual snapshot does not enable automated backups. Existing alert/backup gaps and GitHub billing-blocked CI remain unchanged.

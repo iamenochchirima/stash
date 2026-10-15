@@ -1,6 +1,6 @@
 # Library v2
 
-Library v2 is deployed at https://stash.kasitek.co.za with the shared API/MCP at https://api.stash.kasitek.co.za. Hosted capture, PDF processing, summaries, agent retrieval, full backup restore and account isolation passed. Final physical-file cleanup remains pending the ten-minute deletion delay. Track the release in [the checklist](../../LIBRARY_V2_IMPLEMENTATION.md) and [rollout record](../library-v2-rollout.md).
+Library v2 is deployed at https://stash.kasitek.co.za with the shared API/MCP at https://api.stash.kasitek.co.za. Hosted capture, PDF processing, summaries, agent retrieval, full backup restore and account isolation passed. Physical cleanup passed after the ten-minute delay, with zero remaining Backblaze versions. Track the release in [the checklist](../../LIBRARY_V2_IMPLEMENTATION.md) and [rollout record](../library-v2-rollout.md).
 
 Cards open private `/items/[id]` reading pages. Open source and menus remain separate; text can be selected. Direct links require the owning account. Library filters and return navigation persist. Links, URL-free notes/ideas and private PDFs support search, multiple collections, favourites, archive and 30-day Trash. Undo is available after reversible lifecycle actions. Permanent deletion requires confirmation. Legacy resource APIs and MCP tools stay links-only.
 
