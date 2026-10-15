@@ -1,5 +1,6 @@
 import {
   pgTable,
+  boolean,
   bigint,
   integer,
   jsonb,
@@ -61,7 +62,14 @@ export const resources = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    url: text("url").notNull(),
+    url: text("url"),
+  kind: text("kind", { enum: ["link", "note", "idea", "pdf"] }).notNull().default("link"),
+  body: text("body").notNull().default(""),
+  importOriginId: uuid("import_origin_id"),
+  revision: integer("revision").notNull().default(1),
+  favourite: boolean("favourite").notNull().default(false),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
     title: text("title").notNull(),
     notes: text("notes").notNull().default(""),
     tags: text("tags").array().notNull().default([]),
@@ -228,3 +236,11 @@ export const adminEmailJobs = pgTable("admin_email_jobs", {
   attempts: integer("attempts").notNull().default(0), createdAt: createdAt(),
   sentAt: timestamp("sent_at", { withTimezone: true }),
 });
+
+export const itemRequests = pgTable("item_requests", {
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  requestId: uuid("request_id").notNull(),
+  fingerprint: text("fingerprint").notNull(),
+  itemId: uuid("item_id").notNull().references(() => resources.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+}, t => [primaryKey({ columns: [t.userId, t.requestId] })]);

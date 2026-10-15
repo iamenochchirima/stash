@@ -27,10 +27,14 @@ import { handleMcp } from "./mcp.js";
 import { registerOAuth } from "./oauth.js";
 import { requestPath } from "./request-path.js";
 import { registerAdminRoutes } from "./admin-routes.js";
+import { registerLibraryMaintenance } from "./library-maintenance.js";
+import { registerItems } from "./item-routes.js";
 import { fetchMetadata } from "./metadata.js";
 export async function createApp(
   db: Database,
   options: {
+    requestRateLimit?: number;
+    itemsEnabled?: boolean;
     adminOrigin?: string;
     adminEncryptionKey?: string;
     origin?: string;
@@ -77,7 +81,7 @@ export async function createApp(
     `${publicApiUrl}/mcp`,
   );
   await app.register(cookie);
-  await app.register(rateLimit, { max: 300, timeWindow: "1 minute" });
+  await app.register(rateLimit, { max: options.requestRateLimit ?? 300, timeWindow: "1 minute" });
   app.setErrorHandler((error, request, reply) => {
     if (error instanceof ZodError)
       return reply
@@ -206,6 +210,8 @@ export async function createApp(
         disabled: options.emailDisabled,
       }),
   });
+  registerLibraryMaintenance(app, db);
+  registerItems(app, db, { production: options.production, enabled: options.itemsEnabled ?? !options.production });
   app.get("/api/resources", async (request) =>
     library(db, (await authentication.user(request)).id).list(
       listInput.parse(request.query),
@@ -354,7 +360,7 @@ export async function createApp(
     return exportLibrary(db, user.id);
   });
   app.post("/mcp", async (request, reply) =>
-    handleMcp(db, await authentication.agent(request), request, reply),
+    handleMcp(db, await authentication.agent(request), request, reply, options.itemsEnabled ?? !options.production),
   );
   app.route({
     method: ["GET", "DELETE"],

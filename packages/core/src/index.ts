@@ -1,4 +1,4 @@
-import { and, eq, desc, sql, inArray } from "drizzle-orm";
+import { and, eq, desc, sql, inArray, isNull } from "drizzle-orm";
 import {
   resources,
   collections,
@@ -31,7 +31,7 @@ export function normalizeUrl(value: string) {
 }
 export function library(db: Database, userId: string) {
   const ownResource = (id: string) =>
-    and(eq(resources.id, id), eq(resources.userId, userId));
+    and(eq(resources.id, id), eq(resources.userId, userId), eq(resources.kind, "link"), isNull(resources.deletedAt));
   const ownCollection = (id: string) =>
     and(eq(collections.id, id), eq(collections.userId, userId));
   async function hydrate(rows: (typeof resources.$inferSelect)[]) {
@@ -49,8 +49,9 @@ export function library(db: Database, userId: string) {
             ),
           )
       : [];
-    return rows.map(({ userId: _, ...row }) => ({
+    return rows.map(({ userId: _, importOriginId: _origin, ...row }) => ({
       ...row,
+      url: row.url!,
       collectionIds: memberships
         .filter((m) => m.resourceId === row.id)
         .map((m) => m.collectionId)
@@ -99,7 +100,7 @@ export function library(db: Database, userId: string) {
   return {
     get,
     async list(input: ListInput) {
-      const filters = [eq(resources.userId, userId)];
+      const filters = [eq(resources.userId, userId), eq(resources.kind, "link"), isNull(resources.deletedAt), isNull(resources.archivedAt)];
       if (input.collectionId)
         filters.push(
           sql`exists(select 1 from ${resourceCollections} where ${resourceCollections.resourceId}=${resources.id} and ${resourceCollections.userId}=${userId} and ${resourceCollections.collectionId}=${input.collectionId})`,
@@ -144,9 +145,10 @@ export function library(db: Database, userId: string) {
           .where(eq(users.id, userId))
           .for("update");
         const [existing] = await tx
-          .select({ id: resources.id })
+          .select({ id: resources.id, deletedAt: resources.deletedAt })
           .from(resources)
           .where(and(eq(resources.userId, userId), eq(resources.url, url)));
+        if (existing?.deletedAt) throw new AppError(409, "This link is in Trash. Restore or permanently delete it first.");
         if (existing) return { id: existing.id, duplicate: true };
         const [count] = await tx
           .select({ total: sql<number>`count(*)::int` })
@@ -186,6 +188,7 @@ export function library(db: Database, userId: string) {
           .update(resources)
           .set({
             ...fields,
+            revision: sql`${resources.revision}+1`,
             tags: input.tags
               ? [...new Set(input.tags.map((t) => t.toLowerCase()))]
               : undefined,
@@ -258,3 +261,5 @@ export function library(db: Database, userId: string) {
     },
   };
 }
+
+export { items } from "./items.js";

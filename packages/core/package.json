@@ -4,7 +4,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./portability": "./src/portability.ts"
+    "./portability": "./src/portability.ts",
+    "./items-portability": "./src/items-portability.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json"

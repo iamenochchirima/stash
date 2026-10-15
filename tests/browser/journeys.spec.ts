@@ -58,7 +58,7 @@ async function save(
   url = "https://example.test/research",
 ) {
   await page
-    .getByRole("button", { name: "Save a resource", exact: true })
+    .getByRole("button", { name: "Add item", exact: true })
     .first()
     .click();
   const dialog = page.getByRole("dialog");
@@ -70,7 +70,7 @@ async function save(
   await dialog.getByLabel("Tags").fill("agents, memory");
   await dialog.getByLabel("Inbox", { exact: true }).check();
   await dialog
-    .getByRole("button", { name: "Save resource", exact: true })
+    .getByRole("button", { name: "Save item", exact: true })
     .click();
   await expect(page.getByRole("link", { name: title })).toBeVisible();
 }
@@ -130,15 +130,16 @@ test("T15/E01/E06 complete account, library, organization, connections, import/e
   await expect(
     page.getByRole("heading", { name: "Research projects" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "All resources" }).click();
+  await page.getByRole("button", { name: "All items" }).click();
   await page.getByRole("button", { name: "Import / export" }).click();
   const transfer = page.getByRole("dialog");
   const downloadPromise = page.waitForEvent("download");
   await transfer.getByRole("button", { name: "Export my library" }).click();
   const download = await downloadPromise;
   const exported = JSON.parse(await readFile((await download.path())!, "utf8"));
-  expect(exported.resources).toHaveLength(1);
-  expect(exported.resources[0].collectionIds).toHaveLength(2);
+  expect(exported.version).toBe(2);
+  expect(exported.items).toHaveLength(1);
+  expect(exported.items[0].collections).toHaveLength(2);
   await transfer.getByLabel("Choose an import file").setInputFiles({
     name: "bookmarks.html",
     mimeType: "text/html",
@@ -179,18 +180,11 @@ test("T15/E01/E06 complete account, library, organization, connections, import/e
   await expect(
     page.getByText("Browser test agent", { exact: true }),
   ).not.toBeVisible();
-  await page.getByRole("button", { name: "All resources" }).click();
+  await page.getByRole("button", { name: "All items" }).click();
   await save(page, "Temporary resource", "https://example.test/temporary");
-  await page
-    .locator("article")
-    .filter({ has: page.getByRole("link", { name: "Temporary resource" }) })
-    .getByRole("button", { name: "Edit", exact: true })
-    .click();
-  page.once("dialog", (dialog) => dialog.accept());
-  await page
-    .getByRole("dialog")
-    .getByRole("button", { name: "Delete", exact: true })
-    .click();
+  await page.getByRole("link", { name: "Temporary resource", exact: true }).click();
+  await page.getByText("More", { exact: true }).click();
+  await page.getByRole("button", { name: "Move to Trash", exact: true }).click();
   await expect(
     page.getByRole("link", { name: "Temporary resource" }),
   ).not.toBeVisible();
@@ -303,7 +297,7 @@ for (const width of [375, 768])
       ),
     ).toBe(true);
     await page
-      .getByRole("button", { name: "Save a resource", exact: true })
+      .getByRole("button", { name: "Add item", exact: true })
       .first()
       .focus();
     await page.keyboard.press("Enter");
@@ -314,7 +308,7 @@ for (const width of [375, 768])
     ).toBeFocused();
     await page.keyboard.press("Shift+Tab");
     await expect(
-      dialog.getByRole("button", { name: "Save resource", exact: true }),
+      dialog.getByRole("button", { name: "Save item", exact: true }),
     ).toBeFocused();
     await page.keyboard.press("Escape");
     await expect(dialog).not.toBeVisible();
@@ -333,7 +327,7 @@ test("T12 older search responses cannot replace newer results", async ({
   const arrived = new Promise<void>((resolve) => (arrive = resolve)),
     released = new Promise<void>((resolve) => (release = resolve)),
     finished = new Promise<void>((resolve) => (done = resolve));
-  await page.route("**/api/resources?**", async (route) => {
+  await page.route("**/api/items?**", async (route) => {
     if (new URL(route.request().url()).searchParams.get("q") === "missing") {
       const response = await route.fetch();
       arrive();

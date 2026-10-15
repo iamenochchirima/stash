@@ -17,6 +17,7 @@ const adminOptions = {
   mailer: createMailer({ directory: resolve(".data/verification-mail"), production: false }),
 };
 const app = await createApp(f.db, {
+  requestRateLimit: 3000,
   adminOrigin: adminOptions.origin,
   adminEncryptionKey: adminOptions.encryptionKey,
   origin: "http://127.0.0.1:3100",

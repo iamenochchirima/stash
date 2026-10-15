@@ -25,7 +25,7 @@ export function Portability({
   return (
     <div>
       <p className="muted">
-        Import browser bookmarks or a Stash export. Existing resources keep their notes.
+        Import browser bookmarks or a Stash export. Existing items keep their content.
       </p>
       <label className="import-file">
         Choose an import file
@@ -54,7 +54,7 @@ export function Portability({
               );
               const data = { format, content } as const;
               setPreview(
-                await api<Preview>("/import/preview", {
+                await api<Preview>("/items/import/preview", {
                   method: "POST",
                   body: JSON.stringify(data),
                 }),
@@ -105,7 +105,7 @@ export function Portability({
                   duplicates: number;
                   rejected: Preview["rejected"];
                   collectionErrors: { name: string; error: string }[];
-                }>("/import", { method: "POST", body: JSON.stringify(input) });
+                }>("/items/import", { method: "POST", body: JSON.stringify(input) });
                 setReport(
                   `${result.saved} saved, ${result.duplicates} duplicates, ${result.rejected.length} rejected.`,
                 );
@@ -148,9 +148,7 @@ export function Portability({
       <hr />
       <h3>Take your library with you</h3>
       <p className="muted">
-        Export all resources, notes, reading statuses, tags, collection
-        memberships, and profile details. Passwords and credentials are
-        excluded.
+        Export item content, organisation and profile details as JSON. Original PDF files require a full backup. Passwords and credentials are excluded.
       </p>
       <button
         className="button secondary full"
@@ -159,7 +157,7 @@ export function Portability({
           setBusy(true);
           setError("");
           try {
-            const data = await api("/export");
+            const data = await api("/items/export");
             const url = URL.createObjectURL(
               new Blob([JSON.stringify(data, null, 2)], {
                 type: "application/json",

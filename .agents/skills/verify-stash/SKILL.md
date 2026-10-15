@@ -23,7 +23,7 @@ For the managed browser suite, Playwright checks API readiness and both client U
 
 ## Drive
 
-`tests/browser/journeys.spec.ts` is the canonical browser recipe. It uses stable accessible selectors such as `Sign up`, `Your name`, `Email address`, `Password`, `Create account`, `Save a resource`, `Link`, `Title`, `Why it matters`, `Search your library`, `Import / export`, and `Open profile`.
+`tests/browser/journeys.spec.ts` is the canonical browser recipe. It uses stable accessible selectors such as `Sign up`, `Your name`, `Email address`, `Password`, `Create account`, `Add item`, `Link`, `Title`, `Why it matters`, `Search your library`, `Import / export`, and `Open profile`.
 
 Check the reference-style centered hero folder, surrounding assistant cards, and content tiles travelling along curved routes at desktop and 375px widths, including no horizontal overflow while the animation is running and static artwork with reduced motion. Follow Connect your agent to /signin and verify the sign-in form. The public MCP section has only the connection diagram and action, without a headline. Start at the public landing page, follow Sign up to `/signup`, and use `/signin` for returning users. The public page has a 13-second illustrated agent-save demo without a visible playback bar, chapter tabs, or caption. Check automatic start and looping, offscreen pause/resume, manual pause persistence, actual typing, a pause control revealed on hover or keyboard focus, example confirmation, card movement, and reduced motion with tests/browser/demo.spec.ts. Drive the actual user path: create an account, save a resource, follow the locally captured verification email, edit collections and reading status, search, import/export, manage an agent key, update the profile, sign out/in, and delete the account with reauthentication. The recovery test requests and follows a real captured email, then rejects a reused link. Mobile tests drive saving and keyboard dialogs at 375 and 768 pixels; the desktop test uses 1440 pixels.
 
@@ -32,6 +32,10 @@ Check the compact Getting started disclosure opens and closes, resource cards om
 `pnpm test` covers PostgreSQL-backed account, ownership, library, import/export, and MCP behavior. `pnpm exec tsx scripts/clients-check.ts` verifies real Codex/OpenCode clients only where both have functioning model access. Never substitute an SDK test for that actual client acceptance.
 
 For OAuth, run tests/browser/oauth.spec.ts. It uses the official SDK for discovery/DCR/PKCE/token exchange and real browser signup, verification and consent, then saves/retrieves through MCP and revokes in the dashboard. Only the client callback is intercepted. Capture consent and connection screenshots, never tokens. tests/oauth.test.ts checks redirect/resource validation, PKCE, single use/racing codes, permissions, expiry, refresh rotation/replay, client binding, consent isolation, denial, and reset revocation. Record native-client acceptance separately from SDK acceptance.
+
+## Library v2 journey
+
+Read LIBRARY_V2_IMPLEMENTATION.md and docs/features/library-v2.md. Run pnpm test:browser tests/browser/item-detail.spec.ts tests/browser/items.spec.ts tests/browser/journeys.spec.ts tests/browser/accessibility.spec.ts for the mixed-item consumer foundation. Check card-body/title navigation, separate source/edit controls, direct links after sign-in, foreign-account rejection, full content, Markdown safety, favourites, archive, Trash/restore, filter/back navigation, mobile overflow and persisted edits. Tests/items*.test.ts cover migration, ownership, request identity, revision conflicts, lifecycle and JSON v2 round-trip. tests/mcp.test.ts covers two-client notes/ideas and legacy link compatibility. PDF/AI checks remain pending until their stages are implemented; do not claim hosted storage/provider acceptance from the local foundation.
 
 ## Admin journey
 

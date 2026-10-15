@@ -48,6 +48,7 @@ export function config(env: NodeJS.ProcessEnv = process.env) {
   )
     throw new Error("SMTP_URL must use smtp or smtps.");
   return {
+    itemsEnabled: env.LIBRARY_V2_ENABLED === "true" || !production,
     adminOrigin,
     adminEncryptionKey: env.ADMIN_ENCRYPTION_KEY,
     production,

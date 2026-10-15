@@ -24,13 +24,19 @@ import {
   Link as LinkIcon,
   Bookmark,
   LoaderCircle,
+  Star,
+  Archive,
+  FileText,
+  Lightbulb,
 } from "lucide-react";
-import type { Profile, Resource, Collection, AgentKey } from "@stash/shared";
+import type { Profile, Item, Collection, AgentKey } from "@stash/shared";
 
+import Link from "next/link";
 import { Landing } from "./landing";
 import { api, ApiError } from "./api";
 import { AccountLink, ProfileForm } from "./account-ui";
 import { Portability } from "./portability-ui";
+import { ItemEditor, clearItemDrafts } from "./item-editor";
 
 const json = (data: unknown) => JSON.stringify(data);
 function Brand() {
@@ -178,27 +184,42 @@ function Dashboard({
   setUser: (user: Profile | null) => void;
 }) {
   const [view, setView] = useState<"library" | "agents" | "profile">("library");
-  const [items, setItems] = useState<Resource[]>([]),
+  const [items, setItems] = useState<Item[]>([]),
     [collections, setCollections] = useState<Collection[]>([]),
     [keys, setKeys] = useState<AgentKey[]>([]);
   const [endpoint, setEndpoint] = useState(""),
-    [query, setQuery] = useState(""),
-    [collection, setCollection] = useState(""),
-    [status, setStatus] = useState("");
+    [query, setQuery] = useState(() => new URLSearchParams(location.search).get("q") || ""),
+    [collection, setCollection] = useState(() => new URLSearchParams(location.search).get("collectionId") || ""),
+    [status, setStatus] = useState(() => new URLSearchParams(location.search).get("status") || "");
   const [total, setTotal] = useState(0),
     [libraryCount, setLibraryCount] = useState(0),
-    [offset, setOffset] = useState(0),
+    [offset, setOffset] = useState(() => Math.max(0, Math.min(100000, Number(new URLSearchParams(location.search).get("offset")) || 0))),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
   const [modal, setModal] = useState<
       "resource" | "collection" | "key" | "portability" | null
     >(null),
-    [editing, setEditing] = useState<Resource | null>(null),
+    [editing, setEditing] = useState<Item | null>(null),
     [newToken, setNewToken] = useState("");
   const [editingCollection, setEditingCollection] = useState<Collection | null>(
     null,
   );
+  const [kind, setKind] = useState(() => new URLSearchParams(location.search).get("kind") || "");
+  const [itemLocation, setItemLocation] = useState(() => new URLSearchParams(location.search).get("location") || "library");
+  const [favourites, setFavourites] = useState(() => new URLSearchParams(location.search).get("favourite") === "true");
+  const libraryParams = new URLSearchParams();
+  if (query) libraryParams.set("q", query);
+  if (collection) libraryParams.set("collectionId", collection);
+  if (status) libraryParams.set("status", status);
+  if (offset) libraryParams.set("offset", String(offset));
+  if (kind) libraryParams.set("kind", kind);
+  if (itemLocation !== "library") libraryParams.set("location", itemLocation);
+  if (favourites) libraryParams.set("favourite", "true");
+  const libraryPath = libraryParams.size ? `/?${libraryParams}` : "/";
+  useEffect(() => {
+    history.replaceState(history.state, "", libraryPath);
+  }, [libraryPath]);
   const closeModal = useCallback(() => {
     setModal(null);
     setEditing(null);
@@ -207,7 +228,7 @@ function Dashboard({
     const [c, k, r] = await Promise.all([
       api<{ items: Collection[] }>("/collections"),
       api<{ items: AgentKey[]; endpoint: string }>("/keys"),
-      api<{ total: number }>("/resources?limit=1"),
+      api<{ total: number }>("/items?limit=1"),
     ]);
     setCollections(c.items);
     setKeys(k.items);
@@ -223,13 +244,21 @@ function Dashboard({
     });
     if (collection) params.set("collectionId", collection);
     if (status) params.set("status", status);
-    const result = await api<{ items: Resource[]; total: number }>(
-      `/resources?${params}`,
+    if (kind) params.set("kind", kind);
+    if (favourites) params.set("favourite", "true");
+    params.set("location", itemLocation);
+    const result = await api<{ items: Item[]; total: number }>(
+      `/items?${params}`,
     );
     setItems(result.items);
     setTotal(result.total);
-  }, [query, collection, status, offset]);
+  }, [query, collection, status, offset, kind, favourites, itemLocation]);
   useEffect(() => {
+    try {
+      const previous = sessionStorage.getItem("stash-active-user");
+      if (previous && previous !== user.id) clearItemDrafts();
+      sessionStorage.setItem("stash-active-user", user.id);
+    } catch { /* Library access does not depend on browser draft storage. */ }
     reloadMeta().catch((e) => setError(e.message));
   }, [reloadMeta]);
   useEffect(() => {
@@ -244,8 +273,11 @@ function Dashboard({
         });
         if (collection) params.set("collectionId", collection);
         if (status) params.set("status", status);
-        const result = await api<{ items: Resource[]; total: number }>(
-          `/resources?${params}`,
+    if (kind) params.set("kind", kind);
+    if (favourites) params.set("favourite", "true");
+    params.set("location", itemLocation);
+        const result = await api<{ items: Item[]; total: number }>(
+          `/items?${params}`,
         );
         if (active) {
           setItems(result.items);
@@ -261,7 +293,7 @@ function Dashboard({
       active = false;
       clearTimeout(timer);
     };
-  }, [query, collection, status, offset]);
+  }, [query, collection, status, offset, kind, favourites, itemLocation]);
   useEffect(() => {
     if (notice) {
       const timer = setTimeout(() => setNotice(""), 5000);
@@ -288,17 +320,19 @@ function Dashboard({
         <nav aria-label="Main navigation">
           <button
             className={
-              view === "library" && !collection ? "nav-item active" : "nav-item"
+              view === "library" && !collection && itemLocation === "library" && !favourites ? "nav-item active" : "nav-item"
             }
             onClick={() => {
               setView("library");
+              setItemLocation("library"); setFavourites(false);
               setCollection("");
               setOffset(0);
             }}
           >
             <Library size={19} />
-            All resources<span className="count">{libraryCount}</span>
+            All items<span className="count">{libraryCount}</span>
           </button>
+          {[{ label: "Favourites", location: "library", favourite: true, icon: Star }, { label: "Archive", location: "archive", favourite: false, icon: Archive }, { label: "Trash", location: "trash", favourite: false, icon: Trash2 }].map(tab => <button key={tab.label} className={view === "library" && itemLocation === tab.location && favourites === tab.favourite && (tab.favourite || tab.location !== "library") ? "nav-item active" : "nav-item"} onClick={() => { setView("library"); setItemLocation(tab.location); setFavourites(tab.favourite); setCollection(""); setOffset(0); }}><tab.icon size={19} />{tab.label}</button>)}
           <button
             className={view === "agents" ? "nav-item active" : "nav-item"}
             onClick={() => {
@@ -335,6 +369,7 @@ function Dashboard({
               onClick={() => {
                 setView("library");
                 setCollection(c.id);
+                setItemLocation("library"); setFavourites(false);
                 setOffset(0);
               }}
             >
@@ -399,7 +434,7 @@ function Dashboard({
               <div className="page-heading">
                 <div>
                   <h1>
-                    {collection
+                    {itemLocation === "trash" ? "Trash" : itemLocation === "archive" ? "Archive" : favourites ? "Favourites" : collection
                       ? collections.find((c) => c.id === collection)?.name
                       : "Your library"}
                   </h1>
@@ -409,7 +444,7 @@ function Dashboard({
                   onClick={() => setModal("resource")}
                 >
                   <Plus size={18} />
-                  Save a resource
+                  Add item
                 </button>
               </div>
               {!Object.values(user.onboarding).every(Boolean) && (
@@ -497,9 +532,10 @@ function Dashboard({
                       setQuery(e.target.value);
                       setOffset(0);
                     }}
-                    placeholder="Search titles, notes, and tags…"
+                    placeholder="Search your saved items…"
                   />
                 </div>
+                <select aria-label="Filter by type" value={kind} onChange={e => { setKind(e.target.value); setOffset(0); }}><option value="">All types</option><option value="link">Links</option><option value="note">Notes</option><option value="idea">Ideas</option><option value="pdf">PDFs</option></select>
                 <select
                   aria-label="Filter by reading status"
                   value={status}
@@ -516,7 +552,7 @@ function Dashboard({
               </div>
               <div className="results-heading">
                 <span>
-                  {total} {total === 1 ? "resource" : "resources"}
+                  {total} {total === 1 ? "item" : "items"}
                 </span>
                 <small>Newest first</small>
               </div>
@@ -531,35 +567,31 @@ function Dashboard({
                     <article className="resource-card" key={item.id}>
                       <div className="resource-card-top">
                         <span className="resource-icon">
-                          <LinkIcon size={19} />
+                          {item.kind === "link" ? <LinkIcon size={19} /> : item.kind === "idea" ? <Lightbulb size={19} /> : <FileText size={19} />}
                         </span>
-                        <span className={`status ${item.status}`}>
+                        {["link", "pdf"].includes(item.kind) && <span className={`status ${item.status}`}>
                           {item.status === "done"
                             ? "Finished"
                             : item.status === "reading"
                               ? "Reading"
                               : "Unread"}
-                        </span>
+                        </span>}
                       </div>
-                      <a
-                        className="resource-title"
-                        href={item.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <Link
+                        className="resource-title resource-open"
+                        href={`/items/${item.id}?returnTo=${encodeURIComponent(libraryPath)}${itemLocation === "trash" ? "&trash=true" : ""}`}
                       >
                         {item.title}
-                        <ArrowUpRight size={17} />
-                      </a>
-                      <div className="resource-domain">
-                        {new URL(item.url).hostname}
-                      </div>
-                      {(item.notes || item.description) && <p className="resource-notes">{item.notes || item.description}</p>}
+                      </Link>
+                      <div className="resource-domain">{item.url ? new URL(item.url).hostname : item.kind === "idea" ? "Idea" : item.kind === "pdf" ? "PDF" : "Note"}{item.favourite && <Star size={12} aria-label="Favourite" />}</div>
+                      {(item.body || item.notes || item.description) && <p className="resource-notes">{item.body || item.notes || item.description}</p>}
                       <div className="tags">
                         {item.tags.map((t) => (
                           <span key={t}>{t}</span>
                         ))}
                       </div>
                       <footer>
+                        {item.url && itemLocation !== "trash" && <a className="resource-source-action" href={item.url} target="_blank" rel="noopener noreferrer" aria-label="Open source"><ArrowUpRight size={16} /></a>}
                         <span>
                           {collections
                             .filter((c) => item.collectionIds.includes(c.id))
@@ -574,11 +606,11 @@ function Dashboard({
                         <button
                           className="text-button"
                           onClick={() => {
-                            setEditing(item);
-                            setModal("resource");
+                            if (itemLocation === "trash") { void mutate(() => api(`/items/${item.id}/lifecycle`, { method: "POST", body: json({ action: "restore" }) })); return; }
+                            api<{ item: Item }>(`/items/${item.id}`).then(result => { setEditing(result.item); setModal("resource"); }).catch(e => setError(e.message));
                           }}
                         >
-                          Edit
+                          {itemLocation === "trash" ? "Restore" : "Edit"}
                         </button>
                       </footer>
                     </article>
@@ -592,12 +624,12 @@ function Dashboard({
                   <h2>
                     {query || collection || status
                       ? "No results"
-                      : "No resources yet"}
+                      : "No items yet"}
                   </h2>
                   <p>
                     {query || collection || status
                       ? "Try another search or filter."
-                      : "Save a link or ask your connected agent to save it."}
+                      : itemLocation === "trash" ? "Items stay here for 30 days before permanent deletion." : itemLocation === "archive" ? "Archived items will appear here." : "Save a link, note or idea, or ask your agent to stash it."}
                   </p>
                 </div>
               )}
@@ -773,44 +805,18 @@ function Dashboard({
       {modal === "resource" && (
         <Modal
           title={
-            editing ? "Edit resource" : "Save a resource"
+            editing ? "Edit item" : "Add item"
           }
           close={closeModal}
         >
-          <ResourceForm
+          <ItemEditor
+            userId={user.id}
             collections={collections}
             editing={editing}
             selectedCollection={collection}
-            onSave={async (input) => {
-              const result = editing
-                ? await api(`/resources/${editing.id}`, {
-                    method: "PATCH",
-                    body: json(input),
-                  })
-                : await api<{ duplicate: boolean }>("/resources", {
-                    method: "POST",
-                    body: json(input),
-                  });
-              await Promise.all([reloadResources(), reloadMeta()]);
-              closeModal();
-              setNotice(
-                (result as { duplicate?: boolean }).duplicate
-                  ? "Already saved. Your original notes are intact."
-                  : editing
-                    ? "Resource updated."
-                    : "Saved to your library.",
-              );
+            onSaved={async (_item, duplicate) => {
+              await Promise.all([reloadResources(), reloadMeta()]); closeModal(); setNotice(duplicate ? "Already saved. Your original notes are intact." : editing ? "Changes saved." : "Saved to your library.");
             }}
-            onDelete={
-              editing
-                ? async () => {
-                    await api(`/resources/${editing.id}`, { method: "DELETE" });
-                    await Promise.all([reloadResources(), reloadMeta()]);
-                    closeModal();
-                    setNotice("Resource deleted.");
-                  }
-                : undefined
-            }
           />
         </Modal>
       )}
@@ -920,144 +926,6 @@ function Dashboard({
         </Modal>
       )}
     </div>
-  );
-}
-function ResourceForm({
-  collections,
-  editing,
-  selectedCollection,
-  onSave,
-  onDelete,
-}: {
-  collections: Collection[];
-  editing: Resource | null;
-  selectedCollection: string;
-  onSave: (data: unknown) => Promise<void>;
-  onDelete?: () => Promise<void>;
-}) {
-  const [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true);
-    setError("");
-    const data = new FormData(event.currentTarget);
-    try {
-      await onSave({
-        ...(!editing && { url: data.get("url") }),
-        title: data.get("title"),
-        notes: data.get("notes"),
-        collectionIds: data.getAll("collectionIds"),
-        status: data.get("status"),
-        tags: String(data.get("tags"))
-          .split(",")
-          .map((t) => t.trim())
-          .filter(Boolean),
-      });
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-  return (
-    <form onSubmit={submit}>
-      <label>
-        Link
-        <input
-          name="url"
-          type="url"
-          required
-          disabled={!!editing}
-          maxLength={2048}
-          defaultValue={editing?.url}
-          placeholder="https://…"
-        />
-      </label>
-      <label>
-        Title
-        <input
-          name="title"
-          maxLength={200}
-          defaultValue={editing?.title}
-          placeholder="Resource title"
-        />
-      </label>
-      <label>
-        Why it matters
-        <textarea
-          name="notes"
-          maxLength={10000}
-          rows={3}
-          defaultValue={editing?.notes}
-          placeholder="Add a note"
-        />
-      </label>
-      <div className="form-row">
-        <fieldset className="collection-picker">
-          <legend>Collections</legend>
-          {collections.map((c) => (
-            <label key={c.id}>
-              <input
-                name="collectionIds"
-                type="checkbox"
-                value={c.id}
-                defaultChecked={
-                  editing
-                    ? editing.collectionIds.includes(c.id)
-                    : c.id === selectedCollection
-                }
-              />
-              {c.name}
-            </label>
-          ))}
-        </fieldset>
-        <label>
-          Reading status
-          <select name="status" defaultValue={editing?.status || "unread"}>
-            <option value="unread">Unread</option>
-            <option value="reading">Reading</option>
-            <option value="done">Finished</option>
-          </select>
-        </label>
-      </div>
-      <label>
-        Tags
-        <input
-          name="tags"
-          defaultValue={editing?.tags.join(", ")}
-          placeholder="agents, memory, research"
-        />
-        <small>Separate with commas.</small>
-      </label>
-      <ErrorNote message={error} />
-      <div className="form-actions">
-        {onDelete && (
-          <button
-            className="button danger"
-            type="button"
-            disabled={busy}
-            onClick={async () => {
-              if (!confirm("Permanently delete this resource?")) return;
-              setBusy(true);
-              try {
-                await onDelete();
-              } catch (e) {
-                setError((e as Error).message);
-              } finally {
-                setBusy(false);
-              }
-            }}
-          >
-            <Trash2 size={16} />
-            Delete
-          </button>
-        )}
-        <button className="button primary" disabled={busy}>
-          {busy ? "Saving…" : editing ? "Save changes" : "Save resource"}
-        </button>
-      </div>
-    </form>
   );
 }
 function SimpleForm({

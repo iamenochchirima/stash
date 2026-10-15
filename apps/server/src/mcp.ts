@@ -1,11 +1,11 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
-import { library, AppError } from "@stash/core";
+import { library, items, AppError } from "@stash/core";
 import { eq, sql } from "drizzle-orm";
 import { users } from "@stash/db";
 import { fetchMetadata } from "./metadata.js";
-import { resourceInput, listInput } from "@stash/shared";
+import { resourceInput, listInput, itemInput, itemUpdate, itemListInput } from "@stash/shared";
 import type { Database } from "@stash/db";
 import type { FastifyRequest, FastifyReply } from "fastify";
 export async function handleMcp(
@@ -13,6 +13,7 @@ export async function handleMcp(
   key: { userId: string; scope: string; name: string },
   request: FastifyRequest,
   reply: FastifyReply,
+  itemsEnabled = true,
 ) {
   const service = library(db, key.userId);
   const server = new McpServer({ name: "stash", version: "0.1.0" });
@@ -61,7 +62,7 @@ export async function handleMcp(
     "search_resources",
     {
       description:
-        "Search your private Stash library by text, tag, collection, or reading status.",
+        "Legacy link-only search. For links, notes, ideas and PDFs use search_items.",
       inputSchema: listInput.shape,
       annotations: { readOnlyHint: true },
     },
@@ -71,7 +72,7 @@ export async function handleMcp(
     "list_resources",
     {
       description:
-        "Browse your private saved resources. Use offset and limit for pagination.",
+        "Legacy link-only list. For all item types use list_items. Use offset and limit for pagination.",
       inputSchema: listInput.shape,
       annotations: { readOnlyHint: true },
     },
@@ -80,7 +81,7 @@ export async function handleMcp(
   server.registerTool(
     "get_resource",
     {
-      description: "Get one resource from your private library.",
+      description: "Get one saved link. Use get_item for general items.",
       inputSchema: { id: z.string().uuid() },
       annotations: { readOnlyHint: true },
     },
@@ -127,6 +128,26 @@ export async function handleMcp(
       },
       ({ id }) => run(() => service.remove(id)),
     );
+  }
+  if (itemsEnabled) {
+    const itemService = items(db, key.userId);
+    server.registerTool("list_items", { description: "Browse saved links, notes, ideas and PDFs. Results contain previews; use get_item for complete content. Library excludes Archive and Trash unless explicitly requested.", inputSchema: itemListInput.shape, annotations: { readOnlyHint: true } }, args => run(() => itemService.list(itemListInput.parse(args)), true));
+    server.registerTool("search_items", { description: "Search your private items by content, title, tags or collection. Includes URL-free notes and ideas.", inputSchema: itemListInput.shape, annotations: { readOnlyHint: true } }, args => run(() => itemService.list(itemListInput.parse(args)), true));
+    server.registerTool("get_item", { description: "Read a complete private item by ID. Trashed items require an explicit trash request.", inputSchema: { id: z.string().uuid(), trash: z.boolean().optional() }, annotations: { readOnlyHint: true } }, ({ id, trash }) => run(() => itemService.get(id, trash), true));
+    if (key.scope === "write") {
+      server.registerTool("save_item", { description: "Save a link, standalone note or idea. Notes/ideas need body content and no URL. Use requestId to safely retry a save. PDF uploads use the web upload flow. Existing links retain their original content.", inputSchema: {
+        kind: z.enum(["link", "note", "idea"]), url: resourceInput.shape.url.optional(), body: z.string().trim().min(1).max(50000).optional(),
+        title: resourceInput.shape.title, notes: resourceInput.shape.notes, tags: resourceInput.shape.tags, collectionIds: resourceInput.shape.collectionIds,
+        status: resourceInput.shape.status.optional(), requestId: z.string().uuid().optional(),
+      }, annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true } }, args => run(async () => {
+        const input = itemInput.parse(args);
+        return itemService.save(input, key.name, input.kind === "link" && !input.title ? await fetchMetadata(input.url) : undefined);
+      }));
+      server.registerTool("update_item", { description: "Edit an item using its current revision from get_item. A stale revision fails rather than overwriting another edit. Body editing applies to notes/ideas only.", inputSchema: { id: z.string().uuid(), ...itemUpdate.shape }, annotations: { readOnlyHint: false, destructiveHint: false } }, ({ id, ...input }) => run(() => itemService.update(id, itemUpdate.parse(input))));
+      server.registerTool("archive_item", { description: "Set whether an item is archived. Archived items remain retrievable but are hidden from default lists.", inputSchema: { id: z.string().uuid(), archived: z.boolean() }, annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true } }, ({ id, archived }) => run(() => itemService.lifecycle(id, archived ? "archive" : "unarchive")));
+      server.registerTool("trash_item", { description: "Move an item to Trash. It is recoverable for 30 days. Confirm deletion intent before calling.", inputSchema: { id: z.string().uuid() }, annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true } }, ({ id }) => run(() => itemService.lifecycle(id, "trash")));
+      server.registerTool("restore_item", { description: "Restore an item from Trash before its 30-day retention expires. Preserves its previous archive state.", inputSchema: { id: z.string().uuid() }, annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true } }, ({ id }) => run(() => itemService.lifecycle(id, "restore")));
+    }
   }
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: undefined,

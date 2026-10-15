@@ -42,7 +42,7 @@ test("T16 accessibility of signup, library, save dialog, and profile", async ({
   ).toBeVisible();
   await check("library");
   await page
-    .getByRole("button", { name: "Save a resource", exact: true })
+    .getByRole("button", { name: "Add item", exact: true })
     .first()
     .click();
   await expect(page.getByRole("dialog")).toBeVisible();
