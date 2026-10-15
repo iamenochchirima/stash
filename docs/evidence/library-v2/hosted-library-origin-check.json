@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-10-15T10:22:12.911Z",
+  "fixture": "Synthetic content and labelled Resend test recipients",
+  "passed": false,
+  "emailVerification": true,
+  "mixedCapture": true,
+  "cardNavigation": true,
+  "failedAt": "expect(received).toBe(expected) // Object.is equality",
+  "disposableAccountsDeleted": true,
+  "accountIdsForCleanup": [
+    "2a3bfde3-df7d-4f9b-8b4a-2ff9df3f67b1"
+  ]
+}

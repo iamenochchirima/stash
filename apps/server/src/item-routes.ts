@@ -14,7 +14,7 @@ export function registerItems(app: FastifyInstance, db: Database, options: { pro
   app.get("/api/items/bookmarks",async req=>{const result=await exportBookmarks(db,(await authentication.user(req)).id);return{links:result.links,omitted:result.omitted};});
   app.get("/api/items/export", async req => exportItems(db, (await authentication.user(req)).id));
   app.post("/api/items/import/preview", { bodyLimit: LIMITS.importBytes * 2 + 1024 }, async req => previewItemsImport(db, (await authentication.user(req)).id, req.body));
-  app.post("/api/items/import", { bodyLimit: LIMITS.importBytes * 2 + 1024 }, async req => importItems(db, (await authentication.user(req)).id, req.body));
+  app.post("/api/items/import", { bodyLimit: LIMITS.importBytes * 2 + 1024 }, async req => { const user=await authentication.user(req); if(options.enabled===false)throw new AppError(503,"General item import is not enabled yet."); return importItems(db,user.id,req.body); });
   app.get("/api/items", async req => items(db, (await authentication.user(req)).id).list(itemListInput.parse(req.query)));
   app.get("/api/items/:id", async req => ({ item: await items(db, (await authentication.user(req)).id).get(id(req.params), z.object({ trash: z.enum(["true"]).optional() }).parse(req.query).trash === "true") }));
   app.post("/api/items", async req => {

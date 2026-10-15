@@ -98,5 +98,10 @@ test("Mixed item validation and feature gating preserve existing links", async (
     assert.equal((await request("POST", "/api/items", { kind: "link", url: "https://example.test/compatible", title: "Compatible link" })).statusCode, 200);
     assert.equal((await request("GET", "/api/items")).json().total, 1);
     assert.equal((await request("GET", "/api/resources")).json().items[0].url, "https://example.test/compatible");
+    const source=await f.signup();
+    await f.request("POST","/api/items",{kind:"note",body:"Imported notes must obey the release gate"},source.cookie);
+    const exported=(await f.request("GET","/api/items/export",undefined,source.cookie)).json();
+    assert.equal((await request("POST","/api/items/import",{format:"json",content:JSON.stringify(exported)})).statusCode,503);
+    assert.equal((await request("GET","/api/items")).json().total,1);
   } finally { await disabled?.close(); await f.close(); }
 });
