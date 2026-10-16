@@ -1,6 +1,6 @@
 // Explicit release acceptance, restricted to synthetic accounts and research.
 import assert from "node:assert/strict";
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomBytes, randomUUID, createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import { request, type APIRequestContext } from "@playwright/test";
@@ -43,6 +43,33 @@ async function connect(account: APIRequestContext, scope: "read" | "write") {
   await client.connect(new StreamableHTTPClientTransport(new URL(`${api}/mcp`), { requestInit: { headers: { authorization: `Bearer ${key.token}` } } }));
   return client;
 }
+async function connectOAuth(account: APIRequestContext, write: boolean) {
+  const registered = await json(await account.post("/oauth/register", { data: {
+    client_name: "Synthetic MCP discovery acceptance",
+    redirect_uris: ["https://client.example/callback"], token_endpoint_auth_method: "none",
+  } }), 201);
+  const verifier = randomBytes(32).toString("base64url");
+  const params = new URLSearchParams({ response_type: "code", client_id: registered.client_id,
+    redirect_uri: "https://client.example/callback", resource: `${api}/mcp`,
+    scope: write ? "stash:read stash:write" : "stash:read", state: randomUUID(),
+    code_challenge: createHash("sha256").update(verifier).digest("base64url"), code_challenge_method: "S256" });
+  const start = await account.get(`/oauth/authorize?${params}`, { maxRedirects: 0 });
+  assert.equal(start.status(), 302);
+  const nonce = new URL(start.headers().location).searchParams.get("request");
+  assert.ok(nonce);
+  await json(await account.get(`/api/oauth/requests/${nonce}`));
+  const consent = await json(await account.post(`/api/oauth/requests/${nonce}`, { data: { approve: true, write } }));
+  const callback = new URL(consent.redirect);
+  assert.equal(callback.searchParams.get("state"), params.get("state"));
+  const token = await json(await account.post("/oauth/token", { form: {
+    grant_type: "authorization_code", client_id: registered.client_id,
+    redirect_uri: "https://client.example/callback", resource: `${api}/mcp`,
+    code_verifier: verifier, code: callback.searchParams.get("code")!,
+  } }));
+  const client = new Client({ name: "stash-oauth-discovery-acceptance", version: "1" }); clients.push(client);
+  await client.connect(new StreamableHTTPClientTransport(new URL(`${api}/mcp`), { requestInit: { headers: { authorization: `Bearer ${token.access_token}` } } }));
+  return client;
+}
 async function call(client: Client, name: string, args: Record<string, unknown>) { return client.callTool({ name, arguments: args }); }
 async function ok(client: Client, name: string, args: Record<string, unknown>) {
   const result = await call(client, name, args); assert.ok(!result.isError);
@@ -53,11 +80,26 @@ try {
   const writer = await connect(account, "write"), reader = await connect(account, "read"), foreign = await connect(other, "write");
   stage = "discovery-and-scopes";
   const mutations = ["delete_project", "move_project_item", "promote_project_item", "restore_project_document", "purge_item"];
+  const advertised = (await writer.listTools()).tools;
+  const readOnly = (await reader.listTools()).tools;
   for (const tool of mutations) {
-    assert.ok((await writer.listTools()).tools.some(t => t.name === tool));
-    assert.ok(!(await reader.listTools()).tools.some(t => t.name === tool));
+    assert.ok(advertised.some(t => t.name === tool));
+    assert.ok(!readOnly.some(t => t.name === tool));
   }
+  report.advertisedReads = advertised.filter(t => t.annotations?.readOnlyHint === true).length;
+  report.advertisedWrites = advertised.filter(t => t.annotations?.readOnlyHint !== true).length;
+  report.advertisedTools = advertised.map(t => t.name);
   report.discoveryAndScopes = true;
+  stage = "oauth-discovery";
+  const oauthWriter = await connectOAuth(account, true), oauthReader = await connectOAuth(account, false);
+  const oauthTools = (await oauthWriter.listTools()).tools;
+  const oauthReadTools = (await oauthReader.listTools()).tools;
+  assert.deepEqual(oauthTools.map(t => t.name).sort(), advertised.map(t => t.name).sort());
+  assert.deepEqual(oauthReadTools.map(t => t.name).sort(), readOnly.map(t => t.name).sort());
+  report.oauthAdvertisedReads = oauthTools.filter(t => t.annotations?.readOnlyHint === true).length;
+  report.oauthAdvertisedWrites = oauthTools.filter(t => t.annotations?.readOnlyHint !== true).length;
+  report.oauthReadOnlyToolCount = oauthReadTools.length;
+  report.oauthMatchesAgentKeyDiscovery = true;
   stage = "project-content-management";
   const project = await ok(writer, "create_project", { name: "Synthetic MCP source" });
   const target = await ok(writer, "create_project", { name: "Synthetic MCP destination" });
