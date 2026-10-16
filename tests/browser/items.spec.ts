@@ -12,7 +12,7 @@ for (const width of [1440, 375]) test(`Capture and develop an idea, archive and 
   await form.getByLabel("Type", { exact: true }).selectOption("idea");
   await expect(form.getByLabel("Link", { exact: true })).toHaveCount(0);
   await form.getByLabel("Title", { exact: true }).fill("A calmer reading workflow");
-  await form.getByLabel("Content", { exact: true }).fill("## Research direction\n\n- Keep useful sources\n- Read later\n\n```ts\nconst useful = true;\n```\n\n<script>window.injected = true</script>\n\n![tracking](https://example.test/tracker.png)");
+  await form.getByLabel("Content", { exact: true }).fill("## Research direction\n\n- Keep useful sources\n- Read later\n\n```ts\nconst useful = true;\n```\n\n<script>window.injected = true</script>\n\n![unsafe image](javascript:alert%281%29)");
   await form.getByLabel("Why it matters").fill("Develop this before the next project.");
   await form.getByRole("button", { name: "Save item", exact: true }).click();
   await page.getByRole("link", { name: "A calmer reading workflow", exact: true }).click();

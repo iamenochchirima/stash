@@ -2042,6 +2042,17 @@ textarea::placeholder {
 .item-markdown ul, .item-markdown ol { padding-left: 24px; }
 .item-markdown pre, .edit-conflict pre { padding: 18px; border-radius: 7px; background: #f5f6f3; font-size: 13px; line-height: 1.6; overflow-x: auto; max-width: 100%; white-space: pre-wrap; }
 .item-markdown code { font-size: .9em; } .item-markdown a { text-decoration: underline; text-underline-offset: 3px; }
+.item-markdown pre { white-space: pre; overflow-wrap: normal; }
+.item-markdown :not(pre) > code { padding: 2px 5px; border-radius: 4px; background: #f5f6f3; }
+.item-markdown img { display: block; max-width: 100%; height: auto; margin: 20px 0; border-radius: 7px; }
+.item-markdown-table { max-width: 100%; margin: 24px 0; overflow-x: auto; }
+.item-markdown table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.6; }
+.item-markdown th, .item-markdown td { min-width: 140px; padding: 12px 16px; border: 1px solid #dce1d8; vertical-align: top; }
+.item-markdown th { background: #f5f6f3; font-weight: 600; }
+.item-markdown blockquote { margin: 20px 0; padding: 0 20px; border-left: 3px solid #b7accc; color: #555d52; }
+.item-markdown hr { margin: 28px 0; border: 0; border-top: 1px solid #dce1d8; }
+.item-markdown .contains-task-list { padding-left: 0; list-style: none; }
+.item-markdown .task-list-item > input { width: auto; padding: 0; margin-right: 8px; }
 .item-more { position: relative; font-size: 13px; } .item-more summary { cursor: pointer; padding: 12px; }
 .item-more[open] { display: flex; } .item-more button { display: block; margin: 6px 0; }
 .edit-conflict { border-left: 2px solid #b48950; padding-left: 16px; margin: 16px 0; font-size: 13px; }

@@ -41,7 +41,7 @@ Example journey: an agent finds an article and saves it with context. The user o
 - Canonical private route: /items/[id]. Desktop uses the normal workspace shell with a comfortable content column; mobile uses the full available width. Opening an item does not make it public.
 - Detail shows title, item type, full body/context, collection/tag controls and created/updated information. Put secondary metadata and destructive actions out of the reading path.
 - Link detail has Open source. Copy Stash link copies the internal account-protected URL. Label the two actions clearly.
-- Use a simple Markdown editor and rendered reading view for note/idea bodies. Support paragraphs, headings, lists, links and fenced code. No raw HTML, embedded frames or remote images in this release.
+- Use a simple Markdown editor and rendered reading view for note/idea bodies. Support paragraphs, headings, lists, links, fenced code, GFM tables, task lists, strikethrough and remote images. The user approved remote images on 16 October 2026. Keep raw HTML and embedded frames disabled.
 - Explicit Save changes, visible unsaved state and a discard warning protect edits. Do not silently lose a draft on navigation or claim Saved before persistence succeeds. Scope drafts to the current account and clear them on sign-out.
 - Keep capture short: link field for Link; content field for Note/Idea. Title can be entered or derived deterministically from content. Collections and tags stay optional. Place additional options behind a disclosure.
 - PDF detail shows extracted text with page references and Download original. Keep pending, unsupported, failed and ready states clear. File processing must not block browsing other items.

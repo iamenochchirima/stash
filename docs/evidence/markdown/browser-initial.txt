@@ -1,0 +1,160 @@
+
+> stash@ test:browser /home/enock/Desktop/workspace/personal/stash
+> playwright test tests/browser/markdown.spec.ts tests/browser/item-detail.spec.ts tests/browser/items.spec.ts
+
+[WebServer] (node:2018468) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `pnpm --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2018484) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2018500) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2018564) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `pnpm --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2018587) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2018604) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2018677) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `pnpm --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2018693) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2018710) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2018747) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 6 tests using 1 worker
+
+(node:2018762) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2018896) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2018930) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2018939) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2018969) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2019012) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2019020) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/browser/item-detail.spec.ts:6:3 › Open a private saved item from its card at 1440px (7.4s)
+[WebServer] (node:2019066) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2019081) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2019112) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2019150) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2019158) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 tests/browser/item-detail.spec.ts:6:3 › Open a private saved item from its card at 375px (5.1s)
+[WebServer] (node:2019209) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2019217) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2019257) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2019274) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  3 tests/browser/items.spec.ts:4:34 › Capture and develop an idea, archive and restore it at 1440px (5.9s)
+[WebServer] (node:2019316) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2019324) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2019353) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  4 tests/browser/items.spec.ts:4:34 › Capture and develop an idea, archive and restore it at 375px (4.0s)
+[WebServer] (node:2019375) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2019414) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  5 tests/browser/markdown.spec.ts:7:3 › Details render Markdown and contain wide content at 1440px (11.5s)
+(node:2019514) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2019630) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  6 tests/browser/markdown.spec.ts:7:3 › Details render Markdown and contain wide content at 375px (11.4s)
+
+
+  1) tests/browser/markdown.spec.ts:7:3 › Details render Markdown and contain wide content at 1440px 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.item-markdown').getByRole('heading', { name: 'Offering catalogue' })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('.item-markdown').getByRole('heading', { name: 'Offering catalogue' }) with timeout 10000ms
+      - waiting for locator('.item-markdown').getByRole('heading', { name: 'Offering catalogue' })
+
+
+      46 |     await page.reload();
+      47 |     const content = page.locator(".item-markdown");
+    > 48 |     await expect(content.getByRole("heading", { name: "Offering catalogue" })).toBeVisible();
+         |                                                                                ^
+      49 |     await expect(content.getByRole("table")).toBeVisible();
+      50 |     await expect(content.getByRole("columnheader")).toHaveCount(5);
+      51 |     await expect(content.getByRole("cell")).toHaveCount(10);
+        at /home/enock/Desktop/workspace/personal/stash/tests/browser/markdown.spec.ts:48:80
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/markdown-Details-render-Ma-77ca4-tain-wide-content-at-1440px/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/markdown-Details-render-Ma-77ca4-tain-wide-content-at-1440px/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/markdown-Details-render-Ma-77ca4-tain-wide-content-at-1440px/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/markdown-Details-render-Ma-77ca4-tain-wide-content-at-1440px/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests/browser/markdown.spec.ts:7:3 › Details render Markdown and contain wide content at 375px 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.item-markdown').getByRole('heading', { name: 'Offering catalogue' })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('.item-markdown').getByRole('heading', { name: 'Offering catalogue' }) with timeout 10000ms
+      - waiting for locator('.item-markdown').getByRole('heading', { name: 'Offering catalogue' })
+
+
+      46 |     await page.reload();
+      47 |     const content = page.locator(".item-markdown");
+    > 48 |     await expect(content.getByRole("heading", { name: "Offering catalogue" })).toBeVisible();
+         |                                                                                ^
+      49 |     await expect(content.getByRole("table")).toBeVisible();
+      50 |     await expect(content.getByRole("columnheader")).toHaveCount(5);
+      51 |     await expect(content.getByRole("cell")).toHaveCount(10);
+        at /home/enock/Desktop/workspace/personal/stash/tests/browser/markdown.spec.ts:48:80
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/markdown-Details-render-Ma-8cfcf-ntain-wide-content-at-375px/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/markdown-Details-render-Ma-8cfcf-ntain-wide-content-at-375px/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/markdown-Details-render-Ma-8cfcf-ntain-wide-content-at-375px/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/markdown-Details-render-Ma-8cfcf-ntain-wide-content-at-375px/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests/browser/markdown.spec.ts:7:3 › Details render Markdown and contain wide content at 1440px 
+    tests/browser/markdown.spec.ts:7:3 › Details render Markdown and contain wide content at 375px ─
+  4 passed (54.3s)
+ ELIFECYCLE  Command failed with exit code 1.

@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { ArrowLeft, ArrowUpRight, Copy, LoaderCircle, Pencil, X, Star, Archive, Trash2, RotateCcw } from "lucide-react";
 import type { Item, Collection } from "@stash/shared";
 import { api, ApiError } from "../../lib/api";
@@ -315,15 +316,39 @@ export function ItemDetail({ id }: { id: string }) {
                   <div className="item-markdown">
                     <Markdown
                       skipHtml
-                      disallowedElements={["img"]}
-                      urlTransform={(value) =>
-                        /^https?:\/\//i.test(value) ? value : ""
-                      }
+                      remarkPlugins={[remarkGfm]}
                       components={{
+                        pre: ({ children }) => (
+                          <pre tabIndex={0} role="region" aria-label="Code block">{children}</pre>
+                        ),
+                        input: ({ checked }) => (
+                          <input type="checkbox" disabled checked={checked} aria-label={checked ? "Completed task" : "Incomplete task"} />
+                        ),
+                        table: ({ children }) => (
+                          <div
+                            className="item-markdown-table"
+                            role="region"
+                            aria-label="Markdown table"
+                            tabIndex={0}
+                          >
+                            <table>{children}</table>
+                          </div>
+                        ),
+                        img: ({ src, alt, title }) => (
+                          src ? (
+                            <img
+                              src={src}
+                              alt={alt || ""}
+                              title={title}
+                              loading="lazy"
+                              referrerPolicy="no-referrer"
+                            />
+                          ) : <span>{alt}</span>
+                        ),
                         a: ({ children, href }) => (
                           <a
                             href={href}
-                            target="_blank"
+                            target={href?.startsWith("#") ? undefined : "_blank"}
                             rel="noopener noreferrer"
                           >
                             {children}
