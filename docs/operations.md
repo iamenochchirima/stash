@@ -141,3 +141,6 @@ Consumer routing rollout preparation, 15 October: deploy the new consumer before
 
 
 Consumer routing rollout completed on 15 October 2026. Consumer/admin source a4fad81 is READY, followed by the backend account email-link update at Railway 21934e6c-a571-4177-a74b-68f4b0d7b74f. Hosted route/refresh/no-store/mobile acceptance passed and disposable accounts were deleted. See docs/evidence/routing/deployment.json and hosted-routing.json. PostgreSQL migration 0022, capture configuration, storage journals and Cohere model remain unchanged. NVIDIA activation still requires resolution of the OpenRouter privacy rejection.
+
+
+MCP project management deployed on 16 October 2026. API/MCP source ceecac0 is live at Railway 6d7066e3-c11c-4f6f-9a01-6388b762144f with unchanged migration 0022 and persistent journals. Hosted SDK acceptance passed guarded project CRUD, research moves, history restoration, promotion, Trash purge and account/scope boundaries; disposable accounts were deleted. Evidence: docs/evidence/projects/hosted-mcp-management.json. Client origins, storage configuration, model and hosting plans were unchanged. Reconnect native assistants if their tool inventory is cached.

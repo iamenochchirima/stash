@@ -21,7 +21,7 @@ Keep ongoing research and large working documents inside private projects. The m
 
 ## Rules
 
-A project can be archived and reopened. Archived projects remain readable; changing their content requires reopening. Project deletion is intentionally excluded from this first implementation, avoiding accidental bulk removal. Individual items retain existing Trash/restore rules. Collections remain main-library organisation; project items do not accept collection memberships. Maximum 100 projects/account and 100 MiB of current project text plus retained history, 200-character names, 4,000-character descriptions and 500,000-character research documents. Existing account-wide item/storage quotas still apply.
+A project can be archived and reopened. Archived projects remain readable; changing their content requires reopening. The original implementation excluded project deletion. The MCP management extension below adds guarded deletion of empty, archived projects. Individual items retain existing Trash/restore rules. Collections remain main-library organisation; project items do not accept collection memberships. Maximum 100 projects/account and 100 MiB of current project text plus retained history, 200-character names, 4,000-character descriptions and 500,000-character research documents. Existing account-wide item/storage quotas still apply.
 
 Linear integration, automatic repository edits, team access, automatic conversation ingestion and task states are excluded. Repository documentation contains maintained behaviour; raw research belongs in Stash, not new repository dump files.
 
@@ -46,6 +46,6 @@ Hosted checkpoint, 15 October 2026: Projects is live in the coordinated Library 
 - [x] Use shared core mutations for HTTP and MCP, without schema changes.
 - [x] Verify SDK discovery, read-only scopes, foreign accounts, stale revisions, archive guards, duplicate links, promotion retries, PDF moves and deletion prerequisites.
 - [x] Complete typecheck and production builds.
-- [ ] Complete production deployment acceptance, recorded in docs/verification.md.
+- [x] Complete production deployment acceptance, recorded in docs/verification.md.
 
 PDF upload stays in the existing browser flow; existing MCP PDF text and summary operations remain available. Project deletion does not cascade content. Empty the project deliberately before archiving and deleting it.
