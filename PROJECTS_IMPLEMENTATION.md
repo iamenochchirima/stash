@@ -34,3 +34,18 @@ Migrations 0016 and 0017 are applied to the local PostgreSQL development databas
 
 
 Hosted checkpoint, 15 October 2026: Projects is live in the coordinated Library v2 release. Dedicated disposable-account browser/API acceptance passed creation, long-document reading, isolated library scope, append/history, explicit excerpt promotion, foreign-account rejection and archived read-only behavior. Mobile overflow passed. All disposable accounts were deleted. See docs/evidence/library-v2/hosted-projects.json. The first hosted script used an exact link name despite the card including a preview; its selector and history response assertion were corrected. No product behavior changed for that test correction.
+
+
+## MCP management extension, 16 October 2026
+
+- [x] Expose empty, archived project deletion with revision and explicit confirmation.
+- [x] Move project research between owned, open projects without losing files/history.
+- [x] Expose library excerpt promotion and permanent item deletion from Trash.
+- [x] Restore historical document bodies with conflict protection and retained replaced content.
+- [x] Read complete historical documents in bounded chunks.
+- [x] Use shared core mutations for HTTP and MCP, without schema changes.
+- [x] Verify SDK discovery, read-only scopes, foreign accounts, stale revisions, archive guards, duplicate links, promotion retries, PDF moves and deletion prerequisites.
+- [x] Complete typecheck and production builds.
+- [ ] Complete production deployment acceptance, recorded in docs/verification.md.
+
+PDF upload stays in the existing browser flow; existing MCP PDF text and summary operations remain available. Project deletion does not cascade content. Empty the project deliberately before archiving and deleting it.

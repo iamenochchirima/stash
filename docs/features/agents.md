@@ -14,3 +14,6 @@ Multiple OAuth assistants coexist independently. The regression test in tests/oa
 
 
 Agent connections now live at `/connections`, with independent loading, key creation/revocation and setup components. Refreshing or bookmarking that address retains the page. Unauthenticated access redirects to sign-in with `/connections` as the return destination. No React Router dependency was added; the consumer uses the existing Next.js App Router.
+
+
+MCP project management includes create/read/update, archive/reopen and guarded empty-project deletion, plus item moves, library promotion, historical-body restoration and permanent Trash deletion. See projects.md for tools, required revisions and confirmation rules. Project ownership and write permissions are checked in shared services; tests/projects.test.ts exercises the official SDK over HTTP. PDF binary upload remains a web action.

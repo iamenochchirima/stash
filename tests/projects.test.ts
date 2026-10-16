@@ -459,6 +459,61 @@ test("Project MCP supports bounded research reads and write-scoped, retry-safe a
         })
       ).isError,
     );
+    const call = async (name: string, args: Record<string, unknown>, client = writer) => client.callTool({ name, arguments: args });
+    const ok = async (name: string, args: Record<string, unknown>) => {
+      const result = await call(name, args);
+      assert.ok(!result.isError, JSON.stringify(result));
+      return data(result);
+    };
+    for (const name of ["delete_project", "move_project_item", "restore_project_document", "promote_project_item", "purge_item"])
+      assert.ok(!(await reader.listTools()).tools.some(t => t.name === name));
+    const history = await ok("project_document_history", { id: item.id, revision: 1, offset: 30000 });
+    assert.equal(history.body.length, 30000);
+    assert.equal(history.nextOffset, 60000);
+    assert.equal(history.totalCharacters, item.body.length);
+    assert.ok((await call("restore_project_document", { id: item.id, revision: 1, historicalRevision: 1 })).isError);
+    const restored = await ok("restore_project_document", { id: item.id, revision: 2, historicalRevision: 1 });
+    assert.equal(restored.revision, 3);
+    assert.equal(restored.totalCharacters, item.body.length);
+    const target = await ok("create_project", { name: "Destination" });
+    const foreignWriter = await connect(b.cookie, "write");
+    const foreignProject = data(await foreignWriter.callTool({ name: "create_project", arguments: { name: "Private destination" } }));
+    for (const [name, args] of [
+      ["delete_project", { id: p.id, revision: 1, confirmation: "DELETE" }],
+      ["move_project_item", { id: item.id, revision: 3, projectId: foreignProject.id }],
+      ["restore_project_document", { id: item.id, revision: 3, historicalRevision: 1 }],
+      ["promote_project_item", { id: item.id, requestId: randomUUID() }],
+      ["purge_item", { id: item.id, confirmation: "DELETE" }],
+    ] as const) assert.ok((await call(name, args, foreignWriter)).isError);
+    assert.ok((await call("move_project_item", { id: item.id, revision: 3, projectId: foreignProject.id })).isError);
+    assert.ok((await call("move_project_item", { id: item.id, revision: 2, projectId: target.id })).isError);
+    await ok("update_project", { id: target.id, revision: 1, archived: true });
+    assert.ok((await call("move_project_item", { id: item.id, revision: 3, projectId: target.id })).isError);
+    await ok("update_project", { id: target.id, revision: 2, archived: false });
+    assert.ok((await call("move_project_item", { id: item.id, revision: 3, projectId: randomUUID() })).isError);
+    const moved = await ok("move_project_item", { id: item.id, revision: 3, projectId: target.id });
+    assert.equal(moved.projectId, target.id);
+    assert.equal(moved.revision, 4);
+    assert.equal((await ok("project_document_history", { id: item.id })).items.length, 2);
+    const promotion = { id: item.id, body: "Selected finding", requestId: randomUUID() };
+    const copy = await ok("promote_project_item", promotion);
+    assert.equal(copy.item.projectSourceId, item.id);
+    assert.equal((await ok("promote_project_item", promotion)).item.id, copy.item.id);
+    assert.ok((await call("purge_item", { id: item.id, confirmation: "DELETE" })).isError);
+    await ok("trash_item", { id: item.id });
+    await ok("update_project", { id: target.id, revision: 3, archived: true });
+    assert.ok((await call("delete_project", { id: target.id, revision: 4, confirmation: "DELETE" })).isError);
+    assert.ok((await call("purge_item", { id: item.id, confirmation: "DELETE" })).isError);
+    await ok("update_project", { id: target.id, revision: 4, archived: false });
+    assert.ok((await call("purge_item", { id: item.id, confirmation: "no" })).isError);
+    await ok("purge_item", { id: item.id, confirmation: "DELETE" });
+    assert.equal((await ok("get_item", { id: copy.item.id })).projectSourceId, null);
+    assert.ok((await call("delete_project", { id: target.id, revision: 5, confirmation: "DELETE" })).isError);
+    await ok("update_project", { id: target.id, revision: 5, archived: true });
+    assert.ok((await call("delete_project", { id: target.id, revision: 5, confirmation: "DELETE" })).isError);
+    assert.equal((await f.request("DELETE", `/api/projects/${target.id}`, { revision: 6, confirmation: "DELETE" }, b.cookie)).statusCode, 404);
+    assert.equal((await ok("delete_project", { id: target.id, revision: 6, confirmation: "DELETE" })).deleted, true);
+    assert.ok((await call("get_project", { id: target.id })).isError);
   } finally {
     for (const client of clients) await client.close();
     if (app) await app.close();
@@ -601,6 +656,15 @@ test("PDF capture stays inside its project and an archive during upload prevents
       (await f.request("GET", "/api/items", undefined, a.cookie)).json().total,
       0,
     );
+    const destination = (await f.request("POST", "/api/projects", { name: "PDF destination" }, a.cookie)).json().project;
+    const original = saved.json().item;
+    const moved = await f.request("POST", `/api/items/${original.id}/move-project`, { revision: original.revision, projectId: destination.id }, a.cookie);
+    assert.equal(moved.statusCode, 200, moved.body);
+    assert.equal(moved.json().projectId, destination.id);
+    assert.equal(moved.json().pdf.resourceId, original.id);
+    const movedBack = await f.request("POST", `/api/items/${original.id}/move-project`, { revision: moved.json().revision, projectId: p.id }, a.cookie);
+    assert.equal(movedBack.statusCode, 200, movedBack.body);
+    assert.equal(movedBack.json().pdf.byteSize, original.pdf.byteSize);
     pause = true;
     const second = await ticket("Late source.pdf");
     const upload = f.request(
@@ -654,5 +718,26 @@ test("Project text quota includes archived research and retained history", async
     assert.equal(denied.statusCode, 409, denied.body);
     const allowed = await f.request("POST", "/api/items", { kind: "note", projectId: p.id, body: "A small remaining note" }, a.cookie);
     assert.equal(allowed.statusCode, 200, allowed.body);
+  } finally { await f.close(); }
+});
+
+test("Project item moves reject duplicate links without merging or changing either item", async () => {
+  const f = await fixture();
+  try {
+    const a = await f.signup();
+    const create = async (name: string) => (await f.request("POST", "/api/projects", { name }, a.cookie)).json().project;
+    const source = await create("Source"), target = await create("Target");
+    const save = async (projectId: string) => (await f.request("POST", "/api/items", { kind: "link", url: "https://example.test/shared-source", projectId }, a.cookie)).json().item;
+    const original = await save(source.id), duplicate = await save(target.id);
+    for (const trashed of [false, true]) {
+      if (trashed) await f.request("POST", `/api/items/${duplicate.id}/lifecycle`, { action: "trash" }, a.cookie);
+      const result = await f.request("POST", `/api/items/${original.id}/move-project`, { revision: 1, projectId: target.id }, a.cookie);
+      assert.equal(result.statusCode, 409, result.body);
+      const current = (await f.request("GET", `/api/items/${original.id}`, undefined, a.cookie)).json().item;
+      assert.equal(current.projectId, source.id);
+      assert.equal(current.revision, 1);
+    }
+    const removed = await f.request("DELETE", `/api/projects/${target.id}`, { revision: 1, confirmation: "DELETE" }, a.cookie);
+    assert.equal(removed.statusCode, 409);
   } finally { await f.close(); }
 });

@@ -34,3 +34,16 @@ export type Project = {
   updatedAt: string;
   itemCount: number;
 };
+
+export const projectDelete = z.object({
+  revision: z.number().int().positive(),
+  confirmation: z.literal("DELETE"),
+});
+export const projectItemMove = z.object({
+  revision: z.number().int().positive(),
+  projectId: z.string().uuid(),
+});
+export const projectDocumentRestore = z.object({
+  revision: z.number().int().positive(),
+  historicalRevision: z.number().int().positive(),
+});

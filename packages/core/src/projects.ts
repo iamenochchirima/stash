@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { sql } from "drizzle-orm";
 import { type Database } from "@stash/db";
-import { projectInput, projectUpdate } from "@stash/shared";
+import { projectInput, projectUpdate, projectDelete, projectItemMove, projectDocumentRestore } from "@stash/shared";
 import { AppError } from "./index.js";
 import { items } from "./items.js";
 import { z } from "zod";
@@ -115,6 +115,52 @@ export function projectService(db: Database, userId: string) {
         );
       });
       return get(id);
+    },
+    async remove(id: string, raw: z.input<typeof projectDelete>) {
+      const input = projectDelete.parse(raw);
+      return db.transaction(async tx => {
+        await active(tx);
+        const result = await tx.execute(sql`select revision,archived_at from projects where id=${id} and user_id=${userId} for update`);
+        const row = result.rows[0];
+        if (!row) throw new AppError(404, "Project not found.");
+        if (row.revision !== input.revision) throw new AppError(409, "This project changed elsewhere. Reload before deleting.");
+        if (!row.archived_at) throw new AppError(409, "Archive this project before deleting it.");
+        const contents = await tx.execute(sql`select 1 from resources where project_id=${id} and user_id=${userId} limit 1`);
+        if (contents.rows.length) throw new AppError(409, "Move or permanently delete all project items, including Trash, before deleting this project.");
+        await tx.execute(sql`delete from projects where id=${id} and user_id=${userId}`);
+        return { deleted: true };
+      });
+    },
+    async moveItem(id: string, raw: z.input<typeof projectItemMove>) {
+      const input = projectItemMove.parse(raw);
+      await db.transaction(async tx => {
+        await active(tx);
+        const result = await tx.execute(sql`select project_id,revision,url,deleted_at from resources where id=${id} and user_id=${userId} for update`);
+        const row = result.rows[0];
+        if (!row || !row.project_id || row.deleted_at) throw new AppError(404, "Project item not found.");
+        await requireProject(tx, userId, String(row.project_id), true);
+        await requireProject(tx, userId, input.projectId, true);
+        if (row.revision !== input.revision) throw new AppError(409, "This item changed elsewhere. Read it before moving.");
+        if (row.project_id === input.projectId) return;
+        if (row.url) {
+          const duplicate = await tx.execute(sql`select 1 from resources where user_id=${userId} and project_id=${input.projectId} and url=${row.url}`);
+          if (duplicate.rows.length) throw new AppError(409, "This link already exists in the destination project, including Trash.");
+        }
+        await tx.execute(sql`update resources set project_id=${input.projectId},revision=revision+1,updated_at=now() where id=${id} and user_id=${userId}`);
+      });
+      const item = await items(db, userId).get(id);
+      return { ...item, body: item.body.slice(0, 30000), bodyTruncated: item.body.length > 30000 };
+    },
+    async restoreDocument(id: string, raw: z.input<typeof projectDocumentRestore>) {
+      const input = projectDocumentRestore.parse(raw);
+      await db.transaction(async tx => {
+        await active(tx);
+        const service = projectService(tx, userId);
+        const previous = await service.history(id, input.historicalRevision);
+        if (!("body" in previous)) throw new AppError(404, "Revision not found.");
+        await items(tx, userId).update(id, { revision: input.revision, body: String(previous.body) });
+      });
+      return this.document(id);
     },
     async document(id: string, offset = 0) {
       const item = await items(db, userId).get(id);

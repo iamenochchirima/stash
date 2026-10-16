@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { Database } from "@stash/db";
 import { projectService } from "@stash/core";
-import { projectInput, projectUpdate } from "@stash/shared";
+import { projectInput, projectUpdate, projectDelete, projectItemMove, projectDocumentRestore } from "@stash/shared";
 import { z } from "zod";
 import { auth } from "./auth.js";
 export function registerProjects(
@@ -40,6 +40,12 @@ export function registerProjects(
       (await authentication.user(req)).id,
     ).update(id(req.params), projectUpdate.parse(req.body)),
   }));
+  app.delete("/api/projects/:id", async req =>
+    projectService(db, (await authentication.user(req)).id).remove(id(req.params), projectDelete.parse(req.body)));
+  app.post("/api/items/:id/move-project", async req =>
+    projectService(db, (await authentication.user(req)).id).moveItem(id(req.params), projectItemMove.parse(req.body)));
+  app.post("/api/items/:id/restore-document", async req =>
+    projectService(db, (await authentication.user(req)).id).restoreDocument(id(req.params), projectDocumentRestore.parse(req.body)));
   app.get("/api/items/:id/history", async (req) =>
     projectService(db, (await authentication.user(req)).id).history(
       id(req.params),
