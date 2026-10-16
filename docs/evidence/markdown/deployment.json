@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-10-16T13:28:20.057050+00:00",
+  "source": "d792d9c18c014e0daab48eba922f411be6a8e6eb",
+  "consumer": {
+    "deployment": "dpl_G9gdkAo2HZrY1xfFcsy6r3rpDjUt",
+    "url": "https://stash.kasitek.co.za",
+    "status": "READY"
+  },
+  "admin": {
+    "url": "https://stash-admin-5cky9y9cn-iamenochchirimas-projects.vercel.app",
+    "status": "READY",
+    "reason": "Existing main-branch Git integration also builds admin"
+  },
+  "api": {
+    "deployment": "unchanged",
+    "ready": true
+  },
+  "migrations": "unchanged",
+  "acceptance": "hosted.json",
+  "fixtureCleanup": "Disposable account and synthetic note deleted; no file uploads or model calls"
+}

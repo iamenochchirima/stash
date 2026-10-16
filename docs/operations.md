@@ -144,3 +144,8 @@ Consumer routing rollout completed on 15 October 2026. Consumer/admin source a4f
 
 
 MCP project management deployed on 16 October 2026. API/MCP source ceecac0 is live at Railway 6d7066e3-c11c-4f6f-9a01-6388b762144f with unchanged migration 0022 and persistent journals. Hosted SDK acceptance passed guarded project CRUD, research moves, history restoration, promotion, Trash purge and account/scope boundaries; disposable accounts were deleted. Evidence: docs/evidence/projects/hosted-mcp-management.json. Client origins, storage configuration, model and hosting plans were unchanged. Reconnect native assistants if their tool inventory is cached.
+
+
+## Details Markdown release, 16 October 2026
+
+Consumer source `d792d9c` is live at stash.kasitek.co.za in Vercel deployment `dpl_G9gdkAo2HZrY1xfFcsy6r3rpDjUt`, READY. The existing main-branch integration also rebuilt admin successfully. Hosted desktop/mobile Markdown, remote-image loading, keyboard scrolling, accessibility and safe-content checks passed, and the disposable account was deleted. Evidence is in docs/evidence/markdown. The API deployment, database schema, storage and model settings are unchanged.
