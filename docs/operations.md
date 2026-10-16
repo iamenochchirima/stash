@@ -149,3 +149,8 @@ MCP project management deployed on 16 October 2026. API/MCP source ceecac0 is li
 ## Details Markdown release, 16 October 2026
 
 Consumer source `d792d9c` is live at stash.kasitek.co.za in Vercel deployment `dpl_G9gdkAo2HZrY1xfFcsy6r3rpDjUt`, READY. The existing main-branch integration also rebuilt admin successfully. Hosted desktop/mobile Markdown, remote-image loading, keyboard scrolling, accessibility and safe-content checks passed, and the disposable account was deleted. Evidence is in docs/evidence/markdown. The API deployment, database schema, storage and model settings are unchanged.
+
+
+## Mermaid diagram release, 16 October 2026
+
+Consumer source `417b6e9` is live in Vercel deployment `dpl_EHu28tZ6zaBK8TvJcHqkPvYnQZpK`, READY at stash.kasitek.co.za. Fenced Mermaid diagrams render locally with zoom, keyboard scrolling and source fallback. Hosted desktop/mobile rendering and accessibility checks passed, and the disposable account was deleted. Evidence is in docs/evidence/mermaid. The API, schema, storage, model and hosting configuration are unchanged.

@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-16T18:52:16.508248+00:00",
+  "source": "417b6e9be13f8ed2fad4fdfbb7b2d97901525347",
+  "consumer": {
+    "deployment": "dpl_EHu28tZ6zaBK8TvJcHqkPvYnQZpK",
+    "url": "https://stash.kasitek.co.za",
+    "status": "READY"
+  },
+  "api": {
+    "deployment": "unchanged",
+    "ready": true
+  },
+  "migrations": "unchanged",
+  "acceptance": "hosted.json",
+  "fixtureCleanup": "Disposable account and synthetic note deleted; no uploads or model requests"
+}
