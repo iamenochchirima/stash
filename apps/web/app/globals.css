@@ -2130,3 +2130,12 @@ form progress { width: 100%; height: 6px; accent-color: #6b8560; }
 .lifecycle-feedback .text-button { flex: 0 0 auto; }
 
 .resource-card .resource-notes { position: relative; z-index: 1; cursor: text; }
+
+.mermaid-diagram { margin: 24px 0; padding: 16px; border: 1px solid var(--line); border-radius: 8px; }
+.mermaid-toolbar { display: flex; justify-content: flex-end; gap: 4px; margin-bottom: 8px; }
+.mermaid-toolbar button { min-width: 36px; min-height: 36px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 5px; font-size: 13px; }
+.mermaid-toolbar button:disabled { cursor: default; }
+.mermaid-viewport { max-width: 100%; overflow: auto; }
+.item-markdown .mermaid-viewport img { max-width: none; margin: 0; border-radius: 0; }
+.mermaid-diagram details { margin-top: 12px; font-size: 13px; }
+.mermaid-diagram summary { cursor: pointer; width: fit-content; }

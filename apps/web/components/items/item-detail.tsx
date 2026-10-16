@@ -12,6 +12,7 @@ import type { Item, Collection } from "@stash/shared";
 import { api, ApiError } from "../../lib/api";
 import { SummaryPanel } from "./summary-panel";
 import { PdfReader } from "./pdf-reader";
+import { MermaidDiagram } from "./mermaid-diagram";
 import { ProjectDocumentActions } from "../projects/project-document-actions";
 import { ItemEditor } from "./item-editor";
 export function ItemDetail({ id }: { id: string }) {
@@ -318,9 +319,15 @@ export function ItemDetail({ id }: { id: string }) {
                       skipHtml
                       remarkPlugins={[remarkGfm]}
                       components={{
-                        pre: ({ children }) => (
-                          <pre tabIndex={0} role="region" aria-label="Code block">{children}</pre>
-                        ),
+                        pre: ({ children, node }) => {
+                          const code = node?.children[0];
+                          if (code?.type === "element" && code.tagName === "code" &&
+                            Array.isArray(code.properties.className) && code.properties.className.includes("language-mermaid")) {
+                            const source = code.children.map(child => child.type === "text" ? child.value : "").join("");
+                            return <MermaidDiagram source={source} />;
+                          }
+                          return <pre tabIndex={0} role="region" aria-label="Code block">{children}</pre>;
+                        },
                         input: ({ checked }) => (
                           <input type="checkbox" disabled checked={checked} aria-label={checked ? "Completed task" : "Incomplete task"} />
                         ),
