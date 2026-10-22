@@ -1,0 +1,26 @@
+{
+  "clientNextVersionBefore": "16.4.0",
+  "clientNextVersionAfter": "16.4.2",
+  "before": {
+    "info": 0,
+    "low": 1,
+    "moderate": 0,
+    "high": 1,
+    "critical": 2
+  },
+  "after": {
+    "info": 0,
+    "low": 1,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0
+  },
+  "remaining": [
+    {
+      "module": "fastify",
+      "severity": "low",
+      "url": "https://github.com/advisories/GHSA-389g-gv7q-r4x8"
+    }
+  ],
+  "backend": "Unchanged; existing low Fastify advisory recorded for follow-up"
+}
