@@ -7,6 +7,8 @@ import {
   Plus,
   Search,
   LoaderCircle,
+  List,
+  LayoutGrid,
 } from "lucide-react";
 import type { Item, Collection } from "@stash/shared";
 
@@ -22,6 +24,7 @@ import { Portability } from "./portability";
 import {
   LifecycleFeedback,
   recordLifecycle,
+  clearLifecycleFeedback,
 } from "../workspace/lifecycle-feedback";
 
 import { ItemEditor } from "../items/item-editor";
@@ -40,6 +43,23 @@ export function LibraryPageClient({
 }) {
   const { user, collections, refresh } = useWorkspace();
   const router = useRouter();
+  const [view, setView] = useState<"list" | "grid">("list");
+  const [selecting, setSelecting] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [selectionBusy, setSelectionBusy] = useState(false);
+  useEffect(() => {
+    try { setView(localStorage.getItem(`stash-library-view:${user.id}`) === "grid" ? "grid" : "list"); }
+    catch { setView("list"); }
+  }, [user.id]);
+  function changeView(next: "list" | "grid") {
+    setView(next);
+    try { localStorage.setItem(`stash-library-view:${user.id}`, next); } catch {}
+  }
+  function toggleItem(item: Item) {
+    setSelecting(true);
+    setSelected(ids => ids.includes(item.id) ? ids.filter(id => id !== item.id) : [...ids, item.id]);
+  }
+
   const params = new URLSearchParams(initialQuery);
   const [items, setItems] = useState<Item[]>([]);
   const [query, setQuery] = useState(() => params.get("q") || ""),
@@ -59,6 +79,7 @@ export function LibraryPageClient({
   const [editingCollection, setEditingCollection] = useState<Collection | null>(
     null,
   );
+  useEffect(() => { setSelected(ids => ids.filter(id => items.some(item => item.id === id))); }, [items]);
   const [kind, setKind] = useState(() => params.get("kind") || "");
   const [itemLocation, setItemLocation] = useState(() => initialLocation);
   const [favourites, setFavourites] = useState(() => initialFavourites);
@@ -85,6 +106,7 @@ export function LibraryPageClient({
   useEffect(() => {
     history.replaceState(history.state, "", libraryPath);
   }, [libraryPath]);
+  useEffect(() => { setSelected([]); setSelecting(false); }, [libraryPath, user.id]);
   const closeModal = useCallback(() => {
     setModal(null);
     setEditing(null);
@@ -175,6 +197,26 @@ export function LibraryPageClient({
     } catch (e) {
       setError((e as Error).message);
     }
+  }
+  async function changeLifecycle(targets: Item[]) {
+    if (selectionBusy || !targets.length) return;
+    setSelectionBusy(true); setError("");
+    const action = itemLocation === "trash" ? "restore" : "trash";
+    const results = await Promise.allSettled(targets.map(item => api(`/items/${item.id}/lifecycle`, {
+      method: "POST", headers: { "X-Stash-Account": user.id }, body: json({ action }),
+    })));
+    const failed = targets.filter((_, index) => results[index].status === "rejected");
+    const succeeded = targets.filter((_, index) => results[index].status === "fulfilled");
+    setSelected(failed.map(item => item.id)); setSelecting(failed.length > 0);
+    if (succeeded.length === 1) recordLifecycle(user.id, succeeded[0].id, action);
+    else if (succeeded.length) {
+      clearLifecycleFeedback(user.id);
+      setNotice(`${succeeded.length} items ${action === "trash" ? "moved to Trash" : "restored"}.`);
+    }
+    if (failed.length) setError(`Could not ${action === "trash" ? "move to Trash" : "restore"} ${failed.length} ${failed.length === 1 ? "item" : "items"}. ${failed.length === 1 ? "It remains" : "They remain"} selected for retry.`);
+    try { await Promise.all([reloadResources(), reloadMeta()]); }
+    catch (error) { setError((error as Error).message); }
+    finally { setSelectionBusy(false); }
   }
   return (
     <AppShell
@@ -379,19 +421,37 @@ export function LibraryPageClient({
                 <span>
                   {total} {total === 1 ? "item" : "items"}
                 </span>
-                <small>Newest first</small>
+                <div className="library-view-options">
+                  <small>Newest first</small>
+                  <button type="button" className="library-select-toggle" disabled={selectionBusy} aria-pressed={selecting} onClick={() => { setSelecting(!selecting); setSelected([]); }}>Select items</button>
+                  <div className="library-view-toggle" role="group" aria-label="Library view">
+                    <button type="button" aria-pressed={view === "list"} onClick={() => changeView("list")}><List size={15} />List</button>
+                    <button type="button" aria-pressed={view === "grid"} onClick={() => changeView("grid")}><LayoutGrid size={15} />Grid</button>
+                  </div>
+                </div>
               </div>
+              {selecting && <div className="library-selection" role="group" aria-label="Selected items">
+                <label><input type="checkbox" aria-label="Select all items on this page" ref={input => { if (input) input.indeterminate = selected.length > 0 && selected.length < items.length; }} checked={items.length > 0 && items.every(item => selected.includes(item.id))} disabled={selectionBusy || loading} onChange={event => setSelected(event.target.checked ? items.map(item => item.id) : [])} />Select all</label>
+                <span aria-live="polite">{selected.length} selected</span>
+                <button type="button" disabled={selectionBusy || !selected.length} onClick={() => void changeLifecycle(items.filter(item => selected.includes(item.id)))}>{selectionBusy ? "Working…" : itemLocation === "trash" ? "Restore selected" : "Move selected to Trash"}</button>
+                <button type="button" disabled={selectionBusy} onClick={() => { setSelecting(false); setSelected([]); }}>Cancel selection</button>
+              </div>}
               {loading ? (
                 <div className="empty">
                   <LoaderCircle className="spin" />
                   <p>Loading…</p>
                 </div>
               ) : items.length ? (
-                <div className="resource-grid">
+                <div className={`library-items ${view === "grid" ? "resource-grid" : "resource-list"}`} data-view={view}>
                   {items.map((item) => (
                     <ItemCard
                       key={item.id}
                       item={item}
+                      selecting={selecting}
+                      selected={selected.includes(item.id)}
+                      busy={selectionBusy}
+                      onSelect={toggleItem}
+                      onLifecycle={(item) => void changeLifecycle([item])}
                       collections={collections}
                       location={itemLocation}
                       returnTo={libraryPath}

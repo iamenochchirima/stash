@@ -1,0 +1,12 @@
+✔ Mixed item capture, legacy link compatibility, retry identity and edit conflicts (1777.659083ms)
+✔ Item archive, favourites, trash and restore preserve ownership and state (1169.571754ms)
+✔ Expired trash is really purged and restore cannot resurrect a purged item (734.744017ms)
+✔ Mixed item validation and feature gating preserve existing links (1205.500688ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6468.885988

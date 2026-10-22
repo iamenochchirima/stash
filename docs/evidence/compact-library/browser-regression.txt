@@ -1,0 +1,162 @@
+
+> stash@ test:browser /home/enock/Desktop/workspace/personal/stash
+> playwright test tests/browser/library-layout.spec.ts tests/browser/item-detail.spec.ts tests/browser/lifecycle.spec.ts
+
+[WebServer] (node:989343) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `pnpm --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:989359) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:989375) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:989595) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `pnpm --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:989638) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:989676) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:989794) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `pnpm --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:989820) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:989837) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:989878) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 6 tests using 1 worker
+
+(node:989909) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:990039) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:990048) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:990063) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:990258) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:990372) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:990389) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/browser/item-detail.spec.ts:6:3 › Open a private saved item from its card at 1440px (8.2s)
+[WebServer] (node:990655) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:990689) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:990799) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:990858) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:990981) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 tests/browser/item-detail.spec.ts:6:3 › Open a private saved item from its card at 375px (6.3s)
+[WebServer] (node:991085) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  3 tests/browser/library-layout.spec.ts:8:3 › Compact library at 1440px › List/grid preferences, item menus, selection and recoverable deletion (15.1s)
+(node:991201) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:991357) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  4 tests/browser/library-layout.spec.ts:8:3 › Compact library at 375px › List/grid preferences, item menus, selection and recoverable deletion (16.3s)
+(node:992149) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:992479) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:992491) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:992515) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  5 tests/browser/lifecycle.spec.ts:5:30 › Card text selection, Trash Undo, restore and permanent deletion at 1440px (4.9s)
+[WebServer] (node:992571) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:992612) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:992632) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  6 tests/browser/lifecycle.spec.ts:5:30 › Card text selection, Trash Undo, restore and permanent deletion at 375px (4.2s)
+
+
+  1) tests/browser/library-layout.spec.ts:8:3 › Compact library at 1440px › List/grid preferences, item menus, selection and recoverable deletion 
+
+    Error: expect(locator).toBeFocused() failed
+
+    Locator:  locator('.resource-card').filter({ has: getByRole('link', { name: 'Reading workflow', exact: true }) }).getByRole('button', { name: 'More actions for Reading workflow' })
+    Expected: focused
+    Received: inactive
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toBeFocused" locator('.resource-card').filter({ has: getByRole('link', { name: 'Reading workflow', exact: true }) }).getByRole('button', { name: 'More actions for Reading workflow' }) with timeout 10000ms
+      - waiting for locator('.resource-card').filter({ has: getByRole('link', { name: 'Reading workflow', exact: true }) }).getByRole('button', { name: 'More actions for Reading workflow' })
+        24 × locator resolved to <button aria-haspopup="menu" aria-expanded="false" class="resource-menu-trigger" aria-label="More actions for Reading workflow">…</button>
+           - unexpected value "inactive"
+
+
+      80 |     await page.screenshot({ path: `docs/evidence/compact-library/menu-${width}.png`, fullPage: true });
+      81 |     await page.keyboard.press("Escape");
+    > 82 |     await expect(target.getByRole("button", { name: `More actions for ${fixtures[0]}` })).toBeFocused();
+         |                                                                                           ^
+      83 |     await target.getByRole("button", { name: `More actions for ${fixtures[0]}` }).click();
+      84 |     await page.keyboard.press("ArrowDown"); await page.keyboard.press("End");
+      85 |     await expect(page.getByRole("menuitem", { name: "Move to Trash" })).toBeFocused();
+        at /home/enock/Desktop/workspace/personal/stash/tests/browser/library-layout.spec.ts:82:91
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/library-layout-Compact-lib-99df0-on-and-recoverable-deletion/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/library-layout-Compact-lib-99df0-on-and-recoverable-deletion/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/library-layout-Compact-lib-99df0-on-and-recoverable-deletion/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/library-layout-Compact-lib-99df0-on-and-recoverable-deletion/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests/browser/library-layout.spec.ts:8:3 › Compact library at 375px › List/grid preferences, item menus, selection and recoverable deletion 
+
+    Error: expect(locator).toBeFocused() failed
+
+    Locator:  locator('.resource-card').filter({ has: getByRole('link', { name: 'Reading workflow', exact: true }) }).getByRole('button', { name: 'More actions for Reading workflow' })
+    Expected: focused
+    Received: inactive
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toBeFocused" locator('.resource-card').filter({ has: getByRole('link', { name: 'Reading workflow', exact: true }) }).getByRole('button', { name: 'More actions for Reading workflow' }) with timeout 10000ms
+      - waiting for locator('.resource-card').filter({ has: getByRole('link', { name: 'Reading workflow', exact: true }) }).getByRole('button', { name: 'More actions for Reading workflow' })
+        24 × locator resolved to <button aria-haspopup="menu" aria-expanded="false" class="resource-menu-trigger" aria-label="More actions for Reading workflow">…</button>
+           - unexpected value "inactive"
+
+
+      80 |     await page.screenshot({ path: `docs/evidence/compact-library/menu-${width}.png`, fullPage: true });
+      81 |     await page.keyboard.press("Escape");
+    > 82 |     await expect(target.getByRole("button", { name: `More actions for ${fixtures[0]}` })).toBeFocused();
+         |                                                                                           ^
+      83 |     await target.getByRole("button", { name: `More actions for ${fixtures[0]}` }).click();
+      84 |     await page.keyboard.press("ArrowDown"); await page.keyboard.press("End");
+      85 |     await expect(page.getByRole("menuitem", { name: "Move to Trash" })).toBeFocused();
+        at /home/enock/Desktop/workspace/personal/stash/tests/browser/library-layout.spec.ts:82:91
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/library-layout-Compact-lib-39efe-on-and-recoverable-deletion/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/library-layout-Compact-lib-39efe-on-and-recoverable-deletion/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/library-layout-Compact-lib-39efe-on-and-recoverable-deletion/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/library-layout-Compact-lib-39efe-on-and-recoverable-deletion/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests/browser/library-layout.spec.ts:8:3 › Compact library at 1440px › List/grid preferences, item menus, selection and recoverable deletion 
+    tests/browser/library-layout.spec.ts:8:3 › Compact library at 375px › List/grid preferences, item menus, selection and recoverable deletion 
+  4 passed (1.1m)
+ ELIFECYCLE  Command failed with exit code 1.

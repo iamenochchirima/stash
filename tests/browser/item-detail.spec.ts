@@ -17,7 +17,7 @@ for (const width of [1440, 375]) {
     const card = page.locator(".resource-card").filter({ hasText: "A useful find" });
     await expect(card).toBeVisible();
     const bounds = await card.boundingBox();
-    await page.mouse.click(bounds!.x + bounds!.width - 15, bounds!.y + 40);
+    await page.mouse.click(bounds!.x + 8, bounds!.y + 8);
     await expect(page).toHaveURL(new RegExp(`/items/${id}`));
     await expect(page.getByRole("heading", { name: "A useful find" })).toBeVisible();
     await expect(page.getByText("A second paragraph retained exactly.", { exact: false })).toBeVisible();

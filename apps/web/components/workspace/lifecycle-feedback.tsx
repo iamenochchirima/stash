@@ -10,6 +10,10 @@ type Feedback = {
   expiresAt: number;
 };
 const key = "stash-lifecycle-feedback";
+export function clearLifecycleFeedback(userId: string) {
+  try { sessionStorage.removeItem(key); } catch {}
+  window.dispatchEvent(new CustomEvent("stash-lifecycle", { detail: { userId, clear: true } }));
+}
 export function recordLifecycle(userId: string, id: string, action: Action) {
   const messages = {
       archive: "Archived.",
@@ -72,7 +76,11 @@ export function LifecycleFeedback({
     try {
       accept(JSON.parse(sessionStorage.getItem(key) || "null"));
     } catch {}
-    const handle = (event: Event) => accept((event as CustomEvent).detail);
+    const handle = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      if (detail?.userId === userId && detail.clear === true) setValue(null);
+      else accept(detail);
+    };
     window.addEventListener("stash-lifecycle", handle);
     return () => window.removeEventListener("stash-lifecycle", handle);
   }, [userId]);
