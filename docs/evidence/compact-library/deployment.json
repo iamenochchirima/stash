@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-10-22T21:48:53.458054+00:00",
+  "source": "7f59d6c577dc03d6b338ef5e3265481f29f42d1a",
+  "securityPatch": "b0c848c",
+  "nextVersion": "16.4.2",
+  "consumer": {
+    "deployment": "dpl_FzXKapRiK4vGD6BW7JmUnmLw9WJk",
+    "url": "https://stash.kasitek.co.za",
+    "status": "READY"
+  },
+  "admin": {
+    "deployment": "dpl_ADoFUWsB3NiBMVTqXPnMFay4hqPq",
+    "status": "READY"
+  },
+  "api": {
+    "deployment": "unchanged",
+    "ready": true
+  },
+  "migrations": "unchanged",
+  "acceptance": "hosted.json",
+  "fixtureCleanup": "Disposable account and six synthetic items deleted; no uploads or model requests"
+}

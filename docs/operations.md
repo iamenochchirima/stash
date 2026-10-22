@@ -154,3 +154,10 @@ Consumer source `d792d9c` is live at stash.kasitek.co.za in Vercel deployment `d
 ## Mermaid diagram release, 16 October 2026
 
 Consumer source `417b6e9` is live in Vercel deployment `dpl_EHu28tZ6zaBK8TvJcHqkPvYnQZpK`, READY at stash.kasitek.co.za. Fenced Mermaid diagrams render locally with zoom, keyboard scrolling and source fallback. Hosted desktop/mobile rendering and accessibility checks passed, and the disposable account was deleted. Evidence is in docs/evidence/mermaid. The API, schema, storage, model and hosting configuration are unchanged.
+
+
+## Compact library release, 22 October 2026
+
+Consumer source `7f59d6c` is live at stash.kasitek.co.za in READY Vercel deployment `dpl_FzXKapRiK4vGD6BW7JmUnmLw9WJk`. It adds compact List/Grid views with a remembered browser preference, page-scoped selection, bulk Trash/restore and button/right-click/touch-hold item menus. Single-item moves retain Undo; permanent deletion stays in Trash Details. Hosted desktop/mobile acceptance passed and the disposable account was deleted.
+
+Both web clients now use Next 16.4.2 from security patch `b0c848c`. Admin deployment `dpl_ADoFUWsB3NiBMVTqXPnMFay4hqPq` is READY. The API was not redeployed, readiness passed, and schema/storage/model/hosting plans are unchanged. The production dependency audit has no high or critical findings; the existing low Fastify advisory remains recorded for backend follow-up. Evidence: docs/evidence/compact-library/deployment.json, hosted.json and security-patch.json.
