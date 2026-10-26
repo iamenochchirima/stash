@@ -29,7 +29,7 @@ The user then authorized reusing the KasiTek Growth Resend credentials. Hosted v
 
 ## Release scope and decisions
 
-The user approved a Topics design on 26 October 2026. Its canonical specification is [KAS-146](https://linear.app/kasitek/issue/KAS-146/topics-user-created-research-areas-and-agent-organization), with the approved breakdown in KAS-147 through KAS-151. Ticket publication is approved. Implementation remains pending.
+The user approved a Topics design on 26 October 2026. Its canonical specification is [KAS-146](https://linear.app/kasitek/issue/KAS-146/topics-user-created-research-areas-and-agent-organization), with the approved breakdown in KAS-147 through KAS-151. The user subsequently authorized implementation to completion. Current implementation and release status are tracked in Linear.
 
 ### First release
 

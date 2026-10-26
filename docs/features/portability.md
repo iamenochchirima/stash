@@ -5,3 +5,6 @@ Import / export opens file selection and export controls. Choose browser bookmar
 Export my library downloads every saved resource and collection plus profile details, excluding authentication data. Exports use a consistent database snapshot. Import remaps IDs, preserves empty collections, metadata, timestamps, reading status, notes, and tags. It does not replace the account profile.
 
 Drive the transfer browser journey and `tests/portability.test.ts`. Inspect the actual downloaded JSON, preview-before-write counts, partial import results, duplicate retries, foreign ownership fields, complete exports beyond one page, and a round trip into a fresh account.
+
+
+JSON and ZIP v3 preserve user-created Topics, descriptions, empty topics, and multiple memberships. Existing v1/v2 imports remain supported. Legacy v1 export refuses accounts with topics to prevent silent loss. Bookmark preview reports topic organization omitted by HTML. See [Topics](topics.md) and `tests/topics-portability.test.ts` for focused round-trip checks.

@@ -572,3 +572,24 @@ Checks passed using Node 24.21.0, pnpm 10.30.1, and a dedicated `postgres:16` co
 Evidence logs are in `docs/evidence/project-setup/`. Verified zero remaining test schemas before stopping and removing only the owned container. Generated Next environment files, routine screenshots, and cleanup-state files were restored to their initial content. Existing other-project PostgreSQL containers were untouched. No live-user fixtures, original uploads, credential changes, migration, or hosted release occurred.
 
 This verifies the existing setup and library path. Topics behavior remains unimplemented and unverified. Existing hosted backup/alert limitations remain in the operations record.
+
+
+## Topics local acceptance, 26 October 2026
+
+Implemented KAS-147 through KAS-150 against the approved KAS-146 scope after the user authorized a goal through completion. Checkpoints: 03607df shared model/API and migration 0023, e758eb3 MCP, ba7cf74 versioned portability, and e891b28 compact Topics UI. Topics are fully user-created with no seeded entries. Limits are 80-character names, 4,000-character descriptions, 20 memberships per type per item, and the existing combined 100-group account limit. Existing collection IDs and Project boundaries remain intact.
+
+Used a dedicated owned `postgres:16` container, `stash-topics-verification`, bound only to localhost port 32839, database `stash_test`, with independent disposable schemas. Other project services were untouched. This verification database does not change the documented production PostgreSQL version. Read and applied the canonical verification skill and the targeted maintain-verification-skill workflow. Updated the feature map and Topics/library/agents/Projects/portability documentation and help.
+
+Passed checks:
+
+- `pnpm exec tsx --test --test-concurrency=1 tests/topics.test.ts tests/topics-mcp.test.ts tests/topics-portability.test.ts tests/items-migration.test.ts tests/library.test.ts tests/items.test.ts tests/mcp.test.ts tests/projects.test.ts tests/items-portability.test.ts tests/backup-archive.test.ts tests/backup-routes.test.ts tests/backup-restore.test.ts tests/bookmarks.test.ts tests/portability.test.ts tests/pdf.test.ts`, with the owned `TEST_DATABASE_URL`: 57 cases passed. Covers normalized creation races, shared quota, owners/kinds, legacy edits, lifecycle, PDF preservation, populated migration, Project boundaries, official MCP scopes, mixed-content JSON/ZIP v3 round trips, old imports, and original-byte restoration.
+- `pnpm typecheck`: all workspace packages passed.
+- `NEXT_DIST_DIR=.next-build-verification pnpm build`: API, consumer, and admin production builds passed.
+- `pnpm test:browser tests/browser/topics.spec.ts tests/browser/library-layout.spec.ts`: 4 desktop/mobile cases passed. Actual arbitrary topic creation, duplicate inline reuse, description preservation, multi-topic idea and PDF capture, rename/delete/stale route, list/grid, existing right-click/touch/selection/Trash actions, persisted results, axe, and overflow. Topics screenshots were visually inspected.
+- `pnpm test:browser tests/browser/backups.spec.ts`: 2 desktop/mobile cases passed. Checked streaming originals, data-only import, full-backup repair, original bytes, accessibility, and caches. The first run failed because adding a zero-topic count changed the empty-topics preview text. The UI now includes a topic count only when nonzero, and the complete recipe passed again.
+- `pnpm test:browser tests/browser/exports.spec.ts tests/browser/items.spec.ts tests/browser/routing.spec.ts`: 5 cases passed for export/help, mixed capture/lifecycle, private HTML, refresh, and navigation.
+- `pnpm test:browser tests/browser/drafts.spec.ts`: 6 cases passed for draft recovery/discard, revision conflicts, old-account denial, cross-tab signout/deletion cleanup, and storage exhaustion.
+
+Evidence is in `docs/evidence/topics/`. Each browser batch used an isolated harness and cleaned up its processes/schemas. Incidental Next environment declarations and previous release screenshots were restored. No credentials, private notes, or generated account/session state are committed. The optional Linear shared-field-notes tool was unavailable on the remote connector; issue read/write and progress updates worked, and no field-note update is claimed.
+
+Release remains pending at this checkpoint. Deploy the Topics-aware API and additive migration before the dependent client. Once topics exist, a pre-Topics API is not a safe rollback artifact because its untyped collection replacement can remove topic memberships. Retain migration 0023, current journals, and a Topics-aware artifact or forward fix. Existing hosted backup/alert limitations remain unchanged.

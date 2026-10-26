@@ -126,7 +126,7 @@ export function Portability({
             {backup.archive.manifest.projects.length === 1
               ? "project"
               : "projects"}{" "}
-            · {backup.archive.manifest.topics?.length || 0} topics
+            {!!backup.archive.manifest.topics?.length && ` · ${backup.archive.manifest.topics.length} topics`}
           </p>
           {!!backup.missingOriginals && (
             <p>{backup.missingOriginals} PDFs have saved text only.</p>

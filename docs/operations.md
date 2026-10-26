@@ -161,3 +161,10 @@ Consumer source `417b6e9` is live in Vercel deployment `dpl_EHu28tZ6zaBK8TvJcHqk
 Consumer source `7f59d6c` is live at stash.kasitek.co.za in READY Vercel deployment `dpl_FzXKapRiK4vGD6BW7JmUnmLw9WJk`. It adds compact List/Grid views with a remembered browser preference, page-scoped selection, bulk Trash/restore and button/right-click/touch-hold item menus. Single-item moves retain Undo; permanent deletion stays in Trash Details. Hosted desktop/mobile acceptance passed and the disposable account was deleted.
 
 Both web clients now use Next 16.4.2 from security patch `b0c848c`. Admin deployment `dpl_ADoFUWsB3NiBMVTqXPnMFay4hqPq` is READY. The API was not redeployed, readiness passed, and schema/storage/model/hosting plans are unchanged. The production dependency audit has no high or critical findings; the existing low Fastify advisory remains recorded for backend follow-up. Evidence: docs/evidence/compact-library/deployment.json, hosted.json and security-patch.json.
+
+
+## Topics migration and format compatibility
+
+Migration 0023 adds typed topic metadata to collections and an owner-scoped normalized-name index. Existing collection identities and memberships remain intact. Deploy the migration/API before publishing the dependent client. JSON and ZIP v3 preserve topics; v1/v2 imports remain accepted. A legacy export request fails explicitly when it would omit topic data.
+
+Once topics exist, do not roll back to a pre-Topics API: its untyped collection queries can expose topics as collections and old membership replacement can remove topic assignments. Keep migration 0023 and use a Topics-aware artifact or forward fix. An ordinary application rollback must preserve the durable deletion/file journals and current backup-format readers. No destructive schema rollback is part of this release.

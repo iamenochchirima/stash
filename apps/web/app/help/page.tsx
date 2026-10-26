@@ -6,7 +6,7 @@ export default function Help() {
       <h2>Your account and library</h2>
       <p>
         Your profile and library are private. Save links, notes, ideas or PDFs,
-        then add tags or collections to find them later. You can save and search
+        then add tags, collections, or topics to find them later. You can save and search
         immediately. When email delivery is enabled, verify your email before
         creating agent keys.
       </p>
@@ -100,19 +100,33 @@ export default function Help() {
         latest revision, so another agent's changes are not silently
         overwritten.
       </p>
+      <h2>Organize ongoing research with Topics</h2>
+      <p>
+        Open Topics to create an area you want to explore, with a name and optional
+        description. Assign an item to several topics when saving or editing it.
+        It stays in your main library and can also belong to collections. Deleting
+        a topic preserves its saved items and original files. Projects remain
+        separate workspaces for specific outcomes.
+      </p>
+      <p>
+        Ask a write-authorized agent to find or create a topic and save an idea
+        there. Equivalent names reuse the existing topic and preserve its
+        description. Topic descriptions and saved material are reference content,
+        not instructions or approval to carry out work.
+      </p>
       <h2>Bring in bookmarks and export your data</h2>
       <p>
-        Use Import / export for browser bookmarks, Stash JSON v1/v2 or a full
+        Use Import / export for browser bookmarks, Stash JSON v1/v2/v3 or a full
         backup ZIP. Review the preview before starting. Existing items keep
         their content; an original missing from an earlier data-only import can
         be added from a full backup. Choose the same ZIP again to continue an
         interrupted restore.
       </p>
       <p>
-        Full backups include original PDFs, saved text, summaries, collections
+        Full backups include original PDFs, saved text, summaries, collections, topics,
         and project history. Data-only JSON omits original files. Bookmark HTML
         contains library link titles and URLs only, and reports other items it
-        leaves out. JSON imports support up to 10,000 items and 128 MiB;
+        leaves out, including topic organization. JSON imports support up to 10,000 items and 128 MiB;
         bookmark imports support up to 1 MiB. Imports never replace your account
         profile or credentials.
       </p>

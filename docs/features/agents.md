@@ -17,3 +17,6 @@ Agent connections now live at `/connections`, with independent loading, key crea
 
 
 MCP project management includes create/read/update, archive/reopen and guarded empty-project deletion, plus item moves, library promotion, historical-body restoration and permanent Trash deletion. See projects.md for tools, required revisions and confirmation rules. Project ownership and write permissions are checked in shared services; tests/projects.test.ts exercises the official SDK over HTTP. PDF binary upload remains a web action.
+
+
+Topics expose read-scoped `list_topics`/`get_topic` and write-scoped `ensure_topic`/`update_topic`/`delete_topic`. General item tools accept topic assignment and filtering. Normalized creation reuses existing metadata. See [Topics](topics.md), `tests/topics-mcp.test.ts`, and [agent help](../agents.md). Native clients may need a reconnect to refresh discovered tools.
