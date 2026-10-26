@@ -23,7 +23,7 @@ export function accountReturnPath(value: string): string {
     )
       return url.pathname + url.search;
     if (
-      /^\/(?:items\/[a-f0-9-]{36}|projects(?:\/[a-f0-9-]{36})?)$/.test(
+      /^\/(?:items\/[a-f0-9-]{36}|topics(?:\/[a-f0-9-]{36})?|projects(?:\/[a-f0-9-]{36})?)$/.test(
         url.pathname,
       )
     )

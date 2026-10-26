@@ -9,6 +9,7 @@ export async function uploadPdf(
     notes: string;
     tags: string[];
     collectionIds: string[];
+    topicIds?: string[];
     status: string;
     requestId: string;
   },

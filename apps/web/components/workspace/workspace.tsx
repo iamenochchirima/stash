@@ -1,19 +1,42 @@
 "use client";
-import { createContext, useContext, useState, useEffect, useCallback, Children, isValidElement, cloneElement, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  Children,
+  isValidElement,
+  cloneElement,
+  type ReactNode,
+} from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Folder, Library, Star, Archive, Trash2, KeyRound, Plus, Settings } from "lucide-react";
-import type { Profile, Collection } from "@stash/shared";
+import {
+  Folder,
+  Library,
+  Star,
+  Archive,
+  Trash2,
+  KeyRound,
+  Plus,
+  Settings,
+  Hash,
+} from "lucide-react";
+import type { Profile, Collection, Topic } from "@stash/shared";
 import { api, ApiError } from "../../lib/api";
 import { scopeItemDraftsToUser } from "../../lib/draft-storage";
 import { useAccountSession } from "../../hooks/use-account-session";
 import { Brand } from "../ui/brand";
 import { Modal } from "../ui/modal";
+import { TopicForm } from "../topics/topic-form";
 import { CollectionForm } from "../library/collection-form";
 type WorkspaceState = {
   user: Profile;
   setUser: (user: Profile) => void;
   collections: Collection[];
+  topics: Topic[];
+  createTopic: () => void;
   count: number;
   refresh: () => Promise<void>;
   createCollection: () => void;
@@ -35,18 +58,22 @@ export function WorkspaceProvider({
   const [user, setUser] = useState(initialUser),
     [collections, setCollections] = useState<Collection[]>([]),
     [count, setCount] = useState(0),
+    [topics, setTopics] = useState<Topic[]>([]),
+    [topicOpen, setTopicOpen] = useState(false),
     [collectionOpen, setCollectionOpen] = useState(false);
   const pathname = usePathname(),
     router = useRouter();
   useAccountSession(user.id);
   const refresh = useCallback(async () => {
     try {
-      const [groups, items, profile] = await Promise.all([
+      const [groups, items, profile, topicGroups] = await Promise.all([
         api<{ items: Collection[] }>("/collections"),
         api<{ total: number }>("/items?limit=1"),
         api<{ user: Profile }>("/me"),
+        api<{ items: Topic[] }>("/topics"),
       ]);
       setCollections(groups.items);
+      setTopics(topicGroups.items);
       setCount(items.total);
       setUser(profile.user);
     } catch (e) {
@@ -66,13 +93,31 @@ export function WorkspaceProvider({
         user,
         setUser,
         collections,
+        topics,
+        createTopic: () => setTopicOpen(true),
         count,
         refresh,
         createCollection: () => setCollectionOpen(true),
-        collectionOpen,
+        collectionOpen: collectionOpen || topicOpen,
       }}
     >
       {children}
+      {topicOpen && (
+        <Modal title="Create a topic" close={() => setTopicOpen(false)}>
+          <TopicForm
+            onSubmit={async (input) => {
+              const result = await api<{ topic: Topic }>("/topics", {
+                method: "POST",
+                headers: { "X-Stash-Account": user.id },
+                body: JSON.stringify(input),
+              });
+              await refresh();
+              setTopicOpen(false);
+              router.push(`/topics/${result.topic.id}`);
+            }}
+          />
+        </Modal>
+      )}
       {collectionOpen && (
         <Modal
           title="Create a collection"
@@ -104,11 +149,19 @@ export function AppShell({
   modalOpen?: boolean;
   onCreateCollection?: () => void;
 }) {
-  const { user, collections, count, createCollection, collectionOpen } =
-      useWorkspace(),
+  const {
+      user,
+      collections,
+      topics,
+      count,
+      createCollection,
+      createTopic,
+      collectionOpen,
+    } = useWorkspace(),
     pathname = usePathname(),
     blocked = modalOpen || collectionOpen;
   const links = [
+    { href: "/topics", label: "Topics", icon: Hash },
     { href: "/projects", label: "Projects", icon: Folder },
     { href: "/library", label: "All items", icon: Library },
     { href: "/library/favourites", label: "Favourites", icon: Star },
@@ -138,6 +191,31 @@ export function AppShell({
             </Link>
           ))}
         </nav>
+        <div className="collection-heading">
+          TOPICS
+          <button
+            className="icon-button"
+            aria-label="Create topic"
+            onClick={createTopic}
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+        <div className="collection-list">
+          {topics.map((topic) => (
+            <Link
+              key={topic.id}
+              href={`/topics/${topic.id}`}
+              aria-current={
+                pathname === `/topics/${topic.id}` ? "page" : undefined
+              }
+              className={`nav-item${pathname === `/topics/${topic.id}` ? " active" : ""}`}
+            >
+              <Hash size={18} />
+              <span className="truncate">{topic.name}</span>
+            </Link>
+          ))}
+        </div>
         <div className="collection-heading">
           COLLECTIONS
           <button

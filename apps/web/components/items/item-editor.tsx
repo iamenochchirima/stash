@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, type FormEvent } from "react";
 import type { Item, Collection } from "@stash/shared";
+import { TopicPicker } from "../topics/topic-picker";
 import { uploadPdf } from "../../lib/pdf-transfer";
 import { api, ApiError } from "../../lib/api";
 export {
@@ -15,6 +16,7 @@ type Draft = {
   notes: string;
   tags: string;
   collectionIds: string[];
+  topicIds: string[];
   status: string;
   revision: number;
   requestId: string;
@@ -24,6 +26,7 @@ export function ItemEditor({
   editing,
   collections,
   selectedCollection,
+  selectedTopic,
   projectId,
   onSaved,
 }: {
@@ -32,6 +35,7 @@ export function ItemEditor({
   editing?: Item | null;
   collections: Collection[];
   selectedCollection?: string;
+  selectedTopic?: string;
   onSaved: (item: Item, duplicate?: boolean) => void | Promise<void>;
 }) {
   const workspaceId = editing?.projectId || projectId;
@@ -47,6 +51,7 @@ export function ItemEditor({
     collectionIds:
       editing?.collectionIds ||
       (selectedCollection ? [selectedCollection] : []),
+    topicIds: editing?.topicIds || (selectedTopic ? [selectedTopic] : []),
     status: editing?.status || "unread",
     revision: editing?.revision || 1,
     requestId: crypto.randomUUID(),
@@ -73,6 +78,10 @@ export function ItemEditor({
         next.collectionIds = saved.collectionIds
           .filter((v: unknown) => typeof v === "string")
           .slice(0, 20);
+      if (!workspaceId && Array.isArray(saved.topicIds))
+        next.topicIds = saved.topicIds
+          .filter((value: unknown) => typeof value === "string")
+          .slice(0, 20);
       if (Number.isInteger(saved.revision) && saved.revision > 0)
         next.revision = saved.revision;
       return next;
@@ -88,6 +97,7 @@ export function ItemEditor({
       .then((r) => setPdfAvailable(r.available))
       .catch(() => setPdfAvailable(false));
   }, []);
+  const [topicBusy, setTopicBusy] = useState(false);
   const [draftWarning, setDraftWarning] = useState("");
   const [dirty, setDirty] = useState(() => {
     try {
@@ -131,6 +141,7 @@ export function ItemEditor({
   }, [draft, dirty, draftKey]);
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (topicBusy) return;
     setBusy(true);
     setError("");
     const common = {
@@ -141,6 +152,7 @@ export function ItemEditor({
         .map((t) => t.trim())
         .filter(Boolean),
       collectionIds: draft.collectionIds,
+      ...(!workspaceId ? { topicIds: draft.topicIds } : {}),
     };
     const input = editing
       ? {
@@ -311,6 +323,13 @@ export function ItemEditor({
             placeholder="Optional context for later"
           />
         </label>
+        {!workspaceId && (
+          <TopicPicker
+            selected={draft.topicIds}
+            onPendingChange={setTopicBusy}
+            onChange={(topicIds) => change({ topicIds })}
+          />
+        )}
         <details className="item-editor-options">
           <summary>More options</summary>
           <div className="form-row">
@@ -458,7 +477,9 @@ export function ItemEditor({
             type="submit"
             className="button primary"
             disabled={
-              busy || (!editing && draft.kind === "pdf" && !pdfAvailable)
+              busy ||
+              topicBusy ||
+              (!editing && draft.kind === "pdf" && !pdfAvailable)
             }
           >
             {busy ? "Saving…" : editing ? "Save changes" : "Save item"}

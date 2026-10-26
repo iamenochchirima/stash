@@ -10,13 +10,15 @@ import {
   List,
   LayoutGrid,
 } from "lucide-react";
-import type { Item, Collection } from "@stash/shared";
+import type { Item, Collection, Topic } from "@stash/shared";
 
 import { ItemCard } from "./item-card";
 import { AppShell, useWorkspace } from "../workspace/workspace";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Modal } from "../ui/modal";
 import { ErrorNote } from "../ui/error-note";
+import { TopicForm } from "../topics/topic-form";
 import { CollectionForm } from "./collection-form";
 import { api } from "../../lib/api";
 
@@ -35,29 +37,66 @@ export function LibraryPageClient({
   location: initialLocation = "library",
   favourites: initialFavourites = false,
   collectionId = "",
+  topicId = "",
 }: {
   initialQuery?: string;
   location?: string;
   favourites?: boolean;
   collectionId?: string;
+  topicId?: string;
 }) {
-  const { user, collections, refresh } = useWorkspace();
+  const { user, collections, topics, refresh } = useWorkspace();
   const router = useRouter();
+  const [topic, setTopic] = useState<Topic | null>(null),
+    [topicError, setTopicError] = useState("");
+  useEffect(() => {
+    let active = true;
+    if (topicId)
+      void api<{ topic: Topic }>(`/topics/${topicId}`)
+        .then((result) => {
+          if (active) {
+            setTopic(result.topic);
+            setTopicError("");
+          }
+        })
+        .catch((error) => {
+          if (active) {
+            setTopic(null);
+            setTopicError(error.message);
+          }
+        });
+    return () => {
+      active = false;
+    };
+  }, [topicId, topics]);
   const [view, setView] = useState<"list" | "grid">("list");
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [selectionBusy, setSelectionBusy] = useState(false);
   useEffect(() => {
-    try { setView(localStorage.getItem(`stash-library-view:${user.id}`) === "grid" ? "grid" : "list"); }
-    catch { setView("list"); }
+    try {
+      setView(
+        localStorage.getItem(`stash-library-view:${user.id}`) === "grid"
+          ? "grid"
+          : "list",
+      );
+    } catch {
+      setView("list");
+    }
   }, [user.id]);
   function changeView(next: "list" | "grid") {
     setView(next);
-    try { localStorage.setItem(`stash-library-view:${user.id}`, next); } catch {}
+    try {
+      localStorage.setItem(`stash-library-view:${user.id}`, next);
+    } catch {}
   }
   function toggleItem(item: Item) {
     setSelecting(true);
-    setSelected(ids => ids.includes(item.id) ? ids.filter(id => id !== item.id) : [...ids, item.id]);
+    setSelected((ids) =>
+      ids.includes(item.id)
+        ? ids.filter((id) => id !== item.id)
+        : [...ids, item.id],
+    );
   }
 
   const params = new URLSearchParams(initialQuery);
@@ -73,13 +112,17 @@ export function LibraryPageClient({
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
   const [modal, setModal] = useState<
-      "resource" | "collection" | "portability" | null
+      "resource" | "collection" | "portability" | "topic" | null
     >(null),
     [editing, setEditing] = useState<Item | null>(null);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(
     null,
   );
-  useEffect(() => { setSelected(ids => ids.filter(id => items.some(item => item.id === id))); }, [items]);
+  useEffect(() => {
+    setSelected((ids) =>
+      ids.filter((id) => items.some((item) => item.id === id)),
+    );
+  }, [items]);
   const [kind, setKind] = useState(() => params.get("kind") || "");
   const [itemLocation, setItemLocation] = useState(() => initialLocation);
   const [favourites, setFavourites] = useState(() => initialFavourites);
@@ -88,25 +131,30 @@ export function LibraryPageClient({
   );
   const libraryParams = new URLSearchParams();
   if (query) libraryParams.set("q", query);
-  if (query.trim() && includeProjects)
+  if (!topicId && query.trim() && includeProjects)
     libraryParams.set("includeProjects", "true");
   if (status) libraryParams.set("status", status);
   if (offset) libraryParams.set("offset", String(offset));
   if (kind) libraryParams.set("kind", kind);
-  const basePath = collection
-    ? `/library/collections/${collection}`
-    : initialFavourites
-      ? "/library/favourites"
-      : initialLocation !== "library"
-        ? `/library/${initialLocation}`
-        : "/library";
+  const basePath = topicId
+    ? `/topics/${topicId}`
+    : collection
+      ? `/library/collections/${collection}`
+      : initialFavourites
+        ? "/library/favourites"
+        : initialLocation !== "library"
+          ? `/library/${initialLocation}`
+          : "/library";
   const libraryPath = libraryParams.size
     ? `${basePath}?${libraryParams}`
     : basePath;
   useEffect(() => {
     history.replaceState(history.state, "", libraryPath);
   }, [libraryPath]);
-  useEffect(() => { setSelected([]); setSelecting(false); }, [libraryPath, user.id]);
+  useEffect(() => {
+    setSelected([]);
+    setSelecting(false);
+  }, [libraryPath, user.id]);
   const closeModal = useCallback(() => {
     setModal(null);
     setEditing(null);
@@ -119,10 +167,12 @@ export function LibraryPageClient({
       limit: "24",
     });
     if (collection) params.set("collectionId", collection);
+    if (topicId) params.set("topicId", topicId);
     if (status) params.set("status", status);
     if (kind) params.set("kind", kind);
     if (favourites) params.set("favourite", "true");
-    if (query.trim() && includeProjects) params.set("includeProjects", "true");
+    if (!topicId && query.trim() && includeProjects)
+      params.set("includeProjects", "true");
     params.set("location", itemLocation);
     const result = await api<{ items: Item[]; total: number }>(
       `/items?${params}`,
@@ -132,6 +182,7 @@ export function LibraryPageClient({
   }, [
     query,
     collection,
+    topicId,
     status,
     offset,
     kind,
@@ -150,10 +201,11 @@ export function LibraryPageClient({
           limit: "24",
         });
         if (collection) params.set("collectionId", collection);
+        if (topicId) params.set("topicId", topicId);
         if (status) params.set("status", status);
         if (kind) params.set("kind", kind);
         if (favourites) params.set("favourite", "true");
-        if (query.trim() && includeProjects)
+        if (!topicId && query.trim() && includeProjects)
           params.set("includeProjects", "true");
         params.set("location", itemLocation);
         const result = await api<{ items: Item[]; total: number }>(
@@ -176,6 +228,7 @@ export function LibraryPageClient({
   }, [
     query,
     collection,
+    topicId,
     status,
     offset,
     kind,
@@ -200,23 +253,45 @@ export function LibraryPageClient({
   }
   async function changeLifecycle(targets: Item[]) {
     if (selectionBusy || !targets.length) return;
-    setSelectionBusy(true); setError("");
+    setSelectionBusy(true);
+    setError("");
     const action = itemLocation === "trash" ? "restore" : "trash";
-    const results = await Promise.allSettled(targets.map(item => api(`/items/${item.id}/lifecycle`, {
-      method: "POST", headers: { "X-Stash-Account": user.id }, body: json({ action }),
-    })));
-    const failed = targets.filter((_, index) => results[index].status === "rejected");
-    const succeeded = targets.filter((_, index) => results[index].status === "fulfilled");
-    setSelected(failed.map(item => item.id)); setSelecting(failed.length > 0);
-    if (succeeded.length === 1) recordLifecycle(user.id, succeeded[0].id, action);
+    const results = await Promise.allSettled(
+      targets.map((item) =>
+        api(`/items/${item.id}/lifecycle`, {
+          method: "POST",
+          headers: { "X-Stash-Account": user.id },
+          body: json({ action }),
+        }),
+      ),
+    );
+    const failed = targets.filter(
+      (_, index) => results[index].status === "rejected",
+    );
+    const succeeded = targets.filter(
+      (_, index) => results[index].status === "fulfilled",
+    );
+    setSelected(failed.map((item) => item.id));
+    setSelecting(failed.length > 0);
+    if (succeeded.length === 1)
+      recordLifecycle(user.id, succeeded[0].id, action);
     else if (succeeded.length) {
       clearLifecycleFeedback(user.id);
-      setNotice(`${succeeded.length} items ${action === "trash" ? "moved to Trash" : "restored"}.`);
+      setNotice(
+        `${succeeded.length} items ${action === "trash" ? "moved to Trash" : "restored"}.`,
+      );
     }
-    if (failed.length) setError(`Could not ${action === "trash" ? "move to Trash" : "restore"} ${failed.length} ${failed.length === 1 ? "item" : "items"}. ${failed.length === 1 ? "It remains" : "They remain"} selected for retry.`);
-    try { await Promise.all([reloadResources(), reloadMeta()]); }
-    catch (error) { setError((error as Error).message); }
-    finally { setSelectionBusy(false); }
+    if (failed.length)
+      setError(
+        `Could not ${action === "trash" ? "move to Trash" : "restore"} ${failed.length} ${failed.length === 1 ? "item" : "items"}. ${failed.length === 1 ? "It remains" : "They remain"} selected for retry.`,
+      );
+    try {
+      await Promise.all([reloadResources(), reloadMeta()]);
+    } catch (error) {
+      setError((error as Error).message);
+    } finally {
+      setSelectionBusy(false);
+    }
   }
   return (
     <AppShell
@@ -250,7 +325,7 @@ export function LibraryPageClient({
               </button>
             </div>
           )}
-          <ErrorNote message={error} />
+          <ErrorNote message={error || topicError} />
           <LifecycleFeedback
             userId={user.id}
             onChanged={async () => {
@@ -267,28 +342,39 @@ export function LibraryPageClient({
             <>
               <div className="page-heading">
                 <div>
+                  {topicId && (
+                    <Link href="/topics" className="text-button">
+                      All topics
+                    </Link>
+                  )}
                   <h1>
-                    {itemLocation === "trash"
-                      ? "Trash"
-                      : itemLocation === "archive"
-                        ? "Archive"
-                        : favourites
-                          ? "Favourites"
-                          : collection
-                            ? collections.find((c) => c.id === collection)
-                                ?.name || "Collection"
-                            : "Your library"}
+                    {topicId
+                      ? topic?.name || "Topic"
+                      : itemLocation === "trash"
+                        ? "Trash"
+                        : itemLocation === "archive"
+                          ? "Archive"
+                          : favourites
+                            ? "Favourites"
+                            : collection
+                              ? collections.find((c) => c.id === collection)
+                                  ?.name || "Collection"
+                              : "Your library"}
                   </h1>
+                  {topic?.description && (
+                    <p className="topic-description">{topic.description}</p>
+                  )}
                 </div>
                 <button
                   className="button primary"
+                  disabled={!!topicId && (!topic || !!topicError)}
                   onClick={() => setModal("resource")}
                 >
                   <Plus size={18} />
                   Add item
                 </button>
               </div>
-              {!Object.values(user.onboarding).every(Boolean) && (
+              {!topicId && !Object.values(user.onboarding).every(Boolean) && (
                 <details className="onboarding">
                   <summary>Getting started</summary>
                   <div className="setup-steps">
@@ -336,21 +422,33 @@ export function LibraryPageClient({
                 </details>
               )}
               <div className="library-toolbar">
-                <button
-                  className="button secondary"
-                  onClick={() => {
-                    setEditingCollection(null);
-                    setModal("collection");
-                  }}
-                >
-                  New collection
-                </button>
-                <button
-                  className="button secondary"
-                  onClick={() => setModal("portability")}
-                >
-                  Import / export
-                </button>
+                {topic && (
+                  <button
+                    className="button secondary"
+                    onClick={() => setModal("topic")}
+                  >
+                    Manage topic
+                  </button>
+                )}
+                {!topicId && (
+                  <>
+                    <button
+                      className="button secondary"
+                      onClick={() => {
+                        setEditingCollection(null);
+                        setModal("collection");
+                      }}
+                    >
+                      New collection
+                    </button>
+                    <button
+                      className="button secondary"
+                      onClick={() => setModal("portability")}
+                    >
+                      Import / export
+                    </button>
+                  </>
+                )}
                 {collection && (
                   <button
                     className="button secondary"
@@ -404,7 +502,7 @@ export function LibraryPageClient({
                   <option value="done">Finished</option>
                 </select>
               </div>
-              {query.trim() && (
+              {!topicId && query.trim() && (
                 <label className="project-search-toggle">
                   <input
                     type="checkbox"
@@ -423,26 +521,111 @@ export function LibraryPageClient({
                 </span>
                 <div className="library-view-options">
                   <small>Newest first</small>
-                  <button type="button" className="library-select-toggle" disabled={selectionBusy} aria-pressed={selecting} onClick={() => { setSelecting(!selecting); setSelected([]); }}>Select items</button>
-                  <div className="library-view-toggle" role="group" aria-label="Library view">
-                    <button type="button" aria-pressed={view === "list"} onClick={() => changeView("list")}><List size={15} />List</button>
-                    <button type="button" aria-pressed={view === "grid"} onClick={() => changeView("grid")}><LayoutGrid size={15} />Grid</button>
+                  <button
+                    type="button"
+                    className="library-select-toggle"
+                    disabled={selectionBusy}
+                    aria-pressed={selecting}
+                    onClick={() => {
+                      setSelecting(!selecting);
+                      setSelected([]);
+                    }}
+                  >
+                    Select items
+                  </button>
+                  <div
+                    className="library-view-toggle"
+                    role="group"
+                    aria-label="Library view"
+                  >
+                    <button
+                      type="button"
+                      aria-pressed={view === "list"}
+                      onClick={() => changeView("list")}
+                    >
+                      <List size={15} />
+                      List
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={view === "grid"}
+                      onClick={() => changeView("grid")}
+                    >
+                      <LayoutGrid size={15} />
+                      Grid
+                    </button>
                   </div>
                 </div>
               </div>
-              {selecting && <div className="library-selection" role="group" aria-label="Selected items">
-                <label><input type="checkbox" aria-label="Select all items on this page" ref={input => { if (input) input.indeterminate = selected.length > 0 && selected.length < items.length; }} checked={items.length > 0 && items.every(item => selected.includes(item.id))} disabled={selectionBusy || loading} onChange={event => setSelected(event.target.checked ? items.map(item => item.id) : [])} />Select all</label>
-                <span aria-live="polite">{selected.length} selected</span>
-                <button type="button" disabled={selectionBusy || !selected.length} onClick={() => void changeLifecycle(items.filter(item => selected.includes(item.id)))}>{selectionBusy ? "Working…" : itemLocation === "trash" ? "Restore selected" : "Move selected to Trash"}</button>
-                <button type="button" disabled={selectionBusy} onClick={() => { setSelecting(false); setSelected([]); }}>Cancel selection</button>
-              </div>}
+              {selecting && (
+                <div
+                  className="library-selection"
+                  role="group"
+                  aria-label="Selected items"
+                >
+                  <label>
+                    <input
+                      type="checkbox"
+                      aria-label="Select all items on this page"
+                      ref={(input) => {
+                        if (input)
+                          input.indeterminate =
+                            selected.length > 0 &&
+                            selected.length < items.length;
+                      }}
+                      checked={
+                        items.length > 0 &&
+                        items.every((item) => selected.includes(item.id))
+                      }
+                      disabled={selectionBusy || loading}
+                      onChange={(event) =>
+                        setSelected(
+                          event.target.checked
+                            ? items.map((item) => item.id)
+                            : [],
+                        )
+                      }
+                    />
+                    Select all
+                  </label>
+                  <span aria-live="polite">{selected.length} selected</span>
+                  <button
+                    type="button"
+                    disabled={selectionBusy || !selected.length}
+                    onClick={() =>
+                      void changeLifecycle(
+                        items.filter((item) => selected.includes(item.id)),
+                      )
+                    }
+                  >
+                    {selectionBusy
+                      ? "Working…"
+                      : itemLocation === "trash"
+                        ? "Restore selected"
+                        : "Move selected to Trash"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={selectionBusy}
+                    onClick={() => {
+                      setSelecting(false);
+                      setSelected([]);
+                    }}
+                  >
+                    Cancel selection
+                  </button>
+                </div>
+              )}
               {loading ? (
                 <div className="empty">
                   <LoaderCircle className="spin" />
                   <p>Loading…</p>
                 </div>
               ) : items.length ? (
-                <div className={`library-items ${view === "grid" ? "resource-grid" : "resource-list"}`} data-view={view}>
+                <div
+                  className={`library-items ${view === "grid" ? "resource-grid" : "resource-list"}`}
+                  data-view={view}
+                >
                   {items.map((item) => (
                     <ItemCard
                       key={item.id}
@@ -532,6 +715,7 @@ export function LibraryPageClient({
             collections={collections}
             editing={editing}
             selectedCollection={collection}
+            selectedTopic={topicId}
             onSaved={async (_item, duplicate) => {
               await Promise.all([reloadResources(), reloadMeta()]);
               closeModal();
@@ -542,6 +726,31 @@ export function LibraryPageClient({
                     ? "Changes saved."
                     : "Saved to your library.",
               );
+            }}
+          />
+        </Modal>
+      )}
+      {modal === "topic" && topic && (
+        <Modal title="Manage topic" close={closeModal}>
+          <TopicForm
+            topic={topic}
+            onSubmit={async (input) => {
+              await api(`/topics/${topic.id}`, {
+                method: "PATCH",
+                headers: { "X-Stash-Account": user.id },
+                body: json(input),
+              });
+              await refresh();
+              closeModal();
+            }}
+            onDelete={async () => {
+              await api(`/topics/${topic.id}`, {
+                method: "DELETE",
+                headers: { "X-Stash-Account": user.id },
+              });
+              await refresh();
+              closeModal();
+              router.push("/topics");
             }}
           />
         </Modal>

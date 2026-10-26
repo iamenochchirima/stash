@@ -17,7 +17,8 @@ import { ProjectDocumentActions } from "../projects/project-document-actions";
 import { ItemEditor } from "./item-editor";
 export function ItemDetail({ id }: { id: string }) {
   const router = useRouter();
-  const userId = useWorkspace().user.id;
+  const { user, topics } = useWorkspace();
+  const userId = user.id;
   const [item, setItem] = useState<Item | null>(null);
   const [pdfPage, setPdfPage] = useState(1);
   const [collections, setCollections] = useState<Collection[]>([]);
@@ -72,7 +73,7 @@ export function ItemDetail({ id }: { id: string }) {
       if (
         url.origin === location.origin &&
         (url.pathname === "/" ||
-          /^\/library(?:\/(?:archive|trash|favourites|collections\/[a-f0-9-]{36}))?$/.test(
+          /^(?:\/library(?:\/(?:archive|trash|favourites|collections\/[a-f0-9-]{36}))?|\/topics\/[a-f0-9-]{36})$/.test(
             url.pathname,
           ) ||
           /^\/projects\/[0-9a-f-]{36}$/.test(url.pathname))
@@ -374,6 +375,7 @@ export function ItemDetail({ id }: { id: string }) {
                   </section>
                 )}
                 <ProjectDocumentActions item={item} />
+                {item.topicIds.length > 0 && <nav className="item-topics" aria-label="Item topics">{topics.filter(topic => item.topicIds.includes(topic.id)).map(topic => <Link key={topic.id} href={`/topics/${topic.id}`}>{topic.name}</Link>)}</nav>}
                 <div className="item-tags">
                   {item.tags.map((tag) => (
                     <span key={tag}>#{tag}</span>

@@ -7,6 +7,7 @@ import { downloadBackup } from "../../lib/backups/download";
 type Preview = {
   missingOriginals?: number;
   collectionsToCreate: number;
+  topicsToCreate?: number;
   total: number;
   valid: number;
   duplicates: number;
@@ -29,6 +30,7 @@ export function Portability({
     [bookmarkCounts, setBookmarkCounts] = useState<{
       links: number;
       omitted: number;
+      topicsOmitted?: number;
     } | null>(null);
   const [backup, setBackup] = useState<{
       archive: OpenBackup;
@@ -123,7 +125,8 @@ export function Portability({
             {backup.archive.manifest.projects.length}{" "}
             {backup.archive.manifest.projects.length === 1
               ? "project"
-              : "projects"}
+              : "projects"}{" "}
+            · {backup.archive.manifest.topics?.length || 0} topics
           </p>
           {!!backup.missingOriginals && (
             <p>{backup.missingOriginals} PDFs have saved text only.</p>
@@ -170,6 +173,9 @@ export function Portability({
               {preview.collectionsToCreate} new collections will be created.
             </p>
           )}
+          {!!preview.topicsToCreate && (
+            <p>{preview.topicsToCreate} new topics will be created.</p>
+          )}
           <p>
             {preview.total} entries · {preview.toSave} new ·{" "}
             {preview.duplicates} duplicates · {preview.rejected.length} rejected
@@ -197,7 +203,12 @@ export function Portability({
           )}
           <button
             className="button primary full"
-            disabled={busy || (!preview.toSave && !preview.collectionsToCreate)}
+            disabled={
+              busy ||
+              (!preview.toSave &&
+                !preview.collectionsToCreate &&
+                !preview.topicsToCreate)
+            }
             onClick={async () => {
               setBusy(true);
               setError("");
@@ -207,6 +218,7 @@ export function Portability({
                   duplicates: number;
                   rejected: Preview["rejected"];
                   collectionErrors: { name: string; error: string }[];
+                  topicErrors?: { name: string; error: string }[];
                 }>("/items/import", {
                   method: "POST",
                   body: JSON.stringify(input),
@@ -215,11 +227,18 @@ export function Portability({
                   `${result.saved} saved, ${result.duplicates} duplicates, ${result.rejected.length} rejected.`,
                 );
                 setPreview(null);
-                if (result.rejected.length || result.collectionErrors.length)
+                if (
+                  result.rejected.length ||
+                  result.collectionErrors.length ||
+                  result.topicErrors?.length
+                )
                   setError(
                     [
                       ...result.rejected.map(
                         (r) => `Entry ${r.index}: ${r.error}`,
+                      ),
+                      ...(result.topicErrors || []).map(
+                        (r) => `Topic ${r.name}: ${r.error}`,
                       ),
                       ...result.collectionErrors.map(
                         (r) => `Collection ${r.name}: ${r.error}`,
@@ -236,7 +255,9 @@ export function Portability({
           >
             {preview.toSave
               ? `Import ${preview.toSave} items`
-              : "Import collections"}
+              : preview.topicsToCreate
+                ? "Import organization"
+                : "Import collections"}
           </button>
         </div>
       )}
@@ -310,7 +331,11 @@ export function Portability({
           setError("");
           try {
             setBookmarkCounts(
-              await api<{ links: number; omitted: number }>("/items/bookmarks"),
+              await api<{
+                links: number;
+                omitted: number;
+                topicsOmitted?: number;
+              }>("/items/bookmarks"),
             );
           } catch (e) {
             setError((e as Error).message);
@@ -329,6 +354,12 @@ export function Portability({
             {bookmarkCounts.omitted} other{" "}
             {bookmarkCounts.omitted === 1 ? "item" : "items"} omitted
           </p>
+          {!!bookmarkCounts.topicsOmitted && (
+            <p>
+              {bookmarkCounts.topicsOmitted} topics and their memberships will
+              be omitted.
+            </p>
+          )}
           <p className="muted">
             Link titles and URLs only. Use a Stash backup to keep notes, files
             and organisation.
