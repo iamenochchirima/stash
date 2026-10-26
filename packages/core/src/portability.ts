@@ -33,6 +33,16 @@ export function parseImport(body: unknown) {
     } catch {
       throw new AppError(400, "This file is not valid JSON.");
     }
+    if (data && typeof data === "object") {
+      const source = data as { resources?: unknown };
+      const hasTopicMembership = Array.isArray(source.resources) && source.resources.some(value => {
+        if (!value || typeof value !== "object") return false;
+        const row = value as { topicIds?: unknown };
+        return Object.hasOwn(row, "topics") || Array.isArray(row.topicIds) && row.topicIds.length > 0;
+      });
+      if (Object.hasOwn(data, "topics") || hasTopicMembership)
+        throw new AppError(400, "Topics require a version 3 Stash export. Import it through the current data-only JSON or backup flow.");
+    }
     const document = z
       .object({
         version: z.literal(1),
@@ -221,6 +231,8 @@ export async function importLibrary(
 export async function exportLibrary(db: Database, userId: string) {
   return db.transaction(
     async (tx) => {
+      const topic = await tx.select({id:collections.id}).from(collections).where(and(eq(collections.userId,userId),eq(collections.kind,"topic"))).limit(1);
+      if(topic.length)throw new AppError(409,"This legacy export cannot preserve Topics. Use Export data only (JSON version 3) or a full Stash backup.");
       const service = library(tx, userId),
         items = [];
       for (let offset = 0; ; offset += 100) {

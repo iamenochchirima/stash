@@ -3,10 +3,10 @@ import type { Database } from "@stash/db";
 import { sql } from "drizzle-orm";
 import { createHash,randomBytes } from "node:crypto";
 import { z } from "zod";
-import { AppError,library } from "@stash/core";
+import { AppError,library,topicService } from "@stash/core";
 import { importPortableItem } from "@stash/core/items-portability";
 import { restoreProjects,finishProjectRestore } from "@stash/core/projects-portability";
-import { BACKUP_LIMITS,backupManifest,portableItem } from "@stash/shared";
+import { BACKUP_LIMITS,backupManifest,portableItem,normalizeTopicName } from "@stash/shared";
 import { auth,digest } from "./auth.js";
 import { restoreContext,type RestoreContext } from "./backup-context.js";
 import { originalRestoreTicket } from "./backup-originals.js";
@@ -76,7 +76,8 @@ export function registerBackupRestoreRoutes(app:FastifyInstance,db:Database,opti
    if(fresh.manifest)return{ready:true,resumed:true};
    const created=await restoreProjects(tx,context.userId,manifest.projects),groups=library(tx,context.userId);
    for(const group of manifest.collections)if(!(await groups.collections()).some(c=>c.name===group.name))await groups.createCollection(group.name);
-   const retained={items:manifest.items,projects:manifest.projects,collections:manifest.collections};
+   for(const topic of manifest.topics)await topicService(tx,context.userId).ensure(topic);
+   const retained={version:manifest.version,items:manifest.items,projects:manifest.projects,collections:manifest.collections,topics:manifest.topics};
    await tx.execute(sql`update backup_restores set manifest=${JSON.stringify(retained)}::jsonb,created_projects=${"{"+created.join(",")+"}"}::uuid[] where token_hash=${context.tokenHash}`);
    return{ready:true,resumed:false};
   });
@@ -85,7 +86,10 @@ export function registerBackupRestoreRoutes(app:FastifyInstance,db:Database,opti
   const id=z.object({id:z.string().uuid()}).parse(req.params).id,context=req.backupRestore!,ref=context.manifest?.items.find(i=>i.id===id),content=bytes(req);
   if(!ref)throw new AppError(400,"The item is missing from the backup index.");
   if(createHash("sha256").update(content).digest("hex")!==ref.sha256)throw new AppError(400,"The item failed its backup checksum.");
-  const item=portableItem.parse(json(content));
+  const rawItem=json(content);
+  if((context.manifest?.version||2)===2&&rawItem&&typeof rawItem==="object"&&Object.hasOwn(rawItem,"topics"))throw new AppError(400,"Topics require a version 3 backup.");
+  const item=portableItem.parse((context.manifest?.version||2)===2?portableItem.innerType().strip().parse(rawItem):rawItem);
+  if(item.topics.some(name=>!context.manifest?.topics?.some(topic=>normalizeTopicName(topic.name)===normalizeTopicName(name))))throw new AppError(400,"This item references a topic missing from the backup.");
   if(item.id!==id||item.projectId&&!context.manifest?.projects.some(p=>p.id===item.projectId)||ref.original&&(item.kind!=="pdf"||item.pdf?.byteSize!==ref.original.byteSize||item.pdf.sha256&&item.pdf.sha256!==ref.original.sha256))throw new AppError(400,"The item does not match the backup index.");
   return db.transaction(async tx=>{
    await tx.execute(sql`select id from users where id=${context.userId} for update`);await restoreContext(tx,context.tokenHash);

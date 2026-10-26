@@ -23,11 +23,11 @@ test("Bookmark export includes only owned library link titles/URLs, escapes HTML
  }finally{await f.close();}
 });
 
-test("Data-only JSON downloads keep the v2 contract and one-use permissions",async()=>{
+test("Data-only JSON downloads keep the v3 contract and one-use permissions",async()=>{
  const f=await fixture();try{
   const a=await f.signup();await f.request("POST","/api/items",{kind:"idea",body:"Complete idea body"},a.cookie);
   const ticket=(await f.request("POST","/api/backups/export",{format:"json"},a.cookie)).json(),path=new URL(ticket.downloadUrl).pathname,headers={authorization:`Bearer ${ticket.token}`};
-  const downloaded=await f.request("GET",path,undefined,undefined,headers);assert.equal(downloaded.statusCode,200,downloaded.body);assert.match(String(downloaded.headers["content-disposition"]),/stash-export.json/);assert.equal(downloaded.json().version,2);assert.equal(downloaded.json().items[0].body,"Complete idea body");assert.equal(downloaded.json().excludesOriginalFiles,true);
+  const downloaded=await f.request("GET",path,undefined,undefined,headers);assert.equal(downloaded.statusCode,200,downloaded.body);assert.match(String(downloaded.headers["content-disposition"]),/stash-export.json/);assert.equal(downloaded.json().version,3);assert.equal(downloaded.json().items[0].body,"Complete idea body");assert.equal(downloaded.json().excludesOriginalFiles,true);
   assert.equal((await f.request("GET",path,undefined,undefined,headers)).statusCode,401);
  }finally{await f.close();}
 });

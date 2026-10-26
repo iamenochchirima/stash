@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { summaryResult } from "./summaries";
+import { normalizeTopicName, topicInput } from "./topics";
 const text = (max:number) => z.string().max(max);
 function hasNull(value:unknown):boolean { return typeof value==="string" ? value.includes("\u0000") : Array.isArray(value) ? value.some(hasNull) : !!value && typeof value==="object" ? Object.values(value).some(hasNull) : false; }
 const httpUrl=text(2048).url().refine(value=>{const url=new URL(value);return["http:","https:"].includes(url.protocol)&&!url.username&&!url.password;},"Use an HTTP or HTTPS URL without credentials.");
@@ -25,15 +26,16 @@ export const portableSummary=z.object({
 export const portableItem=z.object({
  projectId:z.string().uuid().nullable().optional(),projectSourceId:z.string().uuid().nullable().optional(),revision:z.number().int().positive().default(1),
  history:z.array(z.object({revision:z.number().int().positive(),body:text(500000),actor:text(80),createdAt:z.string().datetime()}).strict()).max(20).default([]),
- id:z.string().uuid().optional(),kind:z.enum(["link","note","idea","pdf"]),title:text(200).default(""),url:httpUrl.nullable().optional(),body:text(500000).default(""),notes:text(10000).default(""),tags:z.array(text(40).trim().min(1)).max(20).default([]),collections:z.array(text(80).trim().min(1)).max(20).default([]),
+ id:z.string().uuid().optional(),kind:z.enum(["link","note","idea","pdf"]),title:text(200).default(""),url:httpUrl.nullable().optional(),body:text(500000).default(""),notes:text(10000).default(""),tags:z.array(text(40).trim().min(1)).max(20).default([]),collections:z.array(text(80).trim().min(1)).max(20).default([]),topics:z.array(topicInput.shape.name).max(20).default([]),
  status:z.enum(["unread","reading","done"]).default("unread"),favourite:z.boolean().default(false),archivedAt:z.string().datetime().nullable().default(null),deletedAt:z.string().datetime().nullable().default(null),createdAt:z.string().datetime().optional(),updatedAt:z.string().datetime().optional(),sourceAgent:text(80).default("import"),description:text(1000).default(""),metadataStatus:z.enum(["manual","extracted","unavailable"]).default("manual"),sourceRevision:z.number().int().min(1).max(1000000000).default(1),
  pdf:portablePdf.nullable().optional(),summary:portableSummary.nullable().optional(),
-}).strip().superRefine((item,ctx)=>{
+}).strict().superRefine((item,ctx)=>{
+ if(new Set(item.topics.map(normalizeTopicName)).size!==item.topics.length)ctx.addIssue({code:"custom",message:"Item contains duplicate topics"});
  if(item.history.length&&(!item.projectId||!["note","idea"].includes(item.kind)))ctx.addIssue({code:"custom",message:"Body history belongs to project notes and ideas"});
  if(new Set(item.history.map(h=>h.revision)).size!==item.history.length||item.history.some(h=>h.revision>=item.revision))ctx.addIssue({code:"custom",message:"Document history revisions are inconsistent"});
  if(item.projectId&&item.projectSourceId)ctx.addIssue({code:"custom",message:"Project-source references belong to library copies"});
  if(!item.projectId&&item.body.length>50000)ctx.addIssue({code:"custom",message:"Library notes support up to 50,000 characters"});
- if(item.projectId&&item.collections.length)ctx.addIssue({code:"custom",message:"Project items cannot belong to library collections"});
+ if(item.projectId&&(item.collections.length||item.topics.length))ctx.addIssue({code:"custom",message:"Project items cannot belong to library collections or topics"});
  if(hasNull(item))ctx.addIssue({code:"custom",message:"Unsupported control character"});
  if(item.kind==="link"&&!item.url)ctx.addIssue({code:"custom",message:"Links need a source URL"});
  if(item.kind!=="link"&&item.url)ctx.addIssue({code:"custom",message:"Only links have a source URL"});

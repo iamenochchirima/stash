@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { fixture } from "./helpers.js";
-test("JSON v2 preserves full mixed content and states; repeated imports preserve edits", async () => {
+test("JSON v3 preserves full mixed content and states; repeated imports preserve edits", async () => {
   const f = await fixture();
   try {
     const a = await f.signup(), b = await f.signup();
@@ -12,11 +12,10 @@ test("JSON v2 preserves full mixed content and states; repeated imports preserve
     await f.request("POST", `/api/items/${idea.id}/lifecycle`, { action: "archive" }, a.cookie);
     await f.request("POST", "/api/items", { kind: "link", url: "https://example.test/export", notes: "Link context" }, a.cookie);
     const exported = (await f.request("GET", "/api/items/export", undefined, a.cookie)).json();
-    assert.equal(exported.version, 2); assert.equal(exported.items.length, 2);
+    assert.equal(exported.version, 3); assert.equal(exported.items.length, 2);
     const exportedIdea = exported.items.find((i: any) => i.kind === "idea");
     assert.equal(exportedIdea.body, idea.body); assert.equal(exportedIdea.favourite, true); assert.ok(exportedIdea.archivedAt);
     assert.ok(!JSON.stringify(exported).includes("passwordHash")); assert.ok(!JSON.stringify(exported).includes("importOriginId"));
-    exported.items[0].userId = a.user.id;
     const body = { format: "json", content: JSON.stringify(exported) };
     const preview = await f.request("POST", "/api/items/import/preview", body, b.cookie);
     assert.equal(preview.statusCode, 200, preview.body); assert.equal(preview.json().toSave, 2);

@@ -11,7 +11,7 @@ import { fetchMetadata } from "./metadata.js";
 export function registerItems(app: FastifyInstance, db: Database, options: { production?: boolean; enabled?: boolean }) {
   const authentication = auth(db, !!options.production);
   const id = (params: unknown) => z.object({ id: z.string().uuid() }).parse(params).id;
-  app.get("/api/items/bookmarks",async req=>{const result=await exportBookmarks(db,(await authentication.user(req)).id);return{links:result.links,omitted:result.omitted};});
+  app.get("/api/items/bookmarks",async req=>{const result=await exportBookmarks(db,(await authentication.user(req)).id);return{links:result.links,omitted:result.omitted,...(result.topicsOmitted?{topicsOmitted:result.topicsOmitted}:{})};});
   app.get("/api/items/export", async req => exportItems(db, (await authentication.user(req)).id));
   app.post("/api/items/import/preview", { bodyLimit: LIMITS.importBytes * 2 + 1024 }, async req => previewItemsImport(db, (await authentication.user(req)).id, req.body));
   app.post("/api/items/import", { bodyLimit: LIMITS.importBytes * 2 + 1024 }, async req => { const user=await authentication.user(req); if(options.enabled===false)throw new AppError(503,"General item import is not enabled yet."); return importItems(db,user.id,req.body); });

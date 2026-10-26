@@ -1,5 +1,5 @@
 import { BlobReader, ZipReader, Writer, type FileEntry } from "@zip.js/zip.js";
-import { BACKUP_LIMITS, backupManifest, portableItem, type BackupManifest, type PortableItem } from "@stash/shared";
+import { BACKUP_LIMITS, backupManifest, portableItem, normalizeTopicName, type BackupManifest, type PortableItem } from "@stash/shared";
 class ArchiveError extends Error {}
 class BoundedReader extends BlobReader {
   async readUint8Array(offset: number, length: number) {
@@ -163,9 +163,10 @@ export async function openBackup(
         const bytes = await read(ref.path, BACKUP_LIMITS.itemBytes);
         if ((await sha256(bytes)) !== ref.sha256)
           throw new ArchiveError("An item failed its backup checksum.");
-        const item = portableItem.parse(
-          JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)),
-        );
+        const rawItem = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+        if (manifest.version === 2 && rawItem && typeof rawItem === "object" && Object.hasOwn(rawItem, "topics")) throw new ArchiveError("Topics require a version 3 backup.");
+        const item = portableItem.parse(manifest.version === 2 ? portableItem.innerType().strip().parse(rawItem) : rawItem);
+        if(item.topics.some(name => !manifest.topics.some(topic => normalizeTopicName(topic.name) === normalizeTopicName(name)))) throw new ArchiveError("An item references a topic missing from the backup.");
         if (
           item.id !== id ||
           (!!ref.original && item.kind !== "pdf") ||
