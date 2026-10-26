@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-10-26T14:32:31.864380+00:00",
+  "source": "00402c030de0d8e35a69691f17d2b639b7a56d69",
+  "api": {
+    "deployment": "185edfe4-6ccf-4826-8cfc-193fa495352b",
+    "status": "SUCCESS",
+    "url": "https://api.stash.kasitek.co.za",
+    "migration": "0023_topics.sql",
+    "readiness": 200
+  },
+  "consumer": {
+    "deployment": "dpl_EebVDSUv99LpSP8UvifNeoBcBwg7",
+    "status": "READY",
+    "url": "https://stash.kasitek.co.za"
+  },
+  "admin": {
+    "deployment": "dpl_3MDzG8g9w4gfEhx5L2JETArdSuhq",
+    "status": "READY"
+  },
+  "acceptance": "hosted-topics.json",
+  "cleanup": "All synthetic accounts deleted. No original uploads or model requests. Local owned database container removed.",
+  "hostingPlans": "unchanged"
+}

@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-26T14:30:02.429Z",
+  "fixture": "Synthetic topics and labelled Resend test recipients",
+  "passed": true,
+  "verificationEmailSent": true,
+  "userCreatedTopicsAndPicker": true,
+  "mcpDiscoveryScopesRetryAndMemberships": true,
+  "desktopMobileOverflowAndAccessibility": true,
+  "jsonV3RoundtripEmptyTopicsAndIsolation": true,
+  "zipV3MetadataAndMemberships": true,
+  "topicRemovalPreservesItemsAndCollections": true,
+  "disposableAccountsDeleted": true,
+  "accountIdsForCleanup": [
+    "35da1d5e-5f82-4775-a4c3-cc30c701241f",
+    "a71e2bf1-0421-4a0d-aca2-1619e44518e6"
+  ]
+}

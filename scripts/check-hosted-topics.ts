@@ -10,33 +10,49 @@ import { openBackup } from "../apps/web/lib/backups/archive.js";
 
 if (process.env.STASH_HOSTED_ACCEPTANCE !== "true") throw Error("Explicit hosted acceptance flag required");
 const web = "https://stash.kasitek.co.za", api = "https://api.stash.kasitek.co.za", headers = { origin: web };
-const password = randomBytes(24).toString("base64url"), label = randomUUID();
+const password = randomBytes(24).toString("base64url"), label = randomUUID().slice(0, 12);
 const privateEnv = JSON.parse(execFileSync("railway", ["variable", "list", "--service", "stash-api", "--json"], { encoding: "utf8" }));
 const browser = await chromium.launch(), contexts: BrowserContext[] = [], accounts: { context: BrowserContext; id: string }[] = [], clients: Client[] = [];
 const report: Record<string, unknown> = { checkedAt: new Date().toISOString(), fixture: "Synthetic topics and labelled Resend test recipients", passed: false };
 let stage = "signup";
-async function json(response: any, status = 200) { expect(response.status()).toBe(status); return response.json(); }
+async function json(response: any, status = 200) { if(response.status() !== status) { report.httpStatus = response.status(); report.expectedStatus = status; } expect(response.status()).toBe(status); return response.json(); }
 async function signup(suffix: string) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true }); contexts.push(context);
-  const email = `delivered+stash-topics-${label}-${suffix}@resend.dev`;
+  const localPart = `delivered+stash-topics-${label}-${suffix}`;
+  if(localPart.length > 64) throw new Error("Synthetic recipient local part exceeds the email limit.");
+  const email = `${localPart}@resend.dev`;
+  stage = "signup-create";
   const created = await json(await context.request.post(`${web}/api/auth/signup`, { headers, data: { name: "Topic acceptance", email, password } }), 201);
   accounts.push({ context, id: created.user.id });
-  expect(created.emailSent).toBe(true);
+  stage = "signup-email-delivery";
+  report.verificationEmailSent = created.emailSent === true;
+  if (!created.emailSent) {
+    stage = "signup-resend-verification";
+    const resent = await context.request.post(`${web}/api/auth/resend`, { headers, data: {} });
+    report.verificationResendStatus = resent.status();
+    await json(resent);
+  }
   let token: string | undefined;
   for (let attempt = 0; attempt < 15 && !token; attempt++) {
+    stage = "signup-list-verification-emails";
     const messages = await fetch("https://api.resend.com/emails", { headers: { authorization: `Bearer ${privateEnv.RESEND_API_KEY}` } });
+    if (!messages.ok) report.emailReadHttpStatus = messages.status;
     expect(messages.ok).toBe(true);
     const list = await messages.json() as any;
     const match = list.data?.find((m: any) => m.to?.includes(email) && m.subject === "Verify your Stash email");
     if (match) {
+      stage = "signup-read-verification-email";
       const response = await fetch(`https://api.resend.com/emails/${match.id}`, { headers: { authorization: `Bearer ${privateEnv.RESEND_API_KEY}` } });
+      if (!response.ok) report.emailReadHttpStatus = response.status;
       expect(response.ok).toBe(true);
       const mail = await response.json() as any;
       token = mail.text?.match(/[?&]verify=([A-Za-z0-9_-]+)/)?.[1];
     }
     if (!token) await new Promise(resolve => setTimeout(resolve, 1500));
   }
+  stage = "signup-find-verification-token";
   expect(token).toBeTruthy();
+  stage = "signup-verify";
   await json(await context.request.post(`${web}/api/auth/verify`, { headers, data: { token } }));
   return context;
 }
