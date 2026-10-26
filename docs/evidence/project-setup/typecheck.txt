@@ -1,0 +1,17 @@
+
+> stash@ typecheck /home/enock/Desktop/workspace/personal/stash
+> pnpm -r typecheck
+
+Scope: 6 of 7 workspace projects
+packages/db typecheck$ tsc -p tsconfig.json
+packages/shared typecheck$ tsc -p tsconfig.json
+packages/shared typecheck: Done
+packages/db typecheck: Done
+apps/admin typecheck$ tsc --noEmit
+packages/core typecheck$ tsc -p tsconfig.json
+apps/web typecheck$ tsc --noEmit
+apps/admin typecheck: Done
+packages/core typecheck: Done
+apps/web typecheck: Done
+apps/server typecheck$ tsc -p tsconfig.json
+apps/server typecheck: Done

@@ -1,0 +1,95 @@
+
+> stash@ build /home/enock/Desktop/workspace/personal/stash
+> pnpm --filter @stash/server build && pnpm --filter @stash/web build && pnpm --filter @stash/admin build
+
+
+> @stash/server@ build /home/enock/Desktop/workspace/personal/stash/apps/server
+> tsup && cp -R ../../packages/db/migrations dist/migrations
+
+CLI Building entry: src/bootstrap-admin.ts, src/index.ts, src/maintain-admin.ts, src/migrate.ts, src/pdf-extract.mjs, src/recover-admin.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Using tsup config: /home/enock/Desktop/workspace/personal/stash/apps/server/tsup.config.ts
+CLI Target: es2022
+CLI Cleaning output folder
+ESM Build start
+ESM dist/pdf-extract.js     1.74 KB
+ESM dist/maintain-admin.js  51.17 KB
+ESM dist/bootstrap-admin.js 58.28 KB
+ESM dist/migrate.js         50.40 KB
+ESM dist/recover-admin.js   58.50 KB
+ESM dist/index.js           315.30 KB
+ESM ⚡️ Build success in 36ms
+
+> @stash/web@ build /home/enock/Desktop/workspace/personal/stash/apps/web
+> next build
+
+▲ Next.js 16.4.2 (Turbopack)
+✓ Running next.config.ts took 24ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 840ms
+  Running TypeScript ...
+  Finished TypeScript in 1252ms ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/19) ...
+  Generating static pages using 11 workers (4/19) 
+  Generating static pages using 11 workers (9/19) 
+  Generating static pages using 11 workers (14/19) 
+✓ Generating static pages using 11 workers (19/19) in 321ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /account/reset
+├ ƒ /account/verify
+├ ƒ /connections
+├ ○ /forgot-password
+├ ○ /help
+├ ƒ /items/[id]
+├ ƒ /library
+├ ƒ /library/archive
+├ ƒ /library/collections/[id]
+├ ƒ /library/favourites
+├ ƒ /library/trash
+├ ○ /manifest.webmanifest
+├ ○ /oauth/consent
+├ ƒ /profile
+├ ƒ /projects
+├ ƒ /projects/[id]
+├ ○ /signin
+└ ○ /signup
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+> @stash/admin@ build /home/enock/Desktop/workspace/personal/stash/apps/admin
+> next build
+
+▲ Next.js 16.4.2 (Turbopack)
+✓ Running next.config.ts took 19ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 249ms
+  Running TypeScript ...
+  Finished TypeScript in 994ms ...
+  Collecting page data using 6 workers ...
+  Generating static pages using 6 workers (0/4) ...
+  Generating static pages using 6 workers (1/4) 
+  Generating static pages using 6 workers (2/4) 
+  Generating static pages using 6 workers (3/4) 
+✓ Generating static pages using 6 workers (4/4) in 339ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /_not-found
+├ ƒ /[[...route]]
+└ ○ /manifest.webmanifest
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

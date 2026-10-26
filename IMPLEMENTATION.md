@@ -2,7 +2,7 @@
 
 Stash will give each user a private research library that they can manage through the web dashboard and access through supported AI agents. The first release must take a new user from signup to saving a resource and retrieving it through an agent, with reliable account recovery and control over their data.
 
-This is the working checklist for implementation, verification, and release. It extends [the original architecture](arch.md). Where the original MVP assumes one user or API keys alone, this plan adds browser accounts, profiles, onboarding, and isolation between users.
+This is the historical checklist for first-release implementation, verification, and release. It extends [the original architecture](arch.md). Where the original MVP assumes one user or API keys alone, this plan adds browser accounts, profiles, onboarding, and isolation between users. New agreed specifications, implementation plans, and task progress belong in the [Stash Linear project](https://linear.app/kasitek/project/stash-ce32ed3f1713), as recorded in [AGENTS.md](AGENTS.md). Preserve this document as release history rather than adding new feature plans.
 
 ## Status and completion rules
 
@@ -29,7 +29,7 @@ The user then authorized reusing the KasiTek Growth Resend credentials. Hosted v
 
 ## Release scope and decisions
 
-The user approved a Topics extension on 26 October 2026. Its implementation sequence and acceptance criteria are in [Topics implementation plan](TOPICS_IMPLEMENTATION.md). Topics remain pending until the separate plan's checks pass.
+The user approved a Topics design on 26 October 2026. Its canonical specification is [KAS-146](https://linear.app/kasitek/issue/KAS-146/topics-user-created-research-areas-and-agent-organization), with the approved breakdown in KAS-147 through KAS-151. Ticket publication is approved. Implementation remains pending.
 
 ### First release
 

@@ -1,0 +1,13 @@
+Scope: all 7 workspace projects
+Lockfile is up to date, resolution step is skipped
+Packages: -3
+---
+
+╭ Warning ─────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│   Ignored build scripts: esbuild@0.27.7, esbuild@0.28.2.                     │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Done in 540ms using pnpm v10.30.1

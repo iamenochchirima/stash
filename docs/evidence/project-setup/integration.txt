@@ -1,0 +1,11 @@
+✔ T07/T10/E04 strict isolation, many-to-many membership, and collection deletion (991.20412ms)
+✔ T11 normalization preserves meaningful URLs and concurrent duplicates preserve original content (596.019984ms)
+✔ T10/T12 search, tags, filters, counts, boundaries, invalid URLs, and reading status (606.02794ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3306.980573

@@ -551,3 +551,24 @@ The touch test caught navigation on long-press release and lost menu focus. Clic
 Hosted release passed on source `7f59d6c`, including the preceding Next security patch `b0c848c`. Consumer Vercel deployment `dpl_FzXKapRiK4vGD6BW7JmUnmLw9WJk` is READY and serves stash.kasitek.co.za. Admin deployment `dpl_ADoFUWsB3NiBMVTqXPnMFay4hqPq` is also READY on the same source with Next 16.4.2. The API deployment and database schema are unchanged, and readiness returned `{ "ok": true }`. No hosting plan or model configuration changed.
 
 `STASH_HOSTED_ACCEPTANCE=true pnpm exec tsx scripts/check-hosted-library-layout.ts` passed at 1440px and 375px. It created six synthetic items in one disposable account, checked list/grid density, saved preference after reload, capped tags, right-click and actual touch long-press menus, two-item selection, persisted Trash and bulk restore, no page overflow and axe. Hosted list/grid/selection screenshots were captured and the desktop list and mobile selection were visually inspected. The final mobile bar includes the last label-margin adjustment. The disposable account and all six items were deleted in finally. No private originals were uploaded and no model was invoked. Safe reports and screenshots are in docs/evidence/compact-library/hosted.json, hosted-*.png and deployment.json.
+
+
+## Project workflow setup, 26 October 2026
+
+Applied `prepare-project` to the existing repository at the user's request. Kept the existing purpose, architecture, development commands, feature map, verification skill, and reproducible configuration. Updated agent instructions and README, added `docs/project-setup.md`, and replaced the duplicate Topics draft with a pointer to Linear. No product implementation or deployment occurred.
+
+Created and read back the Stash research workspace `4ee87de0-6b69-4e8c-82ed-c2dc73a78150` and Linear project `9663caed-5c58-4c40-95ba-e6d9fa4ea00b` under KasiTek. Published the Topics specification KAS-146 through `to-spec`. The user explicitly approved the five-ticket breakdown through the in-conversation question. Published KAS-147 through KAS-151 through `to-tickets`, all in Backlog without readiness labels. Read back descriptions, parent associations, and native relations: KAS-148/149/150 are blocked by KAS-147, and KAS-151 by all four implementation tickets. No placeholder research notes or test tickets were created.
+
+Verified the full 11-skill Estack collection against the local source remote and file inventory. All skill and supporting file paths exist in the global Codex installation and shared agent installation, and the active skill catalog exposes them. Reused installations without upgrades or overwriting customization. The Estack checkout has an unrelated modified project-notes skill, which was preserved. Other coding agents are not selected or claimed as configured.
+
+Checks passed using Node 24.21.0, pnpm 10.30.1, and a dedicated `postgres:16` container named `stash-setup-verification`, bound to localhost port 32838. `TEST_DATABASE_URL` pointed only to its `stash_test` database. This is an isolated verification environment rather than a change to the documented development PostgreSQL version.
+
+- `pnpm install --frozen-lockfile --offline` passed. Existing dependency build-script approval warnings remain; no approvals or dependency changes were introduced.
+- `pnpm typecheck` passed across all workspace packages.
+- `NEXT_DIST_DIR=.next-build-verification pnpm build` passed for API, web, and admin.
+- `TEST_DATABASE_URL=postgresql://enock@127.0.0.1:32838/stash_test pnpm exec tsx --test --test-concurrency=1 tests/library.test.ts` passed 3 PostgreSQL cases for ownership, multiple memberships, collection deletion, duplicate handling, search, and filters.
+- With the same disposable database, `pnpm test:browser tests/browser/library-layout.spec.ts` passed 2 real-browser journeys at 1440px and 375px. Checks covered account signup, item capture, list/grid preferences, keyboard/menu behavior, actual touch long-press, multi-selection, persisted Trash/restore, axe, and overflow. The harness started its own API/web/admin processes and removed its schema.
+
+Evidence logs are in `docs/evidence/project-setup/`. Verified zero remaining test schemas before stopping and removing only the owned container. Generated Next environment files, routine screenshots, and cleanup-state files were restored to their initial content. Existing other-project PostgreSQL containers were untouched. No live-user fixtures, original uploads, credential changes, migration, or hosted release occurred.
+
+This verifies the existing setup and library path. Topics behavior remains unimplemented and unverified. Existing hosted backup/alert limitations remain in the operations record.
