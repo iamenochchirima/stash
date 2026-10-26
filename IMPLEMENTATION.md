@@ -29,6 +29,8 @@ The user then authorized reusing the KasiTek Growth Resend credentials. Hosted v
 
 ## Release scope and decisions
 
+The user approved a Topics extension on 26 October 2026. Its implementation sequence and acceptance criteria are in [Topics implementation plan](TOPICS_IMPLEMENTATION.md). Topics remain pending until the separate plan's checks pass.
+
 ### First release
 
 Accounts, private profiles, guided onboarding, private resource libraries, collections and tags, reading status, duplicate handling, search, agent credentials and MCP access, bookmark import/export, account deletion, safe metadata extraction, and launch preparation.
