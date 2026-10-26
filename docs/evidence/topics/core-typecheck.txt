@@ -1,0 +1,4 @@
+
+> @stash/core@ typecheck /home/enock/Desktop/workspace/personal/stash/packages/core
+> tsc -p tsconfig.json
+

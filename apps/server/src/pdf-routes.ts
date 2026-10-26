@@ -5,14 +5,14 @@ import type { FastifyInstance } from "fastify";
 import { randomBytes, randomUUID, createHash } from "node:crypto";
 import { sql, and, eq, inArray } from "drizzle-orm";
 import { type Database, resources, attachments, itemJobs, users, resourceCollections, collections } from "@stash/db";
-import { AppError, items, readPdfPages } from "@stash/core";
+import { AppError, items, readPdfPages, validateOrganization } from "@stash/core";
 import { LIMITS } from "@stash/shared";
 import { z } from "zod";
 import { auth, digest } from "./auth.js";
 import { MAX_PDF_BYTES, type FileStore } from "./file-store.js";
 const ticketInput = z.object({ projectId: z.string().uuid().optional(), filename: z.string().trim().min(1).max(200).refine(n => /\.pdf$/i.test(n) && !/[\x00-\x1f/\\]/.test(n), "Choose a PDF file."), byteSize: z.number().int().min(1).max(MAX_PDF_BYTES), requestId: z.string().uuid().optional(),
   title: z.string().trim().max(200).default(""), notes: z.string().trim().max(10000).default(""),
-  tags: z.array(z.string().trim().min(1).max(40)).max(20).default([]), collectionIds: z.array(z.string().uuid()).max(20).default([]),
+  tags: z.array(z.string().trim().min(1).max(40)).max(20).default([]), collectionIds: z.array(z.string().uuid()).max(20).default([]), topicIds: z.array(z.string().uuid()).max(20).default([]),
   status: z.enum(["unread","reading","done"]).default("unread"),
 }).strict();
 const idInput = z.object({ id: z.string().uuid() });
@@ -22,9 +22,9 @@ export function registerPdfRoutes(app: FastifyInstance, db: Database, options: {
   app.get("/api/items/uploads/status", async req => { await authentication.user(req); return { available: !!options.store && options.enabled !== false, maxBytes: MAX_PDF_BYTES }; });
   app.post("/api/items/uploads", async req => {
     available(); const user = await authentication.user(req), input = ticketInput.parse(req.body);
-    if(input.projectId && input.collectionIds.length)throw new AppError(400,"Collections belong to the main library.");
+    if(input.projectId && (input.collectionIds.length || input.topicIds.length))throw new AppError(400,"Collections and topics belong to the main library.");
     const token = randomBytes(32).toString("base64url"), id = randomUUID();
-    const fingerprint = createHash("sha256").update(JSON.stringify(input)).digest("hex");
+    const fingerprint = createHash("sha256").update(JSON.stringify({ ...input, topicIds: input.topicIds.length ? input.topicIds : undefined })).digest("hex");
     const result = await db.transaction(async tx => {
       await tx.execute(sql`select pg_advisory_xact_lock(78134923)`);
       const active = await tx.execute(sql`select id from users where id=${user.id} and suspended_at is null for update`);
@@ -44,10 +44,8 @@ export function registerPdfRoutes(app: FastifyInstance, db: Database, options: {
           return { id: String(prior.id), itemId: null };
         }
       }
-      if (input.collectionIds.length) {
-        const owned = await tx.select({ id: collections.id }).from(collections).where(and(eq(collections.userId,user.id),inArray(collections.id,input.collectionIds)));
-        if (owned.length !== new Set(input.collectionIds).size) throw new AppError(404, "Collection not found.");
-      }
+      await validateOrganization(tx,user.id,input.collectionIds,"collection");
+      await validateOrganization(tx,user.id,input.topicIds,"topic");
       if(input.projectId) await requireProject(tx,user.id,input.projectId,true);
       await requirePdfCapacity(tx,user.id,input.byteSize);
       await tx.insert(attachments).values({ id, userId: user.id, storageKey: `${user.id}/${id}.pdf`, filename: input.filename, byteSize: input.byteSize, captureInput: input, requestId: input.requestId, requestFingerprint: fingerprint, uploadTokenHash: digest(token), uploadExpiresAt: new Date(Date.now() + 5 * 60_000) });
@@ -99,11 +97,9 @@ export function registerPdfRoutes(app: FastifyInstance, db: Database, options: {
         if (Number(count.rows[0].total) >= LIMITS.resources) throw new AppError(409, "Your item limit has been reached.");
         const details = ticketInput.parse({ filename: attachment.filename, byteSize: Number(attachment.byte_size), ...(attachment.capture_input as Record<string,unknown>) });
         if(details.projectId) await requireProject(tx,String(attachment.user_id),details.projectId,true);
-        const groupIds = [...new Set(details.collectionIds)];
-        if (groupIds.length) {
-          const owned = await tx.select({ id: collections.id }).from(collections).where(and(eq(collections.userId,String(attachment.user_id)),inArray(collections.id,groupIds)));
-          if (owned.length !== groupIds.length) throw new AppError(404, "Collection not found.");
-        }
+        await validateOrganization(tx,String(attachment.user_id),details.collectionIds,"collection");
+        await validateOrganization(tx,String(attachment.user_id),details.topicIds,"topic");
+        const groupIds = [...new Set([...details.collectionIds,...details.topicIds])];
         const [item] = await tx.insert(resources).values({ userId: String(attachment.user_id), projectId: details.projectId || null, kind: "pdf", title: details.title || String(attachment.filename).replace(/\.pdf$/i, ""), notes: details.notes, tags: [...new Set(details.tags.map(t=>t.toLowerCase()))], status: details.status, url: null, sourceAgent: "web" }).returning();
         if (groupIds.length) {
           await tx.insert(resourceCollections).values(groupIds.map(collectionId=>({userId:item.userId,resourceId:item.id,collectionId})));

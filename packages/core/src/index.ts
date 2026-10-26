@@ -12,6 +12,7 @@ import {
   type ResourceUpdate,
   type ListInput,
 } from "@stash/shared";
+import { setOrganizationMembership, validateOrganization } from "./topics.js";
 export class AppError extends Error {
   constructor(
     public status: number,
@@ -33,12 +34,13 @@ export function library(db: Database, userId: string) {
   const ownResource = (id: string) =>
     and(eq(resources.id, id), eq(resources.userId, userId), eq(resources.kind, "link"), isNull(resources.projectId), isNull(resources.deletedAt));
   const ownCollection = (id: string) =>
-    and(eq(collections.id, id), eq(collections.userId, userId));
+    and(eq(collections.id, id), eq(collections.userId, userId), eq(collections.kind,"collection"));
   async function hydrate(rows: (typeof resources.$inferSelect)[]) {
     const memberships = rows.length
       ? await db
-          .select()
+          .select({ resourceId: resourceCollections.resourceId, collectionId: resourceCollections.collectionId })
           .from(resourceCollections)
+          .innerJoin(collections, and(eq(collections.id,resourceCollections.collectionId),eq(collections.kind,"collection")))
           .where(
             and(
               eq(resourceCollections.userId, userId),
@@ -63,43 +65,11 @@ export function library(db: Database, userId: string) {
     if (!rows.length) throw new AppError(404, "Resource not found.");
     return (await hydrate(rows))[0];
   }
-  async function memberships(tx: Database, resourceId: string, ids: string[]) {
-    const unique = [...new Set(ids)];
-    if (unique.length) {
-      const owned = await tx
-        .select()
-        .from(collections)
-        .where(
-          and(eq(collections.userId, userId), inArray(collections.id, unique)),
-        );
-      if (owned.length !== unique.length)
-        throw new AppError(404, "Collection not found.");
-    }
-    await tx
-      .delete(resourceCollections)
-      .where(
-        and(
-          eq(resourceCollections.userId, userId),
-          eq(resourceCollections.resourceId, resourceId),
-        ),
-      );
-    if (unique.length) {
-      await tx
-        .insert(resourceCollections)
-        .values(
-          unique.map((collectionId) => ({ userId, resourceId, collectionId })),
-        );
-      await tx
-        .update(users)
-        .set({
-          firstOrganizedAt: sql`coalesce(${users.firstOrganizedAt},now())`,
-        })
-        .where(eq(users.id, userId));
-    }
-  }
+  const memberships = (tx: Database, resourceId: string, ids: string[]) => setOrganizationMembership(tx,userId,resourceId,ids,"collection");
   return {
     get,
     async list(input: ListInput) {
+      if(input.collectionId) await validateOrganization(db,userId,[input.collectionId],"collection");
       const filters = [eq(resources.userId, userId), eq(resources.kind, "link"), isNull(resources.projectId), isNull(resources.deletedAt), isNull(resources.archivedAt)];
       if (input.collectionId)
         filters.push(
@@ -213,7 +183,7 @@ export function library(db: Database, userId: string) {
       return db
         .select({ id: collections.id, name: collections.name })
         .from(collections)
-        .where(eq(collections.userId, userId))
+        .where(and(eq(collections.userId, userId),eq(collections.kind,"collection")))
         .orderBy(collections.name);
     },
     async createCollection(name: string) {
@@ -267,3 +237,5 @@ export { items } from "./items.js";
 export { readPdfPages } from "./pdf.js";
 export { summaryStatus, queueSummary, cancelSummary } from "./summaries.js";
 export { projectService } from "./projects.js";
+
+export { topicService, setOrganizationMembership, validateOrganization } from "./topics.js";

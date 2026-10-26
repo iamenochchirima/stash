@@ -9,6 +9,7 @@ const common = {
   notes: z.string().trim().max(10000).default(""),
   tags: z.array(z.string().trim().min(1).max(40)).max(20).default([]),
   collectionIds: z.array(z.string().uuid()).max(20).default([]),
+  topicIds: z.array(z.string().uuid()).max(20).default([]),
   requestId: z.string().uuid().optional(),
 };
 export const itemInput = z.discriminatedUnion("kind", [
@@ -24,6 +25,7 @@ export const itemUpdate = z.object({
   body: z.string().trim().min(1).max(500000).optional(),
   tags: z.array(z.string().trim().min(1).max(40)).max(20).optional(),
   collectionIds: z.array(z.string().uuid()).max(20).optional(),
+  topicIds: z.array(z.string().uuid()).max(20).optional(),
   status: z.enum(["unread", "reading", "done"]).optional(),
   favourite: z.boolean().optional(),
 });
@@ -32,6 +34,7 @@ export const itemListInput = z.object({
   includeProjects: z.enum(["true", "false"]).optional(),
   q: z.string().max(200).default(""),
   collectionId: z.string().uuid().optional(),
+  topicId: z.string().uuid().optional(),
   kind: z.enum(["link", "note", "idea", "pdf"]).optional(),
   status: z.enum(["unread", "reading", "done"]).optional(),
   favourite: z.enum(["true", "false"]).optional(),
@@ -47,7 +50,7 @@ export type Item = {
   pdf?: { hasOriginal: boolean; filename: string; byteSize: number; state: "pending" | "uploading" | "queued" | "processing" | "ready" | "failed" | "missing"; pageCount: number | null; errorCode: string | null } | null;
   projectId: string | null; projectSourceId: string | null;
   id: string; kind: "link" | "note" | "idea" | "pdf"; url: string | null;
-  title: string; body: string; notes: string; tags: string[]; collectionIds: string[];
+  title: string; body: string; notes: string; tags: string[]; collectionIds: string[]; topicIds: string[];
   description: string; status: "unread" | "reading" | "done"; sourceAgent: string;
   metadataStatus: "manual" | "extracted" | "unavailable";
   sourceRevision: number; revision: number; favourite: boolean; archivedAt: string | null; deletedAt: string | null;

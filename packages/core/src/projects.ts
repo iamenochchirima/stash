@@ -275,6 +275,7 @@ export function projectService(db: Database, userId: string) {
                 notes: body,
                 tags: [],
                 collectionIds: [],
+                topicIds: [],
                 requestId: input.requestId,
                 status: "unread",
               }
@@ -285,6 +286,7 @@ export function projectService(db: Database, userId: string) {
                 notes: "",
                 tags: [],
                 collectionIds: [],
+                topicIds: [],
                 requestId: input.requestId,
               },
         );

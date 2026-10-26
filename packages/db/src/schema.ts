@@ -58,11 +58,16 @@ export const collections = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
+    kind: text("kind", { enum: ["collection", "topic"] }).notNull().default("collection"),
+    description: text("description").notNull().default(""),
+    normalizedName: text("normalized_name"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     createdAt: createdAt(),
   },
   (t) => [
     uniqueIndex("collection_owner_name").on(t.userId, t.name),
     uniqueIndex("collection_id_owner").on(t.id, t.userId),
+    uniqueIndex("topic_owner_normalized_name").on(t.userId,t.normalizedName).where(sql`${t.kind}='topic'`),
   ],
 );
 export const projects = pgTable("projects", {

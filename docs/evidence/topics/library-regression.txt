@@ -1,0 +1,15 @@
+✔ Mixed item capture, legacy link compatibility, retry identity and edit conflicts (1031.720332ms)
+✔ Item archive, favourites, trash and restore preserve ownership and state (1010.514079ms)
+✔ Expired trash is really purged and restore cannot resurrect a purged item (775.504943ms)
+✔ Mixed item validation and feature gating preserve existing links (908.5888ms)
+✔ T07/T10/E04 strict isolation, many-to-many membership, and collection deletion (981.304288ms)
+✔ T11 normalization preserves meaningful URLs and concurrent duplicates preserve original content (624.60187ms)
+✔ T10/T12 search, tags, filters, counts, boundaries, invalid URLs, and reading status (603.02825ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7912.567831

@@ -4,6 +4,7 @@ import { resources, attachments, collections, resourceCollections, itemRequests,
 import { LIMITS, type ItemInput, type ItemUpdate, type ItemListInput } from "@stash/shared";
 import { AppError, normalizeUrl } from "./index.js";
 import { requireProject, requireProjectTextCapacity, recordProjectRevision } from "./projects.js";
+import { setOrganizationMembership, validateOrganization } from "./topics.js";
 const retention = 30 * 86400_000;
 type Row = typeof resources.$inferSelect;
 export function items(db: Database, userId: string) {
@@ -13,14 +14,15 @@ export function items(db: Database, userId: string) {
     if (!user || user.suspendedAt) throw new AppError(403, "This account is unavailable.");
   }
   async function present(rows: Row[], preview = false) {
-    const membership = rows.length ? await db.select().from(resourceCollections).where(and(eq(resourceCollections.userId, userId), inArray(resourceCollections.resourceId, rows.map(r => r.id)))) : [];
+    const membership = rows.length ? await db.select({ resourceId: resourceCollections.resourceId, collectionId: resourceCollections.collectionId, kind: collections.kind }).from(resourceCollections).innerJoin(collections, eq(collections.id, resourceCollections.collectionId)).where(and(eq(resourceCollections.userId, userId), inArray(resourceCollections.resourceId, rows.map(r => r.id)))) : [];
     const pdfs = rows.length ? await db.select({ resourceId: attachments.resourceId, hasOriginal: sql<boolean>`${attachments.storageKey} is not null`, filename: attachments.filename, byteSize: attachments.byteSize, state: attachments.state, pageCount: attachments.pageCount, errorCode: attachments.errorCode }).from(attachments).where(and(eq(attachments.userId, userId), inArray(attachments.resourceId, rows.map(r => r.id)))) : [];
     return rows.map(({ userId: _, importOriginId: _origin, extractedText: _extracted, knownSourceHash: _knownHash, ...row }) => ({ ...row,
       pdf: row.kind === "pdf" ? pdfs.find(p => p.resourceId === row.id) || null : null,
       body: preview ? row.body.slice(0, 300) : row.body,
       notes: preview ? row.notes.slice(0, 300) : row.notes,
       bodyTruncated: preview && row.body.length > 300,
-      collectionIds: membership.filter(m => m.resourceId === row.id).map(m => m.collectionId).sort(),
+      collectionIds: membership.filter(m => m.resourceId === row.id && m.kind === "collection").map(m => m.collectionId).sort(),
+      topicIds: membership.filter(m => m.resourceId === row.id && m.kind === "topic").map(m => m.collectionId).sort(),
     }));
   }
   async function get(id: string, trash = false) {
@@ -28,22 +30,12 @@ export function items(db: Database, userId: string) {
     if (!row) throw new AppError(404, "Item not found.");
     return (await present([row]))[0];
   }
-  async function membership(tx: Database, id: string, ids: string[]) {
-    const unique = [...new Set(ids)];
-    if (unique.length) {
-      const owned = await tx.select({ id: collections.id }).from(collections).where(and(eq(collections.userId, userId), inArray(collections.id, unique)));
-      if (owned.length !== unique.length) throw new AppError(404, "Collection not found.");
-    }
-    await tx.delete(resourceCollections).where(and(eq(resourceCollections.userId, userId), eq(resourceCollections.resourceId, id)));
-    if (unique.length) {
-      await tx.insert(resourceCollections).values(unique.map(collectionId => ({ userId, resourceId: id, collectionId })));
-      await tx.update(users).set({ firstOrganizedAt: sql`coalesce(${users.firstOrganizedAt},now())` }).where(eq(users.id, userId));
-    }
-  }
   return {
     get,
     async list(input: ItemListInput) {
       if (input.projectId) await requireProject(db,userId,input.projectId);
+      if (input.topicId) await validateOrganization(db,userId,[input.topicId],"topic");
+      if (input.collectionId) await validateOrganization(db,userId,[input.collectionId],"collection");
       const filters = [eq(resources.userId, userId)];
       if (input.projectId) filters.push(eq(resources.projectId,input.projectId));
       else if (input.includeProjects !== "true") filters.push(isNull(resources.projectId));
@@ -57,6 +49,7 @@ export function items(db: Database, userId: string) {
       if (input.status) filters.push(inArray(resources.kind, ["link", "pdf"]), eq(resources.status, input.status));
       if (input.favourite) filters.push(eq(resources.favourite, input.favourite === "true"));
       if (input.collectionId) filters.push(sql`exists(select 1 from ${resourceCollections} where ${resourceCollections.userId}=${userId} and ${resourceCollections.resourceId}=${resources.id} and ${resourceCollections.collectionId}=${input.collectionId})`);
+      if (input.topicId) filters.push(sql`exists(select 1 from ${resourceCollections} where ${resourceCollections.userId}=${userId} and ${resourceCollections.resourceId}=${resources.id} and ${resourceCollections.collectionId}=${input.topicId})`);
       if (input.q.trim()) filters.push(sql`(search_document @@ plainto_tsquery('english', ${input.q}) OR ${resources.tags} @> ARRAY[${input.q.trim().toLowerCase()}]::text[])`);
       const where = and(...filters);
       const [rows, [count]] = await Promise.all([
@@ -68,11 +61,13 @@ export function items(db: Database, userId: string) {
     async save(input: ItemInput, sourceAgent = "web", metadata?: { title?: string; description: string; metadataStatus: "manual" | "extracted" | "unavailable" }) {
       if (input.kind === "pdf") throw new AppError(409, "Upload a PDF before creating this item.");
       const url = input.kind === "link" ? normalizeUrl(input.url) : null;
-      const fingerprint = createHash("sha256").update(JSON.stringify({ ...input, ...(url && { url }) })).digest("hex");
+      const fingerprint = createHash("sha256").update(JSON.stringify({ ...input, topicIds: input.topicIds.length ? input.topicIds : undefined, ...(url && { url }) })).digest("hex");
       const result = await db.transaction(async tx => {
         await active(tx);
-        if (input.projectId) { await requireProject(tx,userId,input.projectId,true); if(input.collectionIds.length)throw new AppError(400,"Collections belong to the main library."); }
+        if (input.projectId) { await requireProject(tx,userId,input.projectId,true); if(input.collectionIds.length || input.topicIds.length)throw new AppError(400,"Collections and topics belong to the main library."); }
         if ("body" in input && input.body.length > (input.projectId ? 500000 : 50000)) throw new AppError(400,"This document exceeds its workspace content limit.");
+        await validateOrganization(tx,userId,input.topicIds,"topic");
+        await validateOrganization(tx,userId,input.collectionIds,"collection");
         if (input.requestId) {
           const [request] = await tx.select().from(itemRequests).where(and(eq(itemRequests.userId, userId), eq(itemRequests.requestId, input.requestId))).for("update");
           if (request && request.expiresAt > new Date()) {
@@ -101,7 +96,8 @@ export function items(db: Database, userId: string) {
           status: input.kind === "link" ? input.status : "unread", sourceAgent,
           description: metadata?.description || "", metadataStatus: metadata?.metadataStatus || "manual",
         }).returning();
-        await membership(tx, row.id, input.collectionIds);
+        await setOrganizationMembership(tx, userId, row.id, input.collectionIds, "collection");
+        await setOrganizationMembership(tx, userId, row.id, input.topicIds, "topic");
         if (input.requestId) await tx.insert(itemRequests).values({ userId, requestId: input.requestId, fingerprint, itemId: row.id, expiresAt: new Date(Date.now() + 86400_000) });
         await tx.update(users).set({ firstSavedAt: sql`coalesce(${users.firstSavedAt},now())` }).where(eq(users.id, userId));
         return { id: row.id, duplicate: false };
@@ -113,15 +109,16 @@ export function items(db: Database, userId: string) {
         await active(tx);
         const [row] = await tx.select().from(resources).where(and(owner(id), isNull(resources.deletedAt))).for("update");
         if (!row) throw new AppError(404, "Item not found.");
-        if (row.projectId) { await requireProject(tx,userId,row.projectId,true); if(input.collectionIds?.length)throw new AppError(400,"Collections belong to the main library."); }
+        if (row.projectId) { await requireProject(tx,userId,row.projectId,true); if(input.collectionIds?.length || input.topicIds?.length)throw new AppError(400,"Collections and topics belong to the main library."); }
         if (input.body && input.body.length > (row.projectId ? 500000 : 50000)) throw new AppError(400,"This document exceeds its workspace content limit.");
         if (row.revision !== input.revision) throw new AppError(409, "This item changed elsewhere. Reload it before saving your changes.");
         if (input.body !== undefined && !["note", "idea"].includes(row.kind)) throw new AppError(400, "This item's source content cannot be edited.");
         if (input.status !== undefined && !["link", "pdf"].includes(row.kind)) throw new AppError(400, "Reading status applies to links and PDFs.");
         if(row.projectId && input.body !== undefined && input.body!==row.body) { await requireProjectTextCapacity(tx,userId,input.body); await recordProjectRevision(tx,userId,row,"web"); }
-        const { revision, collectionIds, ...fields } = input;
+        const { revision, collectionIds, topicIds, ...fields } = input;
         await tx.update(resources).set({ ...fields, tags: input.tags?.map(t => t.toLowerCase()).filter((t, i, all) => all.indexOf(t) === i), sourceRevision: input.body !== undefined && input.body !== row.body ? row.sourceRevision + 1 : row.sourceRevision, revision: revision + 1, updatedAt: new Date() }).where(owner(id));
-        if (collectionIds) await membership(tx, id, collectionIds);
+        if (collectionIds) await setOrganizationMembership(tx, userId, id, collectionIds, "collection");
+        if (topicIds) await setOrganizationMembership(tx, userId, id, topicIds, "topic");
       });
       return get(id);
     },

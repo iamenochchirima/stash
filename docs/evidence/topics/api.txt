@@ -1,0 +1,13 @@
+✔ Library migration preserves populated pre-upgrade links and memberships (1517.866548ms)
+✔ Topics create concurrently by normalized name, retain descriptions, and isolate kinds and owners (995.264558ms)
+✔ Topic membership survives legacy edits and lifecycle, while deletion preserves resources (680.938762ms)
+✔ Topics and collections share a serialized quota and topic reuse works at capacity (605.061482ms)
+✔ PDF topic capture validates ownership again at commit and topic deletion preserves originals (939.333715ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6951.222897
