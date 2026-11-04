@@ -6,6 +6,7 @@ import type { Profile } from "@stash/shared";
 import { api } from "../../lib/api";
 
 import { ErrorNote } from "../ui/error-note";
+import { AppearanceSettings } from "./appearance-settings";
 export function ProfileForm({
   user,
   onUser,
@@ -141,6 +142,7 @@ export function ProfileForm({
           {busy ? "Saving…" : "Save profile"}
         </button>
       </form>
+      <AppearanceSettings />
       <div className="panel deletion-panel">
         <h2>Delete your account</h2>
         <p>

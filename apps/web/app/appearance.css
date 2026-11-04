@@ -1,0 +1,505 @@
+:root {
+  color-scheme: light;
+  --surface: #fff;
+  --surface-muted: #f6f7f2;
+  --surface-hover: #f2f3ed;
+  --field: #fff;
+  --field-border: #dedfd9;
+  --selection: #f4f1fc;
+  --selection-border: #dbd3ee;
+  --quiet-ink: #626c5b;
+  --quiet-green: #536449;
+  --focus-ring: #a391e7;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #151916;
+  --white: #202721;
+  --ink: #e8ece8;
+  --muted: #a5aea5;
+  --line: #38413a;
+  --purple: #b5a3ff;
+  --soft-purple: #312a42;
+  --green: #87caa2;
+  --surface: #202721;
+  --surface-muted: #252e28;
+  --surface-hover: #2b342d;
+  --field: #1d241f;
+  --field-border: #424c44;
+  --selection: #30293f;
+  --selection-border: #554875;
+  --quiet-ink: #b2bbb2;
+  --quiet-green: #a4b49d;
+  --focus-ring: #b5a3ff;
+}
+
+html[data-theme="dark"] body {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+  background: var(--field);
+  border-color: var(--field-border);
+  color: var(--ink);
+}
+
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+  color: #8d988e;
+}
+
+html[data-theme="dark"] .button.secondary {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+html[data-theme="dark"] .button.secondary:hover,
+html[data-theme="dark"] .icon-button:hover {
+  background: var(--surface-hover);
+}
+
+html[data-theme="dark"] .auth-layout,
+html[data-theme="dark"] .account-page,
+html[data-theme="dark"] .account-link,
+html[data-theme="dark"] .app-layout,
+html[data-theme="dark"] .project-shell,
+html[data-theme="dark"] .help-page {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+html[data-theme="dark"] .sidebar,
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .connection-guide,
+html[data-theme="dark"] .resource-list,
+html[data-theme="dark"] .resource-card,
+html[data-theme="dark"] .library-view-toggle,
+html[data-theme="dark"] .resource-menu,
+html[data-theme="dark"] .auth-panel,
+html[data-theme="dark"] .auth-card,
+html[data-theme="dark"] .project-form,
+html[data-theme="dark"] .project-card,
+html[data-theme="dark"] .pwa-dialog {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+html[data-theme="dark"] .sidebar {
+  border-right-color: var(--line);
+}
+
+html[data-theme="dark"] .nav-item,
+html[data-theme="dark"] .collection-heading,
+html[data-theme="dark"] .workspace-label,
+html[data-theme="dark"] .topbar,
+html[data-theme="dark"] .private-badge,
+html[data-theme="dark"] .page-heading p,
+html[data-theme="dark"] .onboarding p,
+html[data-theme="dark"] .setup-steps small,
+html[data-theme="dark"] .sidebar-tip p,
+html[data-theme="dark"] .profile-button small,
+html[data-theme="dark"] .resource-notes,
+html[data-theme="dark"] .resource-domain,
+html[data-theme="dark"] .resource-source,
+html[data-theme="dark"] .resource-source-action,
+html[data-theme="dark"] .resource-menu-trigger,
+html[data-theme="dark"] .resource-card footer,
+html[data-theme="dark"] .results-heading,
+html[data-theme="dark"] .results-heading small,
+html[data-theme="dark"] .main-footer,
+html[data-theme="dark"] .empty p,
+html[data-theme="dark"] .library-view-toggle button,
+html[data-theme="dark"] .library-select-toggle,
+html[data-theme="dark"] .help-page p,
+html[data-theme="dark"] .help-link,
+html[data-theme="dark"] .project-eyebrow,
+html[data-theme="dark"] .project-kind,
+html[data-theme="dark"] .project-description,
+html[data-theme="dark"] .project-card p,
+html[data-theme="dark"] .project-item p,
+html[data-theme="dark"] .project-card small,
+html[data-theme="dark"] .project-item small,
+html[data-theme="dark"] .project-search,
+html[data-theme="dark"] .project-empty,
+html[data-theme="dark"] .project-archived,
+html[data-theme="dark"] .item-context,
+html[data-theme="dark"] .item-meta,
+html[data-theme="dark"] .summary-note,
+html[data-theme="dark"] .summary-privacy,
+html[data-theme="dark"] .pdf-toolbar > span,
+html[data-theme="dark"] .pdf-pages h2,
+html[data-theme="dark"] .form-actions small,
+html[data-theme="dark"] .oauth-client-host,
+html[data-theme="dark"] .oauth-permission p,
+html[data-theme="dark"] .auth-card > p,
+html[data-theme="dark"] .auth-switch,
+html[data-theme="dark"] .privacy-note,
+html[data-theme="dark"] .auth-story > small {
+  color: var(--quiet-ink);
+}
+
+html[data-theme="dark"] .nav-item:hover,
+html[data-theme="dark"] .resource-menu button:hover,
+html[data-theme="dark"] .resource-menu button:focus-visible,
+html[data-theme="dark"] .resource-menu-trigger:hover,
+html[data-theme="dark"] .library-view-toggle button[aria-pressed="true"],
+html[data-theme="dark"] .workspace-label span,
+html[data-theme="dark"] .sidebar-tip,
+html[data-theme="dark"] .copy-field,
+html[data-theme="dark"] .project-history pre,
+html[data-theme="dark"] .help-page pre,
+html[data-theme="dark"] .item-markdown pre,
+html[data-theme="dark"] .edit-conflict pre,
+html[data-theme="dark"] .item-markdown :not(pre) > code,
+html[data-theme="dark"] .item-markdown th,
+html[data-theme="dark"] .summary-citations a,
+html[data-theme="dark"] .summary-citations button,
+html[data-theme="dark"] .summary-citations a:hover,
+html[data-theme="dark"] .summary-citations button:hover {
+  background: var(--surface-muted);
+  color: var(--ink);
+}
+
+html[data-theme="dark"] .nav-item.active {
+  background: var(--soft-purple);
+  color: var(--purple);
+}
+
+html[data-theme="dark"] .count {
+  background: #ffffff12;
+}
+
+html[data-theme="dark"] .sidebar-tip,
+html[data-theme="dark"] .onboarding,
+html[data-theme="dark"] .profile-button,
+html[data-theme="dark"] .topbar,
+html[data-theme="dark"] .resource-list,
+html[data-theme="dark"] .resource-list .resource-card + .resource-card,
+html[data-theme="dark"] .library-selection,
+html[data-theme="dark"] .empty,
+html[data-theme="dark"] .main-footer,
+html[data-theme="dark"] .oauth-permission,
+html[data-theme="dark"] .oauth-write,
+html[data-theme="dark"] .project-tabs,
+html[data-theme="dark"] .project-item,
+html[data-theme="dark"] .project-history,
+html[data-theme="dark"] .item-header,
+html[data-theme="dark"] .item-meta,
+html[data-theme="dark"] .item-markdown th,
+html[data-theme="dark"] .item-markdown td,
+html[data-theme="dark"] .item-markdown hr,
+html[data-theme="dark"] .pdf-reader,
+html[data-theme="dark"] .pdf-pages section,
+html[data-theme="dark"] .summary-panel,
+html[data-theme="dark"] .topic-list li,
+html[data-theme="dark"] .modal,
+html[data-theme="dark"] .profile-intro,
+html[data-theme="dark"] .privacy-note {
+  border-color: var(--line);
+}
+
+html[data-theme="dark"] .onboarding {
+  background: #202b23;
+}
+
+html[data-theme="dark"] .step {
+  border-color: #4a594a;
+  color: #afbea5;
+}
+
+html[data-theme="dark"] .step.done,
+html[data-theme="dark"] .resource-actions .status.done,
+html[data-theme="dark"] .connection-status.connected {
+  background: #273a2c;
+  color: #a4d1a3;
+}
+
+html[data-theme="dark"] .resource-actions .status {
+  background: #303832;
+  color: #c0c7bf;
+}
+
+html[data-theme="dark"] .resource-actions .status.reading {
+  background: #3c3321;
+  color: #e0c27e;
+}
+
+html[data-theme="dark"] .connection-status {
+  background: #36331f;
+  color: #e0d187;
+}
+
+html[data-theme="dark"] .tags span {
+  background: #30283d;
+  color: #c3b0ee;
+}
+
+html[data-theme="dark"] .item-tags {
+  color: #c3b0ee;
+}
+
+html[data-theme="dark"] .resource-card:hover,
+html[data-theme="dark"] .library-items .resource-card:hover {
+  background: #242d26;
+}
+
+html[data-theme="dark"] .library-items .resource-card.is-selected,
+html[data-theme="dark"] .library-selection {
+  background: var(--selection);
+  border-color: var(--selection-border);
+}
+
+html[data-theme="dark"] .empty {
+  background: #1d241f;
+  color: #aab4a6;
+}
+
+html[data-theme="dark"] .empty h2 {
+  color: #d6dfd0;
+}
+
+html[data-theme="dark"] .empty-icon {
+  background: #2d362d;
+  color: #bdc9b6;
+}
+
+html[data-theme="dark"] .modal {
+  background: var(--surface);
+}
+
+html[data-theme="dark"] .overlay {
+  background: #050806aa;
+}
+
+html[data-theme="dark"] .error {
+  background: #3b2421;
+  color: #ffb4a8;
+}
+
+html[data-theme="dark"] .button.primary {
+  background: #d3c7ff;
+  color: #21193a;
+}
+
+html[data-theme="dark"] .button.primary:hover {
+  background: #c3b3ff;
+}
+
+html[data-theme="dark"] .button.danger,
+html[data-theme="dark"] .danger {
+  color: #ff9d92;
+}
+
+html[data-theme="dark"] .copy-field code,
+html[data-theme="dark"] .project-reference,
+html[data-theme="dark"] .project-repository,
+html[data-theme="dark"] .summary-sources blockquote,
+html[data-theme="dark"] .item-notice,
+html[data-theme="dark"] .auth-story p,
+html[data-theme="dark"] .story-content p,
+html[data-theme="dark"] .connection-status.connected {
+  color: #a9c5a0;
+}
+
+html[data-theme="dark"] .auth-story {
+  background: #202b23;
+}
+
+html[data-theme="dark"] .auth-story:after {
+  border-color: #39483a;
+  box-shadow: 0 0 0 60px #202b23, 0 0 0 61px #39483a, 0 0 0 120px #252f27;
+}
+
+html[data-theme="dark"] .auth-card h2,
+html[data-theme="dark"] .account-panel .auth-switch a,
+html[data-theme="dark"] .account-header .brand,
+html[data-theme="dark"] .profile-intro h2,
+html[data-theme="dark"] .project-tabs button.active {
+  color: var(--ink);
+}
+
+html[data-theme="dark"] .auth-switch button,
+html[data-theme="dark"] .sidebar-tip button,
+html[data-theme="dark"] .text-button,
+html[data-theme="dark"] .help-page a,
+html[data-theme="dark"] .main-footer a {
+  color: #c1b0ff;
+}
+
+html[data-theme="dark"] .empty .button,
+html[data-theme="dark"] .profile-button strong,
+html[data-theme="dark"] .resource-title,
+html[data-theme="dark"] .page-heading h1,
+html[data-theme="dark"] .project-heading h1,
+html[data-theme="dark"] .item-reading h1,
+html[data-theme="dark"] .help-page h1,
+html[data-theme="dark"] .help-page h2,
+html[data-theme="dark"] .help-page h3 {
+  color: var(--ink);
+}
+
+html[data-theme="dark"] .item-shell {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+html[data-theme="dark"] .item-header {
+  border-bottom-color: var(--line);
+}
+
+html[data-theme="dark"] .item-markdown blockquote {
+  border-left-color: #796a99;
+  color: #c2c9c1;
+}
+
+html[data-theme="dark"] .item-markdown th,
+html[data-theme="dark"] .item-markdown td {
+  border-color: var(--line);
+}
+
+html[data-theme="dark"] .item-markdown hr {
+  border-top-color: var(--line);
+}
+
+html[data-theme="dark"] .project-card:hover {
+  background: #252f28;
+  border-color: #596b58;
+}
+
+html[data-theme="dark"] .project-tabs button,
+html[data-theme="dark"] .project-search-toggle,
+html[data-theme="dark"] .item-editor-options summary,
+html[data-theme="dark"] .project-kind {
+  color: var(--quiet-ink);
+}
+
+html[data-theme="dark"] .project-tabs button.active {
+  border-bottom-color: #9cbe8d;
+}
+
+html[data-theme="dark"] .lifecycle-feedback {
+  background: #25352a;
+  border-color: #3a5940;
+  color: #b1d6b0;
+}
+
+html[data-theme="dark"] .item-markdown pre,
+html[data-theme="dark"] .edit-conflict pre,
+html[data-theme="dark"] .project-history pre,
+html[data-theme="dark"] .help-page pre {
+  background: #1d241f;
+  color: #e1e7e0;
+}
+
+html[data-theme="dark"] .summary-citations a,
+html[data-theme="dark"] .summary-citations button {
+  color: #c4d9bc;
+}
+
+html[data-theme="dark"] .resource-menu {
+  box-shadow: 0 12px 32px #0008;
+}
+
+html[data-theme="dark"] .site-page {
+  color-scheme: light;
+  color: #202421;
+}
+
+html[data-theme="dark"] .pwa-dialog::backdrop {
+  background: #050806aa;
+}
+
+html[data-theme="dark"] .pwa-footer {
+  background: var(--paper);
+}
+
+html[data-theme="dark"] .pwa-footer button {
+  color: var(--quiet-ink);
+}
+
+html[data-theme="dark"] .account-back,
+html[data-theme="dark"] .account-panel .auth-switch a {
+  color: #c1b0ff;
+}
+
+html[data-theme="dark"] .account-link {
+  color: var(--ink);
+}
+
+.appearance-panel {
+  max-width: 580px;
+  margin: 22px 0;
+}
+
+.appearance-panel h2 {
+  font-size: 17px;
+  margin-bottom: 6px;
+}
+
+.appearance-panel > p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+
+.appearance-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.appearance-options button {
+  min-height: 44px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--quiet-ink);
+  font-size: 13px;
+}
+
+.appearance-options button:hover {
+  background: var(--surface-hover);
+}
+
+.appearance-options button[aria-pressed="true"] {
+  color: var(--purple);
+  border-color: var(--purple);
+  background: var(--soft-purple);
+}
+
+.appearance-options button:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.appearance-status {
+  min-height: 1.5em;
+  margin: 12px 0 0 !important;
+  font-size: 12px !important;
+}
+
+@media (max-width: 440px) {
+  .appearance-panel {
+    padding: 20px;
+  }
+
+  .appearance-options {
+    grid-template-columns: 1fr;
+  }
+
+  .appearance-options button {
+    justify-content: flex-start;
+  }
+}
