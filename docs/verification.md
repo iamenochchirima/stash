@@ -612,3 +612,11 @@ Profile now offers Light, Dark and System. The preference is saved in browser lo
 `TEST_DATABASE_URL=postgresql://enock@127.0.0.1:55439/stash_test pnpm test:browser tests/browser/appearance.spec.ts` passed. The browser journey checked reload persistence, cross-tab updates, OS switching, desktop and 375px layout, saved-item reading, Projects, Help, sign-in, axe contrast/accessibility and overflow. It used a disposable PostgreSQL 16 container and schema; both were removed. Port 55432 and all other project databases were left untouched. Reviewed screenshots are in `docs/evidence/appearance/`.
 
 `pnpm typecheck` and `NEXT_DIST_DIR=.next-build-verification pnpm build` passed for all packages and applications. The first dark sign-in accessibility run found a contrast issue in its Help link; the color was corrected. The expanded Help-page check also found that its setup examples could not receive keyboard focus; they are now labeled focusable regions. The final axe run passed across dark Profile, Projects, Help, item reading and sign-in, plus light mobile Profile. No production deployment was made.
+
+## Appearance panel and library fixes, 4 November 2026
+
+The dark theme now keeps search wrapper and input surfaces continuous, renders the Getting started disclosure as a compact inset panel, gives account forms visible padding and edges, and uses a muted amber verification notice. The appearance browser journey also checks desktop and mobile account layout, library field colors, onboarding geometry, accessibility and page overflow.
+
+`TEST_DATABASE_URL=<owned disposable stash_test URL> pnpm test:browser tests/browser/appearance.spec.ts` passed against an isolated PostgreSQL 16 test database. `pnpm typecheck` and `NEXT_DIST_DIR=.next-build-verification pnpm build` passed across the workspace. Browser screenshots and logs are in `docs/evidence/appearance/`.
+
+The test database is disposable and separate from the local preview database. The preview runs on localhost with a synthetic account and data; no production deployment occurred.

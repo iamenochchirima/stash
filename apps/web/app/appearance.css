@@ -52,6 +52,29 @@ html[data-theme="dark"] textarea::placeholder {
   color: #8d988e;
 }
 
+html[data-theme="dark"] .search-field {
+  background: var(--field);
+  border-color: var(--field-border);
+  color: var(--quiet-ink);
+}
+
+html[data-theme="dark"] .search-field input {
+  background: transparent;
+  border-color: transparent;
+}
+
+html[data-theme="dark"] .verification-banner {
+  background: #332b1d;
+  border-color: #5c4c2f;
+  color: #e5d29b;
+}
+
+html[data-theme="dark"] .verification-banner .text-button {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 html[data-theme="dark"] .button.secondary {
   background: var(--surface);
   border-color: var(--line);
@@ -205,7 +228,11 @@ html[data-theme="dark"] .privacy-note {
 }
 
 html[data-theme="dark"] .onboarding {
-  background: #202b23;
+  background: var(--surface);
+}
+
+html[data-theme="dark"] .app-layout .onboarding summary {
+  color: var(--quiet-ink);
 }
 
 html[data-theme="dark"] .step {

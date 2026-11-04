@@ -13,13 +13,13 @@ CLI Using tsup config: /home/enock/Desktop/workspace/personal/stash/apps/server/
 CLI Target: es2022
 CLI Cleaning output folder
 ESM Build start
-ESM dist/bootstrap-admin.js 60.77 KB
-ESM dist/maintain-admin.js  53.53 KB
 ESM dist/pdf-extract.js     1.74 KB
 ESM dist/migrate.js         52.76 KB
 ESM dist/recover-admin.js   61.00 KB
+ESM dist/bootstrap-admin.js 60.77 KB
+ESM dist/maintain-admin.js  53.53 KB
 ESM dist/index.js           332.17 KB
-ESM ⚡️ Build success in 34ms
+ESM ⚡️ Build success in 33ms
 
 > @stash/web@ build /home/enock/Desktop/workspace/personal/stash/apps/web
 > next build
@@ -28,15 +28,15 @@ ESM ⚡️ Build success in 34ms
 ✓ Running next.config.ts took 19ms
 
   Creating an optimized production build ...
-✓ Compiled successfully in 838ms
+✓ Compiled successfully in 247ms
   Running TypeScript ...
-  Finished TypeScript in 1464ms ...
+  Finished TypeScript in 1315ms ...
   Collecting page data using 11 workers ...
   Generating static pages using 11 workers (0/20) ...
   Generating static pages using 11 workers (5/20)
   Generating static pages using 11 workers (10/20)
   Generating static pages using 11 workers (15/20)
-✓ Generating static pages using 11 workers (20/20) in 350ms
+✓ Generating static pages using 11 workers (20/20) in 329ms
   Finalizing page optimization ...
 
 Route (app)
@@ -75,15 +75,15 @@ Route (app)
 ✓ Running next.config.ts took 19ms
 
   Creating an optimized production build ...
-✓ Compiled successfully in 181ms
+✓ Compiled successfully in 106ms
   Running TypeScript ...
-  Finished TypeScript in 1030ms ...
+  Finished TypeScript in 976ms ...
   Collecting page data using 6 workers ...
   Generating static pages using 6 workers (0/4) ...
   Generating static pages using 6 workers (1/4)
   Generating static pages using 6 workers (2/4)
   Generating static pages using 6 workers (3/4)
-✓ Generating static pages using 6 workers (4/4) in 339ms
+✓ Generating static pages using 6 workers (4/4) in 342ms
   Finalizing page optimization ...
 
 Route (app)

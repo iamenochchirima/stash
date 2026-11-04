@@ -1519,7 +1519,9 @@ textarea::placeholder {
 }
 
 /* Public pages */
-.site-page, .account-page { background: #fff; min-height: 100vh; color: #202421; }
+.site-page, .account-page { min-height: 100vh; color: #202421; }
+.site-page { background: #fff; }
+.account-page { background: var(--paper); }
 .site-page { --site-muted: #626862; }
 .site-header, .site-hero, .site-details, .site-bottom, .site-footer { max-width: 1160px; margin: 0 auto; }
 .site-header { height: 100px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e8ebe6; }
@@ -1545,13 +1547,21 @@ textarea::placeholder {
 .account-header { height: 100px; max-width: 1160px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
 .account-header > a { text-decoration: none; }
 .account-back { color: #626862; font-size: 12px; }
-.account-panel { display: flex; justify-content: center; padding: 62px 24px 80px; }
-.account-panel .auth-card { max-width: 390px; }
+.account-panel { display: flex; justify-content: center; padding: 40px 24px 80px; }
+.account-panel .auth-card {
+  max-width: 448px;
+  padding: 36px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 14px 38px rgb(32 36 33 / 8%);
+}
 .account-panel h1 { font-size: 31px; font-weight: 600; letter-spacing: -1px; margin-bottom: 12px; }
 .account-panel .auth-card > p { color: #626862; font-size: 13px; }
 .account-panel .button.primary { background: #242b26; border-radius: 5px; }
 .account-panel .auth-switch a { color: #202421; font-weight: 600; text-underline-offset: 3px; }
 .account-panel .privacy-note { color: #626862; }
+.account-panel .help-link { display: inline-flex; align-items: center; gap: 5px; margin-top: 16px; }
 .account-panel input { border-radius: 5px; }
 @media (max-width: 1240px) {
   .site-page { padding: 0 40px; }
@@ -1580,6 +1590,7 @@ textarea::placeholder {
   .account-header .brand { font-size: 27px; }
   .account-header .brand img { width: 30px; height: 30px; }
   .account-panel { padding: 40px 24px 60px; }
+  .account-panel .auth-card { padding: 26px 22px; border-radius: 13px; }
   .account-panel h1 { font-size: 29px; }
 }
 
@@ -1873,11 +1884,12 @@ textarea::placeholder {
 .app-layout .content { padding-top: 40px; }
 .app-layout .page-heading { margin-bottom: 26px; }
 .app-layout .page-heading h1 { margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -1.1px; }
-.app-layout .onboarding { display: block; padding: 0; border: 0; border-radius: 0; background: none; margin-bottom: 24px; }
-.app-layout .onboarding summary { width: fit-content; cursor: pointer; color: #626862; font-size: 12px; padding: 4px 0; }
+.app-layout .onboarding { display: block; max-width: 620px; padding: 14px 18px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); margin-bottom: 24px; }
+.app-layout .onboarding summary { width: 100%; cursor: pointer; color: #626862; font-size: 12px; font-weight: 600; padding: 0; }
 .app-layout .onboarding summary:focus-visible { outline: 3px solid #a391e7; outline-offset: 4px; }
-.app-layout .setup-steps { max-width: 470px; padding: 17px 0 0; gap: 10px; }
-.app-layout .setup-steps button { padding: 5px 0; }
+.app-layout .setup-steps { max-width: none; margin: 12px 0 0; padding: 12px 0 0; gap: 4px; border-top: 1px solid var(--line); }
+.app-layout .setup-steps button { padding: 7px 8px; border-radius: 8px; }
+.app-layout .setup-steps button:hover { background: var(--surface-muted); }
 .app-layout .library-toolbar > .button.secondary { background: none; border-color: transparent; padding-left: 0; padding-right: 12px; color: #626862; }
 .app-layout .resource-card { min-height: 0; border-radius: 8px; box-shadow: none; }
 .app-layout .resource-card:hover { transform: none; box-shadow: none; border-color: #cbd4c3; }
