@@ -4,6 +4,9 @@ import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
 
 async function expectAccessible(page: Page) {
+  await page.waitForFunction(() =>
+    document.getAnimations().every((animation) => animation.playState === "finished"),
+  );
   const result = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
     .analyze();
@@ -48,7 +51,7 @@ test("theme preference persists and System follows the device", async ({
   await expect(root).toHaveAttribute("data-theme-preference", "system");
   await expect(page.locator(".app-layout")).toHaveCSS(
     "background-color",
-    "rgb(250, 251, 249)",
+    "rgb(248, 248, 245)",
   );
   const otherTab = await page.context().newPage();
   await otherTab.goto("/library");
@@ -89,7 +92,7 @@ test("theme preference persists and System follows the device", async ({
   await expect(setup).toHaveCSS("background-color", "rgb(32, 39, 33)");
   await expect(page.locator(".verification-banner")).toHaveCSS(
     "background-color",
-    "rgb(51, 43, 29)",
+    "rgb(54, 51, 31)",
   );
   await expect(page.locator(".search-field")).toHaveCSS(
     "background-color",
@@ -145,7 +148,7 @@ test("theme preference persists and System follows the device", async ({
   await expect(root).toHaveAttribute("data-theme", "light");
   await expect(page.locator(".app-layout")).toHaveCSS(
     "background-color",
-    "rgb(250, 251, 249)",
+    "rgb(248, 248, 245)",
   );
 
   await page.emulateMedia({ colorScheme: "dark" });
@@ -161,7 +164,7 @@ test("theme preference persists and System follows the device", async ({
   await expect(root).toHaveAttribute("data-theme", "light");
   await expect(page.locator(".app-layout")).toHaveCSS(
     "background-color",
-    "rgb(250, 251, 249)",
+    "rgb(248, 248, 245)",
   );
   await page.setViewportSize({ width: 375, height: 812 });
   expect(
@@ -231,4 +234,183 @@ test("theme preference persists and System follows the device", async ({
     path: "docs/evidence/appearance/dark-signup-mobile.png",
     fullPage: true,
   });
+});
+
+const lightStyles = [
+  { id: "paper", label: "Paper", paper: "rgb(248, 248, 245)" },
+  { id: "cool", label: "Cool", paper: "rgb(247, 248, 249)" },
+  { id: "warm", label: "Warm", paper: "rgb(250, 247, 241)" },
+];
+
+const darkStyles = [
+  { id: "forest", label: "Forest", paper: "rgb(21, 25, 22)" },
+  { id: "midnight", label: "Midnight", paper: "rgb(16, 20, 27)" },
+  { id: "graphite", label: "Graphite", paper: "rgb(20, 20, 20)" },
+  { id: "warm", label: "Warm", paper: "rgb(23, 19, 16)" },
+];
+
+const accents = [
+  { id: "violet", label: "Violet", light: "rgb(107, 82, 201)", dark: "rgb(181, 163, 255)" },
+  { id: "indigo", label: "Indigo", light: "rgb(74, 84, 196)", dark: "rgb(170, 179, 255)" },
+  { id: "teal", label: "Teal", light: "rgb(15, 111, 102)", dark: "rgb(116, 214, 201)" },
+  { id: "clay", label: "Clay", light: "rgb(163, 74, 34)", dark: "rgb(240, 161, 132)" },
+  { id: "plum", label: "Plum", light: "rgb(138, 63, 104)", dark: "rgb(229, 162, 197)" },
+  { id: "slate", label: "Slate", light: "rgb(71, 85, 105)", dark: "rgb(185, 197, 211)" },
+];
+
+test("styles and accents apply, persist and stay accessible", async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  const headers = { origin: "http://127.0.0.1:3100" };
+  const signup = await page.request.post("/api/auth/signup", {
+    headers,
+    data: {
+      name: "Style tester",
+      email: `styles-${randomUUID()}@example.test`,
+      password: "Research123",
+    },
+  });
+  expect(signup.status()).toBe(201);
+  const user = (await signup.json()).user;
+  const saved = await page.request.post("/api/items", {
+    headers: { ...headers, "X-Stash-Account": user.id },
+    data: {
+      kind: "link",
+      url: "https://example.test/style",
+      title: "Style reading check",
+      notes: "A saved link to check accent colours in the reading view.",
+      tags: ["research"],
+      collectionIds: [],
+      topicIds: [],
+    },
+  });
+  expect(saved.ok()).toBe(true);
+
+  const root = page.locator("html");
+  await mkdir("docs/evidence/appearance", { recursive: true });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/profile");
+  await expect(page.getByRole("heading", { name: "Profile" })).toBeVisible();
+
+  await expect(root).toHaveAttribute("data-theme-style", "paper");
+  await expect(root).toHaveAttribute("data-accent", "violet");
+  await expect(page.getByRole("button", { name: "Paper", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+
+  for (const style of lightStyles) {
+    await page.getByRole("button", { name: style.label, exact: true }).click();
+    await expect(root).toHaveAttribute("data-theme-style", style.id);
+    await expect(page.locator(".app-layout")).toHaveCSS(
+      "background-color",
+      style.paper,
+    );
+    await page.screenshot({
+      path: `docs/evidence/appearance/light-style-${style.id}.png`,
+      fullPage: true,
+    });
+  }
+
+  await page.getByRole("button", { name: "Dark", exact: true }).click();
+  await expect(root).toHaveAttribute("data-theme-style", "forest");
+  for (const style of darkStyles) {
+    await page.getByRole("button", { name: style.label, exact: true }).click();
+    await expect(root).toHaveAttribute("data-theme-style", style.id);
+    await expect(page.locator(".app-layout")).toHaveCSS(
+      "background-color",
+      style.paper,
+    );
+    await page.screenshot({
+      path: `docs/evidence/appearance/dark-style-${style.id}.png`,
+      fullPage: true,
+    });
+  }
+
+  for (const accent of accents) {
+    await page.getByRole("button", { name: `${accent.label} accent` }).click();
+    await expect(root).toHaveAttribute("data-accent", accent.id);
+    await expect(page.locator(".brand-dot")).toHaveCSS("color", accent.dark);
+  }
+  await page.getByRole("button", { name: "Clay accent" }).click();
+  await page
+    .locator(".appearance-group", { hasText: "Accent colour" })
+    .screenshot({
+      path: "docs/evidence/appearance/dark-accent-row.png",
+    });
+  await expectAccessible(page);
+  await page.screenshot({
+    path: "docs/evidence/appearance/dark-accent-clay.png",
+    fullPage: true,
+  });
+
+  await page.getByRole("button", { name: "Light", exact: true }).click();
+  for (const accent of accents) {
+    await page.getByRole("button", { name: `${accent.label} accent` }).click();
+    await expect(root).toHaveAttribute("data-accent", accent.id);
+    await expect(page.locator(".brand-dot")).toHaveCSS("color", accent.light);
+  }
+  await page.getByRole("button", { name: "Teal accent" }).click();
+  await expectAccessible(page);
+  await page.screenshot({
+    path: "docs/evidence/appearance/light-accent-teal.png",
+    fullPage: true,
+  });
+
+  await page.getByRole("button", { name: "Dark", exact: true }).click();
+  await page.getByRole("button", { name: "Midnight", exact: true }).click();
+  await page.getByRole("button", { name: "Clay accent" }).click();
+
+  await page.reload();
+  await expect(root).toHaveAttribute("data-theme-style", "midnight");
+  await expect(root).toHaveAttribute("data-accent", "clay");
+  await expect(page.getByRole("button", { name: "Clay accent" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+
+  const otherTab = await page.context().newPage();
+  await otherTab.goto("/profile");
+  await page.getByRole("button", { name: "Slate accent" }).click();
+  await expect(otherTab.locator("html")).toHaveAttribute(
+    "data-accent",
+    "slate",
+  );
+  await otherTab.close();
+
+  await page.getByRole("button", { name: "Forest", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(root).toHaveAttribute("data-theme-style", "forest");
+  const indigoSwatch = page.getByRole("button", { name: "Indigo accent" });
+  await indigoSwatch.focus();
+  await expect(indigoSwatch).toBeFocused();
+  await page.keyboard.press("Space");
+  await expect(root).toHaveAttribute("data-accent", "indigo");
+  await expect(indigoSwatch).toHaveAttribute("aria-pressed", "true");
+
+  await page.evaluate(() => localStorage.setItem("stash-accent", "nonsense"));
+  await page.reload();
+  await expect(root).toHaveAttribute("data-accent", "violet");
+  await expect(page.getByRole("button", { name: "Violet accent" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+
+  await page.setViewportSize({ width: 375, height: 812 });
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+  ).toBe(true);
+  await expectAccessible(page);
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/library");
+  await expect(
+    page.getByRole("link", { name: "Style reading check" }).first(),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Style reading check" }).first().click();
+  await expect(
+    page.getByRole("heading", { name: "Style reading check" }),
+  ).toBeVisible();
+  await expectAccessible(page);
 });
