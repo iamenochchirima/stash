@@ -620,3 +620,11 @@ The dark theme now keeps search wrapper and input surfaces continuous, renders t
 `TEST_DATABASE_URL=<owned disposable stash_test URL> pnpm test:browser tests/browser/appearance.spec.ts` passed against an isolated PostgreSQL 16 test database. `pnpm typecheck` and `NEXT_DIST_DIR=.next-build-verification pnpm build` passed across the workspace. Browser screenshots and logs are in `docs/evidence/appearance/`.
 
 The test database is disposable and separate from the local preview database. The preview runs on localhost with a synthetic account and data; no production deployment occurred.
+
+## Appearance release, 7 November 2026
+
+Source `1e4dd9a` was pushed to `main`, which triggered the main-branch Vercel builds. Consumer deployment `dpl_4TE5fz8wqCb66uSXHQP2wLrRhLEi` and admin `dpl_F5Cz1MU5c21Zb98Y7szfoS2yaufc` reached READY, and both GitHub commit statuses reported success. The two commits change only `apps/web`, docs and tests, so the Railway API was not redeployed. Readiness stayed 200 with version 0.1.0 and migration 0023.
+
+Live checks returned 200 for the landing page, `/signin`, `/help`, the admin origin, `/health` and `/ready`. The deployed sign-in page renders `data-theme="light"` with `data-theme-preference="system"`, and the served production stylesheet contains the `html[data-theme="dark"]` rules, including `--paper:#151916` and the dark field and search surfaces. A first visit defaults to System and the page is light unless the device or the saved preference is dark, so dark mode was confirmed from the deployed stylesheet rather than by changing a browser preference on the live account.
+
+No accounts, data, credentials, provider settings or hosting plans were changed. Evidence is `docs/evidence/appearance/deployment.json`. Dark-mode screenshots remain the earlier local captures; hosted dark rendering was not re-captured.
