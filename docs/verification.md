@@ -628,3 +628,20 @@ Source `1e4dd9a` was pushed to `main`, which triggered the main-branch Vercel bu
 Live checks returned 200 for the landing page, `/signin`, `/help`, the admin origin, `/health` and `/ready`. The deployed sign-in page renders `data-theme="light"` with `data-theme-preference="system"`, and the served production stylesheet contains the `html[data-theme="dark"]` rules, including `--paper:#151916` and the dark field and search surfaces. A first visit defaults to System and the page is light unless the device or the saved preference is dark, so dark mode was confirmed from the deployed stylesheet rather than by changing a browser preference on the live account.
 
 No accounts, data, credentials, provider settings or hosting plans were changed. Evidence is `docs/evidence/appearance/deployment.json`. Dark-mode screenshots remain the earlier local captures; hosted dark rendering was not re-captured.
+
+## Appearance styles and accents, 7 November 2026
+
+Profile now offers Theme, Style and Accent colour. Light styles are Paper (default), Cool and Warm; dark styles are Forest (default), Midnight, Graphite and Warm; accents are Violet (default), Indigo, Teal, Clay, Plum and Slate. Accent drives links, focus rings, active navigation, selection, tags and citations, while primary actions keep the neutral ink treatment. Defaults reproduce the previous appearance. Theme, per-mode style and accent persist under separate browser-local keys and apply before hydration.
+
+The app-shell and signed-in component colours were moved from literal hex values onto semantic tokens (`--paper`, `--surface`, `--ink`, `--line`, `--field`, `--accent`, semantic state tokens and style-specific sage/story tints). `apps/web/app/appearance.css` now holds only token blocks for the styles and accents plus the Appearance panel styles; the marketing/demo illustration colours in `globals.css` remain intentionally light. Light faint text was darkened to clear 4.5:1 contrast during the new matrix (Paper `#6b7263`, Cool `#697079`, Warm `#756d60`).
+
+Passed checks:
+
+- `TEST_DATABASE_URL=postgresql://stash:theme-preview-only@127.0.0.1:55441/stash_test pnpm test:browser tests/browser/appearance.spec.ts`: 2 cases passed. The first keeps the existing Light/Dark/System, cross-tab, OS-change, reading, account, axe and overflow coverage. The second checks defaults, every light and dark style (`data-theme-style` plus the rendered page colour), every light and dark accent (brand-dot colour), reload persistence, cross-tab accent changes, invalid stored values falling back to Violet, 375px overflow, and axe on profile and a saved reading page.
+- `pnpm test:browser tests/browser/library-layout.spec.ts tests/browser/projects.spec.ts tests/browser/accessibility.spec.ts`: 6 cases passed, covering compact library, list/grid, menus, Projects and the existing signup/library/save-dialog/profile axe journey.
+- `pnpm test:browser tests/browser/topics.spec.ts tests/browser/routing.spec.ts`: 4 cases passed for Topics capture/management and durable routes.
+- `pnpm typecheck` passed for every workspace package. `NEXT_DIST_DIR=.next-build-verification pnpm build` produced the production API, consumer and admin builds.
+
+Screenshots for every style, the light Teal accent, the dark Clay accent and the dark accent row are in `docs/evidence/appearance/`; the browser log is `styles-browser.txt`. The browser suite used the existing local PostgreSQL 16 preview container's disposable `stash_test` database and its own temporary schema. It created disposable accounts only; no live data, credentials or provider settings were touched.
+
+This change was not deployed at this checkpoint. The landing page remains light by design, and accent choices deliberately do not recolour primary ink buttons.
