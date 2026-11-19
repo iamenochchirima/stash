@@ -53,7 +53,7 @@ export function items(db: Database, userId: string) {
       if (input.q.trim()) filters.push(sql`(search_document @@ plainto_tsquery('english', ${input.q}) OR ${resources.tags} @> ARRAY[${input.q.trim().toLowerCase()}]::text[])`);
       const where = and(...filters);
       const [rows, [count]] = await Promise.all([
-        db.select().from(resources).where(where).orderBy(desc(resources.createdAt), desc(resources.id)).limit(input.limit).offset(input.offset),
+        db.select().from(resources).where(where).orderBy(desc(resources.updatedAt), desc(resources.id)).limit(input.limit).offset(input.offset),
         db.select({ total: sql<number>`count(*)::int` }).from(resources).where(where),
       ]);
       return { items: await present(rows, true), total: count.total };

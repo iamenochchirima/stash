@@ -1,0 +1,10 @@
+✔ Project and item lists follow edits, appends, moves and Trash activity without changing project revisions (988.101049ms)
+✔ Activity migration backfills existing research without resetting creation dates or project revisions (513.341973ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2462.231496

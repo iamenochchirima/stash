@@ -22,3 +22,5 @@ Run tests/browser/library-layout.spec.ts for desktop/mobile layout, saved prefer
 
 
 Topics provide ongoing research areas alongside ordinary collections. Items can have both organization types without duplication, and older collection edits preserve topic memberships. See [Topics](topics.md) for capture, management, agent tools, and verification.
+
+Items are listed by most recent update, with stable ID ordering for equal timestamps before pagination. Cards and item details display Updated relative time through day 30, then a dated label. Visible labels refresh while the page stays open. Legacy resource and mixed-item API/MCP lists share the updated-first ordering.

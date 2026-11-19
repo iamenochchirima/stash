@@ -13,6 +13,7 @@ import { api, ApiError } from "../../lib/api";
 import { SummaryPanel } from "./summary-panel";
 import { PdfReader } from "./pdf-reader";
 import { MermaidDiagram } from "./mermaid-diagram";
+import { UpdatedTime } from "../ui/updated-time";
 import { ProjectDocumentActions } from "../projects/project-document-actions";
 import { ItemEditor } from "./item-editor";
 export function ItemDetail({ id }: { id: string }) {
@@ -397,9 +398,7 @@ export function ItemDetail({ id }: { id: string }) {
                           : "Unread"}
                     </span>
                   )}
-                  <span>
-                    Saved {new Date(item.createdAt).toLocaleDateString()}
-                  </span>
+                  <UpdatedTime value={item.updatedAt} />
                 </footer>
               </>
             )}

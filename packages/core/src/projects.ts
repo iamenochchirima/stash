@@ -72,7 +72,7 @@ export function projectService(db: Database, userId: string) {
       return {
         items: (
           await db.execute(
-            sql`select ${columns} from projects p where p.user_id=${userId} and (p.archived_at is not null)=${archived} and (p.name ilike ${"%" + q + "%"} or p.description ilike ${"%" + q + "%"}) order by p.created_at desc,p.id`,
+            sql`select ${columns} from projects p where p.user_id=${userId} and (p.archived_at is not null)=${archived} and (p.name ilike ${"%" + q + "%"} or p.description ilike ${"%" + q + "%"}) order by p.updated_at desc,p.id desc`,
           )
         ).rows,
       };

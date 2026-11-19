@@ -1,0 +1,21 @@
+✔ ZIP restore preserves project history, copied sources, Trash state and original bytes without overwriting edits (2374.123659ms)
+✔ Restore validates permissions/checksums before writes, rejects foreign origins and finalises expired partial projects (1138.313089ms)
+✔ Full restore repairs a data-only original and preserves imported summary provenance and later notes (1939.715306ms)
+✔ Logout revokes a partial restore immediately and retained cleanup restores archive state (959.922909ms)
+✔ Deleting an account during original restore denies adoption and keeps a durable cleanup task (5500.345084ms)
+✔ JSON v3 preserves full mixed content and states; repeated imports preserve edits (2192.657408ms)
+✔ Data-only JSON restores PDF text and summary provenance without claiming an original (2273.276493ms)
+✔ JSON import identity survives request expiry and rejected snapshots do not create partial items (1218.369998ms)
+✔ Topics MCP discovery, duplicate-safe creation, membership, scopes and account ownership (6036.962072ms)
+✔ Topics create concurrently by normalized name, retain descriptions, and isolate kinds and owners (3791.568328ms)
+✔ Topic membership survives legacy edits and lifecycle, while deletion preserves resources (2592.679434ms)
+✔ Topics and collections share a serialized quota and topic reuse works at capacity (1998.811516ms)
+✔ PDF topic capture validates ownership again at commit and topic deletion preserves originals (3138.736267ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 53842.927248

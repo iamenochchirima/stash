@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useId, useRef, useState } from "react";
+import { UpdatedTime } from "../ui/updated-time";
 import Link from "next/link";
 import { Link as LinkIcon, Lightbulb, FileText, Star, ArrowUpRight, Ellipsis } from "lucide-react";
 import type { Item, Collection } from "@stash/shared";
@@ -89,7 +90,7 @@ export function ItemCard({ item, collections, location, returnTo, onAction, sele
         <div className="resource-metadata">
           <span className="resource-domain">{item.url ? new URL(item.url).hostname : item.kind === "idea" ? "Idea" : item.kind === "pdf" ? item.pdf?.filename || "PDF" : "Note"}{item.projectId && " · Project research"}</span>
           <span className="resource-collection" title={groupNames}>{groupNames}</span>
-          <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</time>
+          <UpdatedTime value={item.updatedAt} />
         </div>
         {item.tags.length > 0 && <div className="tags">{item.tags.slice(0, 2).map(t => <span key={t}>{t}</span>)}{item.tags.length > 2 && <span aria-label={`${item.tags.length - 2} more tags`}>+{item.tags.length - 2}</span>}</div>}
       </div>

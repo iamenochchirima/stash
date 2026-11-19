@@ -86,7 +86,7 @@ export function library(db: Database, userId: string) {
           .select()
           .from(resources)
           .where(where)
-          .orderBy(desc(resources.createdAt), desc(resources.id))
+          .orderBy(desc(resources.updatedAt), desc(resources.id))
           .limit(input.limit)
           .offset(input.offset),
         db

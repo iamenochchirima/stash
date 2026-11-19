@@ -1,4 +1,5 @@
 "use client";
+import { UpdatedTime } from "../ui/updated-time";
 import { SiteBrand } from "../ui/brand";
 import { LifecycleFeedback } from "../workspace/lifecycle-feedback";
 import { useWorkspace } from "../workspace/workspace";
@@ -295,9 +296,10 @@ export function ProjectsWorkspace({
                       <Folder size={21} />
                       <h2>{p.name}</h2>
                       {p.description && <p>{p.description}</p>}
-                      <small>
-                        {p.itemCount} {p.itemCount === 1 ? "item" : "items"}
-                      </small>
+                      <div className="project-card-meta">
+                        <small>{p.itemCount} {p.itemCount === 1 ? "item" : "items"}</small>
+                        <small><UpdatedTime value={p.updatedAt} /></small>
+                      </div>
                     </Link>
                   ))}
                 </div>
@@ -399,7 +401,7 @@ export function ProjectsWorkspace({
                         )}
                       </div>
                       <small>
-                        {new Date(item.updatedAt).toLocaleDateString()}
+                        <UpdatedTime value={item.updatedAt} />
                       </small>
                     </Link>
                   ))}

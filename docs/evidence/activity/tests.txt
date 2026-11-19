@@ -1,0 +1,22 @@
+✔ Project and item lists follow edits, appends, moves and Trash activity without changing project revisions (1645.297066ms)
+✔ Library migration preserves populated pre-upgrade links and memberships (2531.043923ms)
+✔ Mixed item capture, legacy link compatibility, retry identity and edit conflicts (2324.727564ms)
+✔ Item archive, favourites, trash and restore preserve ownership and state (4005.282974ms)
+✔ Expired trash is really purged and restore cannot resurrect a purged item (2668.042075ms)
+✔ Mixed item validation and feature gating preserve existing links (2259.83618ms)
+✔ Projects isolate research, URLs and long documents with owned archive and append rules (2171.184907ms)
+✔ Project account exports round-trip scope, history and archive state without leaking foreign projects (2588.535821ms)
+✔ Project MCP supports bounded research reads and write-scoped, retry-safe appends (2842.445955ms)
+✔ Project document history retains 20 revisions and rejects unsafe repository URLs (1171.51289ms)
+✔ PDF capture stays inside its project and an archive during upload prevents finalisation (772.841844ms)
+✔ Project text quota includes archived research and retained history (3385.136688ms)
+✔ Project item moves reject duplicate links without merging or changing either item (746.961469ms)
+✔ Updated timestamps show relative units through day 30, then an unambiguous date (1.65853ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 39940.152177
