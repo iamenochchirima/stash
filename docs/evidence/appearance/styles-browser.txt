@@ -1,0 +1,11 @@
+
+> stash@ test:browser /home/enock/Desktop/workspace/personal/stash
+> playwright test tests/browser/appearance.spec.ts
+
+
+Running 2 tests using 1 worker
+
+  ✓  1 tests/browser/appearance.spec.ts:16:1 › theme preference persists and System follows the device (8.6s)
+  ✓  2 tests/browser/appearance.spec.ts:261:1 › styles and accents apply, persist and stay accessible (6.8s)
+
+  2 passed (22.0s)

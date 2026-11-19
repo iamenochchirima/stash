@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-11-06T23:09:36.188099+00:00",
+  "source": "1e4dd9a00c798f757e34b0fd1b7befabc9846c02",
+  "consumer": {
+    "deployment": "dpl_4TE5fz8wqCb66uSXHQP2wLrRhLEi",
+    "status": "READY",
+    "url": "https://stash.kasitek.co.za",
+    "path": "/signin",
+    "httpStatus": 200
+  },
+  "admin": {
+    "deployment": "dpl_F5Cz1MU5c21Zb98Y7szfoS2yaufc",
+    "status": "READY",
+    "url": "https://admin.stash.kasitek.co.za"
+  },
+  "api": {
+    "url": "https://api.stash.kasitek.co.za",
+    "health": 200,
+    "ready": 200,
+    "version": "0.1.0",
+    "redeployed": false,
+    "migration": "0023_topics.sql"
+  },
+  "liveChecks": {
+    "landing": 200,
+    "signIn": 200,
+    "help": 200,
+    "admin": 200,
+    "themeAttributes": "data-theme=light, data-theme-preference=system",
+    "darkStylesheet": "Served CSS contains html[data-theme=dark] tokens (--paper:#151916, dark field and search surfaces)"
+  },
+  "backendChanges": "none; the two commits touch only apps/web, docs and tests",
+  "notes": "System-default first visit renders light, so dark rules were confirmed in the deployed stylesheet rather than by changing a browser preference. No accounts, data, credentials, provider settings or hosting plans were changed.",
+  "hostingPlans": "unchanged"
+}

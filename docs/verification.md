@@ -605,6 +605,47 @@ The initial acceptance script generated recipient local parts of 65/67 character
 
 Release evidence: `docs/evidence/topics/deployment.json`, `hosted-topics.json`, and `hosted-topic-1440.png`/`hosted-topic-375.png`. The only subsequent changes are verification-helper diagnostics, this release record, and whitespace normalization in the build log. Existing backup/alert limitations in operations remain unchanged. Native assistants may need a reconnect to refresh discovered tools; hosted official-SDK acceptance does not prove each native client's tool refresh.
 
+## Appearance themes, 4 November 2026
+
+Profile now offers Light, Dark and System. The preference is saved in browser local storage, applied before hydration, shared with other tabs, and follows live operating-system color changes in System mode. Dark styling covers the signed-in workspace, Projects, Help, item reading, and sign-in/recovery screens. The public landing page retains its light presentation.
+
+`TEST_DATABASE_URL=postgresql://enock@127.0.0.1:55439/stash_test pnpm test:browser tests/browser/appearance.spec.ts` passed. The browser journey checked reload persistence, cross-tab updates, OS switching, desktop and 375px layout, saved-item reading, Projects, Help, sign-in, axe contrast/accessibility and overflow. It used a disposable PostgreSQL 16 container and schema; both were removed. Port 55432 and all other project databases were left untouched. Reviewed screenshots are in `docs/evidence/appearance/`.
+
+`pnpm typecheck` and `NEXT_DIST_DIR=.next-build-verification pnpm build` passed for all packages and applications. The first dark sign-in accessibility run found a contrast issue in its Help link; the color was corrected. The expanded Help-page check also found that its setup examples could not receive keyboard focus; they are now labeled focusable regions. The final axe run passed across dark Profile, Projects, Help, item reading and sign-in, plus light mobile Profile. No production deployment was made.
+
+## Appearance panel and library fixes, 4 November 2026
+
+The dark theme now keeps search wrapper and input surfaces continuous, renders the Getting started disclosure as a compact inset panel, gives account forms visible padding and edges, and uses a muted amber verification notice. The appearance browser journey also checks desktop and mobile account layout, library field colors, onboarding geometry, accessibility and page overflow.
+
+`TEST_DATABASE_URL=<owned disposable stash_test URL> pnpm test:browser tests/browser/appearance.spec.ts` passed against an isolated PostgreSQL 16 test database. `pnpm typecheck` and `NEXT_DIST_DIR=.next-build-verification pnpm build` passed across the workspace. Browser screenshots and logs are in `docs/evidence/appearance/`.
+
+The test database is disposable and separate from the local preview database. The preview runs on localhost with a synthetic account and data; no production deployment occurred.
+
+## Appearance release, 7 November 2026
+
+Source `1e4dd9a` was pushed to `main`, which triggered the main-branch Vercel builds. Consumer deployment `dpl_4TE5fz8wqCb66uSXHQP2wLrRhLEi` and admin `dpl_F5Cz1MU5c21Zb98Y7szfoS2yaufc` reached READY, and both GitHub commit statuses reported success. The two commits change only `apps/web`, docs and tests, so the Railway API was not redeployed. Readiness stayed 200 with version 0.1.0 and migration 0023.
+
+Live checks returned 200 for the landing page, `/signin`, `/help`, the admin origin, `/health` and `/ready`. The deployed sign-in page renders `data-theme="light"` with `data-theme-preference="system"`, and the served production stylesheet contains the `html[data-theme="dark"]` rules, including `--paper:#151916` and the dark field and search surfaces. A first visit defaults to System and the page is light unless the device or the saved preference is dark, so dark mode was confirmed from the deployed stylesheet rather than by changing a browser preference on the live account.
+
+No accounts, data, credentials, provider settings or hosting plans were changed. Evidence is `docs/evidence/appearance/deployment.json`. Dark-mode screenshots remain the earlier local captures; hosted dark rendering was not re-captured.
+
+## Appearance styles and accents, 7 November 2026
+
+Profile now offers Theme, Style and Accent colour. Light styles are Paper (default), Cool and Warm; dark styles are Forest (default), Midnight, Graphite and Warm; accents are Violet (default), Indigo, Teal, Clay, Plum and Slate. Accent drives links, focus rings, active navigation, selection, tags and citations, while primary actions keep the neutral ink treatment. Defaults reproduce the previous appearance. Theme, per-mode style and accent persist under separate browser-local keys and apply before hydration.
+
+The app-shell and signed-in component colours were moved from literal hex values onto semantic tokens (`--paper`, `--surface`, `--ink`, `--line`, `--field`, `--accent`, semantic state tokens and style-specific sage/story tints). `apps/web/app/appearance.css` now holds only token blocks for the styles and accents plus the Appearance panel styles; the marketing/demo illustration colours in `globals.css` remain intentionally light. Light faint text was darkened to clear 4.5:1 contrast during the new matrix (Paper `#6b7263`, Cool `#697079`, Warm `#756d60`).
+
+Passed checks:
+
+- `TEST_DATABASE_URL=postgresql://stash:theme-preview-only@127.0.0.1:55441/stash_test pnpm test:browser tests/browser/appearance.spec.ts`: 2 cases passed. The first keeps the existing Light/Dark/System, cross-tab, OS-change, reading, account, axe and overflow coverage. The second checks defaults, every light and dark style (`data-theme-style` plus the rendered page colour), every light and dark accent (brand-dot colour), reload persistence, cross-tab accent changes, invalid stored values falling back to Violet, 375px overflow, and axe on profile and a saved reading page.
+- `pnpm test:browser tests/browser/library-layout.spec.ts tests/browser/projects.spec.ts tests/browser/accessibility.spec.ts`: 6 cases passed, covering compact library, list/grid, menus, Projects and the existing signup/library/save-dialog/profile axe journey.
+- `pnpm test:browser tests/browser/topics.spec.ts tests/browser/routing.spec.ts`: 4 cases passed for Topics capture/management and durable routes.
+- `pnpm typecheck` passed for every workspace package. `NEXT_DIST_DIR=.next-build-verification pnpm build` produced the production API, consumer and admin builds.
+
+Screenshots for every style, the light Teal accent, the dark Clay accent and the dark accent row are in `docs/evidence/appearance/`; the browser log is `styles-browser.txt`. The browser suite used the existing local PostgreSQL 16 preview container's disposable `stash_test` database and its own temporary schema. It created disposable accounts only; no live data, credentials or provider settings were touched.
+
+This change was not deployed at this checkpoint. The landing page remains light by design, and accent choices deliberately do not recolour primary ink buttons.
+
 ## Latest activity and updated timestamps, 19 November 2026
 
 Projects, mixed items and legacy resource lists now sort by updated time before pagination, with a stable descending ID tie-breaker. Migration 0024 backfills project activity from existing research and records resource insert/update/delete activity for the owning project without changing metadata revisions. Moves touch both projects and purges retain their latest activity. Project cards, research rows, library cards and details share live relative Updated labels through day 30; day 31 onward shows a date with year. Exact ISO timestamps remain in time attributes/tooltips. The shared ticking clock handles hydration and stops without mounted subscribers.

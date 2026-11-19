@@ -47,7 +47,7 @@ export default function Help() {
         Set STASH_AGENT_KEY in your client environment, then add this MCP
         configuration with the endpoint shown in Stash:
       </p>
-      <pre>
+      <pre tabIndex={0} role="region" aria-label="Code example">
         {
           '[mcp_servers.stash]\nurl = "YOUR_STASH_MCP_ENDPOINT"\nbearer_token_env_var = "STASH_AGENT_KEY"'
         }
@@ -58,7 +58,7 @@ export default function Help() {
         Authorization header. Keep the credential in an environment variable
         where your client supports it:
       </p>
-      <pre>
+      <pre tabIndex={0} role="region" aria-label="Code example">
         {
           '{ "mcp": { "stash": { "type": "remote", "url": "YOUR_STASH_MCP_ENDPOINT", "oauth": false, "headers": { "Authorization": "Bearer {env:STASH_AGENT_KEY}" } } } }'
         }

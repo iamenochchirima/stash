@@ -170,3 +170,10 @@ Both web clients now use Next 16.4.2 from security patch `b0c848c`. Admin deploy
 Migration 0023 adds typed topic metadata to collections and an owner-scoped normalized-name index. Existing collection identities and memberships remain intact. Deploy the migration/API before publishing the dependent client. JSON and ZIP v3 preserve topics; v1/v2 imports remain accepted. A legacy export request fails explicitly when it would omit topic data.
 
 Once topics exist, do not roll back to a pre-Topics API: its untyped collection queries can expose topics as collections and old membership replacement can remove topic assignments. Keep migration 0023 and use a Topics-aware artifact or forward fix. An ordinary application rollback must preserve the durable deletion/file journals and current backup-format readers. No destructive schema rollback is part of this release.
+
+
+## Appearance release, 7 November 2026
+
+Consumer source `1e4dd9a` is live at stash.kasitek.co.za in READY Vercel deployment `dpl_4TE5fz8wqCb66uSXHQP2wLrRhLEi`; admin `dpl_F5Cz1MU5c21Zb98Y7szfoS2yaufc` is READY from the same main-branch push. Light, Dark and System themes are a browser-local preference applied before hydration, with the public landing page left light.
+
+The release is client-only. The commits change `apps/web`, docs and tests, so the Railway API was not redeployed and keeps version 0.1.0 with migration 0023. `/health` and `/ready` returned 200, and the deployed stylesheet contains the dark theme rules. No accounts, data, credentials, provider settings or hosting plans changed. Backups and external alerts remain unconfigured. Evidence: docs/evidence/appearance/deployment.json.

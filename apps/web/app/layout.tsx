@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import Script from "next/script";
 import "./globals.css";
 import "./pwa.css";
+import "./appearance.css";
 import { Pwa } from "../components/pwa/pwa";
+import { appearanceScript } from "../lib/appearance";
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -33,8 +36,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      data-theme="light"
+      data-theme-preference="system"
+      suppressHydrationWarning
+    >
       <body className={`${bodyFont.variable} ${headingFont.variable}`}>
+        <Script id="stash-theme" strategy="beforeInteractive">
+          {appearanceScript()}
+        </Script>
         <Pwa name="Stash">{children}</Pwa>
       </body>
     </html>
