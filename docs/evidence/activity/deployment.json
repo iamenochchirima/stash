@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-11-19T18:43:12.886736+00:00",
+  "featureSource": "0062c91",
+  "consumerSource": "cb0c579989f8f1d64ea947bacf6054eae9f78530",
+  "preservedRemoteSource": "38aa918",
+  "api": {
+    "deployment": "92b4b2b0-609f-47ef-8e47-1f56f00973a1",
+    "status": "SUCCESS",
+    "migration": "0024_project_activity.sql",
+    "ready": true
+  },
+  "consumer": {
+    "deployment": "dpl_E8wE3nFBVwyfXEq5HycuzPgq6LoB",
+    "status": "READY",
+    "url": "https://stash.kasitek.co.za"
+  },
+  "admin": {
+    "deployment": "dpl_CkME7NQRmDNgrBajX6Ce91P9iknJ",
+    "status": "READY"
+  },
+  "acceptance": "hosted.json",
+  "cleanup": "Disposable synthetic account deleted; no file uploads or model calls",
+  "hostingPlans": "unchanged"
+}
