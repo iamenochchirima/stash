@@ -43,6 +43,21 @@ test("Todos are private task records with owned projects, lists, sources and ret
     assert.equal((await f.request("PUT","/api/todo-preferences",{timezone:"Not/AZone"},a.cookie)).statusCode,400);
 
     const personal=(await f.request("POST","/api/todo-lists",{name:"Personal"},a.cookie)).json().list;
+    const secondTask=(await f.request("POST","/api/todos",{title:"Another follow-up",requestId:randomUUID()},a.cookie)).json().todo;
+    await f.request("POST",`/api/todos/${preferenceTask.id}/subtasks`,{title:"Check the source"},a.cookie);
+    const bulkTaskA=(await f.request("GET",`/api/todos/${preferenceTask.id}`,undefined,a.cookie)).json().todo;
+    const bulkMoveInput={action:"move",tasks:[{id:bulkTaskA.id,revision:bulkTaskA.revision},{id:secondTask.id,revision:secondTask.revision}],requestId:randomUUID(),projectId:project.id,listId:list.id};
+    const bulkMoved=await f.request("POST","/api/todos/bulk",bulkMoveInput,a.cookie);
+    assert.equal(bulkMoved.statusCode,200,bulkMoved.body);assert.ok(bulkMoved.json().todos.every((task:any)=>task.projectId===project.id&&task.listId===list.id));
+    const bulkMoveReplay=await f.request("POST","/api/todos/bulk",bulkMoveInput,a.cookie);
+    assert.equal(bulkMoveReplay.statusCode,200,bulkMoveReplay.body);assert.equal(bulkMoveReplay.json().todos[0].revision,bulkMoved.json().todos[0].revision,"bulk move retries return their original result");
+    const unfinished=bulkMoved.json().todos.find((task:any)=>task.id===preferenceTask.id);
+    const bulkCompleteInput={action:"complete",tasks:bulkMoved.json().todos.map((task:any)=>({id:task.id,revision:task.revision})),requestId:randomUUID()};
+    assert.equal((await f.request("POST","/api/todos/bulk",bulkCompleteInput,a.cookie)).statusCode,409,"bulk completion must make unfinished-subtask behavior explicit");
+    const bulkCompleted=await f.request("POST","/api/todos/bulk",{...bulkCompleteInput,subtasks:"complete_all"},a.cookie);
+    assert.equal(bulkCompleted.statusCode,200,bulkCompleted.body);assert.ok(bulkCompleted.json().todos.every((task:any)=>task.state==="done"));assert.ok(bulkCompleted.json().todos.find((task:any)=>task.id===preferenceTask.id).subtasks[0].completedAt);
+    assert.equal((await f.request("POST","/api/todos/bulk",{...bulkCompleteInput,subtasks:"parent_only"},a.cookie)).statusCode,409,"bulk request IDs reject changed payloads");
+    assert.ok(unfinished);
     assert.equal((await f.request("POST","/api/todos",{...input,requestId:randomUUID(),listId:personal.id},a.cookie)).statusCode,409,"list and project scope must match");
     assert.equal((await f.request("POST","/api/todos",{...input,requestId:randomUUID(),sourceIds:[foreign.id]},a.cookie)).statusCode,404,"foreign sources cannot be linked");
     assert.equal((await f.request("GET",`/api/todo-lists`,undefined,b.cookie)).json().items.some((item:any)=>item.id===list.id),false);
@@ -114,5 +129,12 @@ test("Todo MCP tools share records and preserve read-only and account boundaries
     assert.equal(data(await reader.callTool({name:"get_todo",arguments:{id:created.id,trash:true}})).trashedAt!==null,true);
     assert.equal(data(await foreign.callTool({name:"list_todos",arguments:{view:"all",q:null,projectId:null,listId:null,state:null,priority:null,offset:0,limit:50}})).total,0);
     assert.ok((await foreign.callTool({name:"get_todo",arguments:{id:created.id,trash:true}})).isError);
+    const bulkA=data(await writer.callTool({name:"create_todo",arguments:{title:"Bulk follow-up A",description:"",projectId:null,listId:null,priority:"normal",plannedDate:null,deadlineDate:null,deadlineAt:null,timezone:"UTC",sourceIds:[],requestId:randomUUID()}}));
+    const bulkB=data(await writer.callTool({name:"create_todo",arguments:{title:"Bulk follow-up B",description:"",projectId:null,listId:null,priority:"normal",plannedDate:null,deadlineDate:null,deadlineAt:null,timezone:"UTC",sourceIds:[],requestId:randomUUID()}}));
+    const bulkRequestId=randomUUID(),bulkArgs={action:"complete",tasks:[{id:bulkA.id,revision:bulkA.revision},{id:bulkB.id,revision:bulkB.revision}],requestId:bulkRequestId};
+    const bulkCompleted=data(await writer.callTool({name:"bulk_update_todos",arguments:bulkArgs}));
+    assert.ok(bulkCompleted.todos.every((todo:any)=>todo.state==="done"));
+    const bulkReplay=data(await writer.callTool({name:"bulk_update_todos",arguments:bulkArgs}));
+    assert.deepEqual(bulkReplay.todos.map((todo:any)=>todo.revision),bulkCompleted.todos.map((todo:any)=>todo.revision));
   }finally{for(const client of clients)await client.close();if(app)await app.close();await f.close();}
 });

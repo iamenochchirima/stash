@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { sql } from "drizzle-orm";
 import type { Database } from "@stash/db";
-import { todoCreateInput, todoListInput, todoListUpdate, todoListQuery, todoPreferencesInput, todoUpdateInput } from "@stash/shared";
+import { todoBulkInput, todoCreateInput, todoListInput, todoListUpdate, todoListQuery, todoPreferencesInput, todoUpdateInput } from "@stash/shared";
 import { AppError } from "./index.js";
 import { z } from "zod";
 
@@ -25,10 +25,8 @@ export function todoService(db: Database, userId: string) {
     const row = result.rows[0];
     if (!row) throw new AppError(404, "Task not found.");
     if(row.trashedAt&&!includeTrash)throw new AppError(404,"Task not found.");
-    const [subtasks, sources] = await Promise.all([
-      tx.execute(sql`select id,title,completed_at as "completedAt",position,revision from todo_subtasks where todo_id=${id} and user_id=${userId} order by position,id`),
-      tx.execute(sql`select s.id,s.resource_id as "resourceId",r.title,r.kind,r.url,r.project_id as "projectId" from todo_sources s left join resources r on r.id=s.resource_id and r.user_id=s.user_id where s.todo_id=${id} and s.user_id=${userId} order by s.created_at,s.id`),
-    ]);
+    const subtasks = await tx.execute(sql`select id,title,completed_at as "completedAt",position,revision from todo_subtasks where todo_id=${id} and user_id=${userId} order by position,id`);
+    const sources = await tx.execute(sql`select s.id,s.resource_id as "resourceId",r.title,r.kind,r.url,r.project_id as "projectId" from todo_sources s left join resources r on r.id=s.resource_id and r.user_id=s.user_id where s.todo_id=${id} and s.user_id=${userId} order by s.created_at,s.id`);
     return { ...row, deadlineAt: stamp(row.deadlineAt), completedAt: stamp(row.completedAt), trashedAt: stamp(row.trashedAt), createdAt: stamp(row.createdAt), updatedAt: stamp(row.updatedAt), subtasks: subtasks.rows.map((s: Record<string, any>) => ({ ...s, completedAt: stamp(s.completedAt) })), sources: sources.rows };
   }
   async function getList(id: string) {
@@ -63,7 +61,7 @@ export function todoService(db: Database, userId: string) {
     }
     return { replay: false as const, todoId: null, result: null, fingerprint };
   };
-  const saveRequest = async (tx: Database, requestId: string, action: string, fingerprint: string, todoId: string, result: unknown) => {
+  const saveRequest = async (tx: Database, requestId: string, action: string, fingerprint: string, todoId: string | null, result: unknown) => {
     await tx.execute(sql`insert into todo_requests(user_id,request_id,action,fingerprint,todo_id,result) values(${userId},${requestId},${action},${fingerprint},${todoId},${JSON.stringify(result)}::jsonb)`);
   };
   const getPreferences = async () => {
@@ -193,6 +191,50 @@ export function todoService(db: Database, userId: string) {
         if(state==='done')await tx.execute(sql`update todo_reminders set status='cancelled',lease_until=null,updated_at=now() where todo_id=${id} and user_id=${userId} and status in ('pending','sending')`);
       });
       return get(id);
+    },
+    async bulk(raw: unknown) {
+      const input = todoBulkInput.parse(raw);
+      const action = `bulk_${input.action}`;
+      const outcome = await db.transaction(async tx => {
+        await active(tx);
+        const replay = await requests(tx,input.requestId,action,input);
+        if(replay.replay)return replay.result;
+        const ids = input.tasks.map(task=>task.id).sort();
+        const idList = sql.join(ids.map(id=>sql`${id}::uuid`),sql`, `);
+        const found = await tx.execute(sql`select * from todos where user_id=${userId} and id in (${idList}) order by id for update`);
+        if(found.rows.length!==input.tasks.length)throw new AppError(404,"One or more tasks are unavailable.");
+        const expected = new Map(input.tasks.map(task=>[task.id,task.revision]));
+        for(const row of found.rows){
+          if(Number(row.revision)!==expected.get(String(row.id)))throw new AppError(409,"One or more tasks changed elsewhere. Reload before continuing.");
+          if(row.trashed_at)throw new AppError(409,"Restore trashed tasks before changing them.");
+          await project(tx,row.project_id as string|null,true);
+        }
+        if(input.action==="move"){
+          await project(tx,input.projectId!,true);
+          await requireList(tx,input.listId!,input.projectId!,true);
+        }
+        for(const row of found.rows){
+          const id=String(row.id);
+          if(input.action==="complete"){
+            if(row.state==="done")continue;
+            const incomplete=await tx.execute(sql`select 1 from todo_subtasks where todo_id=${id} and user_id=${userId} and completed_at is null limit 1`);
+            if(incomplete.rows.length&&!input.subtasks)throw new AppError(409,"Choose whether to complete unfinished subtasks before applying this bulk action.");
+            if(incomplete.rows.length&&input.subtasks==="complete_all")await tx.execute(sql`update todo_subtasks set completed_at=now(),revision=revision+1,updated_at=now() where todo_id=${id} and user_id=${userId} and completed_at is null`);
+            await tx.execute(sql`update todos set state='done',completed_at=coalesce(completed_at,now()),revision=revision+1,updated_at=now() where id=${id} and user_id=${userId}`);
+            await tx.execute(sql`update todo_reminders set status='cancelled',lease_until=null,updated_at=now() where todo_id=${id} and user_id=${userId} and status in ('pending','sending')`);
+          }else if(input.action==="trash"){
+            await tx.execute(sql`update todos set trashed_at=now(),revision=revision+1,updated_at=now() where id=${id} and user_id=${userId}`);
+            await tx.execute(sql`update todo_reminders set status='cancelled',lease_until=null,updated_at=now() where todo_id=${id} and user_id=${userId} and status in ('pending','sending')`);
+          }else{
+            await tx.execute(sql`update todos set project_id=${input.projectId!},list_id=${input.listId!},position=coalesce((select max(position)+1 from todos where user_id=${userId} and project_id is not distinct from ${input.projectId!} and list_id is not distinct from ${input.listId!} and trashed_at is null),0),revision=revision+1,updated_at=now() where id=${id} and user_id=${userId}`);
+          }
+        }
+        const items=[];
+        for(const task of input.tasks)items.push(await get(task.id,tx,input.action==="trash"));
+        await saveRequest(tx,input.requestId,action,replay.fingerprint,null,items);
+        return items;
+      });
+      return { todos: outcome };
     },
     async setSources(id: string, sourceIds: string[], revision: number) {
       const ids = await db.transaction(async tx => {

@@ -55,6 +55,19 @@ export const todoSubtaskInput = z.object({ title: z.string().trim().min(1).max(2
 export const todoSubtaskUpdate = z.object({ revision: z.number().int().positive(), title: z.string().trim().min(1).max(200).optional(), completed: z.boolean().optional(), position: z.number().int().min(0).optional() }).refine(v => v.title !== undefined || v.completed !== undefined || v.position !== undefined);
 export const todoReferenceInput = z.object({ sourceIds: resourceIds });
 export const todoMoveInput = z.object({ revision: z.number().int().positive(), projectId: z.string().uuid().nullable(), listId: z.string().uuid().nullable() });
+export const todoBulkInput = z.object({
+  action: z.enum(["complete", "move", "trash"]),
+  tasks: z.array(z.object({ id: z.string().uuid(), revision: z.number().int().positive() })).min(1).max(100),
+  requestId: z.string().uuid(),
+  projectId: z.string().uuid().nullable().optional(),
+  listId: z.string().uuid().nullable().optional(),
+  subtasks: z.enum(["parent_only", "complete_all"]).optional(),
+}).superRefine((value,ctx)=>{
+  if(new Set(value.tasks.map(task=>task.id)).size!==value.tasks.length)ctx.addIssue({code:"custom",path:["tasks"],message:"Choose each task only once."});
+  if(value.action==="move"&&(value.projectId===undefined||value.listId===undefined))ctx.addIssue({code:"custom",path:["projectId"],message:"Choose a destination workspace and list."});
+  if(value.action!=="move"&&(value.projectId!==undefined||value.listId!==undefined))ctx.addIssue({code:"custom",path:["projectId"],message:"Only move actions can include a destination."});
+  if(value.action!=="complete"&&value.subtasks!==undefined)ctx.addIssue({code:"custom",path:["subtasks"],message:"Only complete actions can include subtask behavior."});
+});
 export const todoDeleteInput = z.object({ revision: z.number().int().positive(), confirmation: z.literal("DELETE") });
 export const todoPreferencesInput = z.object({ timezone });
 

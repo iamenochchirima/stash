@@ -1,0 +1,7 @@
+# Todos
+
+Todos are private follow-up tasks, separate from library reading status. A task can live in the personal area or one project, belong to one named list or Inbox, and reference several saved links, notes, ideas or PDFs. Project tasks are also available from the global Todos page.
+
+The local implementation currently includes Inbox, All, Today, Upcoming, Completed and Trash views; search and pagination; task title, notes, state, priority, planned date, date-only or timed deadline, subtasks and saved-source links; list creation/deletion; task restore and confirmed permanent deletion; project Tasks tabs; and create-task links from saved items. The HTTP and MCP APIs also support revision-checked bulk move, completion and Trash actions, with retry-safe request IDs. HTTP and MCP use the same account-owned services. Read-only agent keys cannot mutate tasks. New users get their browser timezone on first Todos setup; a saved IANA timezone controls date boundaries and the default timezone for new tasks. Changing that preference does not rewrite existing task deadlines.
+
+The feature is incomplete and not released. Recurrence, durable reminders, bulk actions, manual reordering, backup and account-lifecycle integration, and full browser/hosted verification remain pending. Consult the [Linear implementation checklist](https://linear.app/kasitek/document/todos-implementation-plan-and-acceptance-checklist-2294b124b9cf) for authoritative scope and progress.
