@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { projectInput } from "./projects";
 import { topicInput, normalizeTopicName } from "./topics";
-export const BACKUP_LIMITS={manifestBytes:8*1024*1024,itemBytes:64*1024*1024,pdfBytes:20*1024*1024,entries:20001,archiveBytes:24*1024*1024*1024,uncompressedBytes:24*1024*1024*1024,directoryBytes:8*1024*1024} as const;
+export const BACKUP_LIMITS={manifestBytes:8*1024*1024,itemBytes:64*1024*1024,todoBytes:128*1024*1024,pdfBytes:20*1024*1024,entries:20002,archiveBytes:24*1024*1024*1024,uncompressedBytes:24*1024*1024*1024,directoryBytes:8*1024*1024} as const;
 const hash=z.string().regex(/^[a-f0-9]{64}$/),id=z.string().uuid();
 export const backupProject=projectInput.extend({id,archivedAt:z.string().datetime().nullable().default(null)}).strict();
 export const portableTopic=topicInput.strict();
@@ -11,9 +11,11 @@ const manifestFields={
  collections:z.array(z.object({name:z.string().min(1).max(80)}).strict()).max(100),projects:z.array(backupProject).max(100).default([]),
  items:z.array(z.object({id,path:z.string().max(80),sha256:hash,original:z.object({path:z.string().max(80),sha256:hash,byteSize:z.number().int().min(1).max(BACKUP_LIMITS.pdfBytes)}).strict().nullable().default(null)}).strict()).max(10000),
 };
+const todoIndex=z.object({path:z.literal("todos.json"),sha256:hash,byteSize:z.number().int().min(1).max(BACKUP_LIMITS.todoBytes)}).strict();
 export const backupManifest=z.union([
- z.object({...manifestFields,version:z.literal(2)}).strict().transform(value=>({...value,topics:[] as z.infer<typeof portableTopic>[]})),
- z.object({...manifestFields,version:z.literal(3),topics:z.array(portableTopic).max(100)}).strict(),
+ z.object({...manifestFields,version:z.literal(2)}).strict().transform(value=>({...value,topics:[] as z.infer<typeof portableTopic>[],todos:null})),
+ z.object({...manifestFields,version:z.literal(3),topics:z.array(portableTopic).max(100)}).strict().transform(value=>({...value,todos:null})),
+ z.object({...manifestFields,version:z.literal(4),topics:z.array(portableTopic).max(100),todos:todoIndex}).strict(),
 ]).superRefine((manifest,ctx)=>{
  if(manifest.collections.length+manifest.topics.length>100)ctx.addIssue({code:"custom",message:"Backup exceeds the combined collection and topic limit"});
  if(new Set(manifest.topics.map(t=>normalizeTopicName(t.name))).size!==manifest.topics.length)ctx.addIssue({code:"custom",message:"Backup contains duplicate topics"});

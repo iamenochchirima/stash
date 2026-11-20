@@ -49,6 +49,15 @@ test("Backup validation rejects corrupt indexes, oversized entries, traversal, s
  const damaged=await openBackup(new Blob([mismatch]));await assert.rejects(damaged.readItem(id),/checksum/);await damaged.close();
 });
 
+test("Version 3 ZIP backups remain readable after the Todo data format was added",async()=>{
+ const id=randomUUID(),item=Buffer.from(JSON.stringify({id,kind:"note",body:"A version 3 note",topics:[]})),sha256=createHash("sha256").update(item).digest("hex");
+ const manifest={...fixtureManifest(id,sha256),version:3,topics:[]};
+ const bytes=await archive([{name:`items/${id}.json`,bytes:item},{name:"manifest.json",bytes:Buffer.from(JSON.stringify(manifest))}]);
+ const backup=await openBackup(new Blob([bytes]));
+ try{assert.equal(backup.manifest.version,3);assert.equal(backup.manifest.todos,null);assert.equal((await backup.readItem(id)).item.body,"A version 3 note");await assert.rejects(backup.readTodos(),/does not include Todo tasks/);}
+ finally{await backup.close();}
+});
+
 
 test("Full backup preserves the legal maximum project document and twenty prior bodies",async()=>{
  const f=await fixture();try{

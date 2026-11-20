@@ -8,8 +8,9 @@ export async function prepareBackup(
 ) {
   const archive = await openBackup(file, signal);
   let pdfs = 0,
-    missingOriginals = 0;
+    missingOriginals = 0,todos=0,todoLists=0,pendingReminders=0;
   try {
+    if(archive.manifest.todos){progress("Checking follow-up tasks…");const bundle=(await archive.readTodos()).todos;todos=bundle.tasks.length;todoLists=bundle.lists.length;pendingReminders=bundle.reminders.filter(reminder=>reminder.status==="pending"||reminder.status==="sending").length;}
     for (const [index, ref] of archive.manifest.items.entries()) {
       progress(
         `Checking item ${index + 1} of ${archive.manifest.items.length}…`,
@@ -20,7 +21,7 @@ export async function prepareBackup(
         pdfs++;
       } else if (item.kind === "pdf") missingOriginals++;
     }
-    return { archive, pdfs, missingOriginals };
+    return { archive, pdfs, missingOriginals,todos,todoLists,pendingReminders };
   } catch (error) {
     await archive.close();
     throw error;
@@ -78,7 +79,7 @@ export async function restoreBackup(
   await send("/manifest", blob(archive.manifestBytes));
   let saved = 0,
     duplicates = 0,
-    originals = 0;
+    originals = 0,todos=0,remindersPaused=0;
   for (const [index, ref] of archive.manifest.items.entries()) {
     progress(
       `Restoring item ${index + 1} of ${archive.manifest.items.length}…`,
@@ -122,6 +123,7 @@ export async function restoreBackup(
       }
     }
   }
+  if(archive.manifest.todos){progress("Restoring follow-up tasks…");const bundle=await archive.readTodos();const result=await send<{tasks:number;remindersPaused:number}>("/todos",blob(bundle.bytes));todos=result.tasks;remindersPaused=result.remindersPaused;}
   await send("/finish", "{}", "application/json");
-  return { saved, duplicates, originals };
+  return { saved, duplicates, originals,todos,remindersPaused };
 }

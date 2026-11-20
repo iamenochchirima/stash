@@ -30,14 +30,14 @@ test("JSON v3 round-trips empty topics, descriptions and multiple memberships wi
  }finally{await f.close();}
 });
 
-test("ZIP v3 restores topic metadata and memberships with retry-safe account-scoped mapping",async()=>{
+test("ZIP v4 restores topic metadata and memberships with retry-safe account-scoped mapping",async()=>{
  const f=await fixture();let backup:Awaited<ReturnType<typeof openBackup>>|undefined;try{
   const a=await f.signup(),b=await f.signup(),c=await f.signup();
   const topic=(await topicService(f.db,a.user.id).ensure({name:"Practical System Design",description:"Reliable software"})).topic;
   await topicService(f.db,a.user.id).ensure({name:"Business AI Systems",description:"Real business workflows"});
   await topicService(f.db,c.user.id).ensure({name:topic.name,description:"Other account"});
   await f.request("POST","/api/items",{kind:"note",body:"Design notes",topicIds:[topic.id]},a.cookie);
-  backup=await openBackup(new Blob([await collect((await createBackupExport(f.db,a.user.id,undefined)).stream)]));assert.equal(backup.manifest.version,3);assert.equal(backup.manifest.topics.length,2);assert.equal(backup.manifest.collections.length,1);
+  backup=await openBackup(new Blob([await collect((await createBackupExport(f.db,a.user.id,undefined)).stream)]));assert.equal(backup.manifest.version,4);assert.equal(backup.manifest.topics.length,2);assert.equal(backup.manifest.collections.length,1);
   const permission=(await f.request("POST","/api/backups/restore",{manifestHash:createHash("sha256").update(backup.manifestBytes).digest("hex")},b.cookie)).json();
   const headers={authorization:`Bearer ${permission.token}`,"content-type":"application/vnd.stash.backup+json"};
   const manifest=await f.request("POST","/backup-transfers/restore/manifest",Buffer.from(backup.manifestBytes),undefined,headers);assert.equal(manifest.statusCode,200,manifest.body);

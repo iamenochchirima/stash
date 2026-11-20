@@ -3,10 +3,10 @@ import type { Database } from "@stash/db";
 import { sql } from "drizzle-orm";
 import { createHash,randomBytes } from "node:crypto";
 import { z } from "zod";
-import { AppError,library,topicService } from "@stash/core";
+import { AppError,library,topicService,importTodos } from "@stash/core";
 import { importPortableItem } from "@stash/core/items-portability";
 import { restoreProjects,finishProjectRestore } from "@stash/core/projects-portability";
-import { BACKUP_LIMITS,backupManifest,portableItem,normalizeTopicName } from "@stash/shared";
+import { BACKUP_LIMITS,backupManifest,portableItem,portableTodoBundle,normalizeTopicName } from "@stash/shared";
 import { auth,digest } from "./auth.js";
 import { restoreContext,type RestoreContext } from "./backup-context.js";
 import { originalRestoreTicket } from "./backup-originals.js";
@@ -50,7 +50,7 @@ export function registerBackupRestoreRoutes(app:FastifyInstance,db:Database,opti
   });
   return{token,restoreUrl:`${options.publicApiUrl}/backup-transfers/restore`};
  });
- app.addContentTypeParser(mime,{parseAs:"buffer",bodyLimit:BACKUP_LIMITS.itemBytes},(_req,body,done)=>done(null,body));
+ app.addContentTypeParser(mime,{parseAs:"buffer",bodyLimit:BACKUP_LIMITS.todoBytes},(_req,body,done)=>done(null,body));
  const hooks={
   onRequest:async(req:FastifyRequest)=>{
    available();const token=req.headers.authorization?.match(/^Bearer ([A-Za-z0-9_-]{43})$/)?.[1];if(!token)throw new AppError(401,"Restore permission has expired. Choose the backup again.");
@@ -77,7 +77,7 @@ export function registerBackupRestoreRoutes(app:FastifyInstance,db:Database,opti
    const created=await restoreProjects(tx,context.userId,manifest.projects),groups=library(tx,context.userId);
    for(const group of manifest.collections)if(!(await groups.collections()).some(c=>c.name===group.name))await groups.createCollection(group.name);
    for(const topic of manifest.topics)await topicService(tx,context.userId).ensure(topic);
-   const retained={version:manifest.version,items:manifest.items,projects:manifest.projects,collections:manifest.collections,topics:manifest.topics};
+   const retained={version:manifest.version,items:manifest.items,projects:manifest.projects,collections:manifest.collections,topics:manifest.topics,todos:manifest.todos};
    await tx.execute(sql`update backup_restores set manifest=${JSON.stringify(retained)}::jsonb,created_projects=${"{"+created.join(",")+"}"}::uuid[] where token_hash=${context.tokenHash}`);
    return{ready:true,resumed:false};
   });
@@ -97,6 +97,9 @@ export function registerBackupRestoreRoutes(app:FastifyInstance,db:Database,opti
    await tx.execute(sql`insert into backup_restore_items(transfer_hash,origin_id,resource_id,source_origin_id,created) values(${context.tokenHash},${id},${result.id},${item.projectSourceId||null},${!result.duplicate}) on conflict(transfer_hash,origin_id) do update set resource_id=excluded.resource_id,created=backup_restore_items.created or excluded.created`);
    return result;
   });
+ });
+ app.post("/backup-transfers/restore/todos",{...hooks,bodyLimit:BACKUP_LIMITS.todoBytes},async req=>{
+  const context=req.backupRestore!,index=context.manifest?.todos,content=bytes(req);if(!index)throw new AppError(400,"This backup does not include Todo data.");if(content.length!==index.byteSize||createHash("sha256").update(content).digest("hex")!==index.sha256)throw new AppError(400,"Todo data failed its backup checksum.");const bundle=portableTodoBundle.parse(json(content));await restoreContext(db,context.tokenHash);return importTodos(db,context.userId,bundle);
  });
  app.post("/backup-transfers/restore/originals/:id",{...hooks,bodyLimit:1024},async req=>{
   if(!options.storageAvailable)throw new AppError(503,"Original-file storage is not connected.");

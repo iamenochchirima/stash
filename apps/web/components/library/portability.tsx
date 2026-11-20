@@ -8,6 +8,9 @@ type Preview = {
   missingOriginals?: number;
   collectionsToCreate: number;
   topicsToCreate?: number;
+  todosToCreate?:number;
+  todoListsToCreate?:number;
+  todosRemindersPaused?:number;
   total: number;
   valid: number;
   duplicates: number;
@@ -36,6 +39,9 @@ export function Portability({
       archive: OpenBackup;
       pdfs: number;
       missingOriginals: number;
+      todos: number;
+      todoLists: number;
+      pendingReminders: number;
     } | null>(null),
     [progress, setProgress] = useState("");
   const active = useRef<{
@@ -127,7 +133,10 @@ export function Portability({
               ? "project"
               : "projects"}{" "}
             {!!backup.archive.manifest.topics?.length && ` · ${backup.archive.manifest.topics.length} topics`}
+            {backup.todos>0&&` · ${backup.todos} follow-up ${backup.todos===1?"task":"tasks"}`}
+            {backup.todoLists>0&&` · ${backup.todoLists} Todo ${backup.todoLists===1?"list":"lists"}`}
           </p>
+          {backup.pendingReminders>0&&<p>{backup.pendingReminders} scheduled {backup.pendingReminders===1?"reminder remains":"reminders remain"} paused after restore.</p>}
           {!!backup.missingOriginals && (
             <p>{backup.missingOriginals} PDFs have saved text only.</p>
           )}
@@ -145,7 +154,7 @@ export function Portability({
                   setProgress,
                 );
                 setReport(
-                  `${result.saved} restored, ${result.duplicates} existing, ${result.originals} ${result.originals === 1 ? "original" : "originals"} added.`,
+                  `${result.saved} restored, ${result.duplicates} existing, ${result.originals} ${result.originals === 1 ? "original" : "originals"} added; ${result.todos} follow-up ${result.todos === 1 ? "task" : "tasks"} restored.${result.remindersPaused ? ` ${result.remindersPaused} scheduled ${result.remindersPaused === 1 ? "reminder remains" : "reminders remain"} paused.` : ""}`,
                 );
                 setBackup(null);
                 await backup.archive.close();
@@ -176,6 +185,9 @@ export function Portability({
           {!!preview.topicsToCreate && (
             <p>{preview.topicsToCreate} new topics will be created.</p>
           )}
+          {!!preview.todosToCreate&&<p>{preview.todosToCreate} follow-up {preview.todosToCreate===1?"task":"tasks"} will be restored.</p>}
+          {!!preview.todoListsToCreate&&<p>{preview.todoListsToCreate} Todo {preview.todoListsToCreate===1?"list":"lists"} will be restored.</p>}
+          {!!preview.todosRemindersPaused&&<p>{preview.todosRemindersPaused} scheduled {preview.todosRemindersPaused===1?"reminder will":"reminders will"} remain paused.</p>}
           <p>
             {preview.total} entries · {preview.toSave} new ·{" "}
             {preview.duplicates} duplicates · {preview.rejected.length} rejected
@@ -207,7 +219,9 @@ export function Portability({
               busy ||
               (!preview.toSave &&
                 !preview.collectionsToCreate &&
-                !preview.topicsToCreate)
+                !preview.topicsToCreate &&
+                !preview.todosToCreate &&
+                !preview.todoListsToCreate)
             }
             onClick={async () => {
               setBusy(true);
@@ -219,12 +233,13 @@ export function Portability({
                   rejected: Preview["rejected"];
                   collectionErrors: { name: string; error: string }[];
                   topicErrors?: { name: string; error: string }[];
+                  todosSaved?:number;todosDuplicates?:number;todosTotal?:number;todosListsSaved?:number;todosRemindersPaused?:number;restoredRemindersPaused?:boolean;
                 }>("/items/import", {
                   method: "POST",
                   body: JSON.stringify(input),
                 });
                 setReport(
-                  `${result.saved} saved, ${result.duplicates} duplicates, ${result.rejected.length} rejected.`,
+                  `${result.saved} saved, ${result.duplicates} duplicates, ${result.rejected.length} rejected; ${result.todosSaved||0} follow-up ${result.todosSaved===1?"task":"tasks"} restored.${result.todosRemindersPaused ? ` ${result.todosRemindersPaused} scheduled ${result.todosRemindersPaused===1?"reminder remains":"reminders remain"} paused.` : ""}`,
                 );
                 setPreview(null);
                 if (
@@ -257,6 +272,8 @@ export function Portability({
               ? `Import ${preview.toSave} items`
               : preview.topicsToCreate
                 ? "Import organization"
+              : preview.todosToCreate?`Import ${preview.todosToCreate} tasks`
+                : preview.todoListsToCreate?`Import Todo lists`
                 : "Import collections"}
           </button>
         </div>

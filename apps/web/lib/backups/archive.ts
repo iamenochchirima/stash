@@ -1,5 +1,5 @@
 import { BlobReader, ZipReader, Writer, type FileEntry } from "@zip.js/zip.js";
-import { BACKUP_LIMITS, backupManifest, portableItem, normalizeTopicName, type BackupManifest, type PortableItem } from "@stash/shared";
+import { BACKUP_LIMITS, backupManifest, portableItem, portableTodoBundle, normalizeTopicName, type BackupManifest, type PortableItem, type PortableTodoBundle } from "@stash/shared";
 class ArchiveError extends Error {}
 class BoundedReader extends BlobReader {
   async readUint8Array(offset: number, length: number) {
@@ -50,6 +50,7 @@ export type OpenBackup = {
   manifest: BackupManifest;
   manifestBytes: Uint8Array;
   readItem: (id: string) => Promise<{ item: PortableItem; bytes: Uint8Array }>;
+  readTodos: () => Promise<{todos:PortableTodoBundle;bytes:Uint8Array}>;
   readOriginal: (id: string) => Promise<Uint8Array>;
   close: () => Promise<void>;
 };
@@ -80,7 +81,7 @@ export async function openBackup(
         entry.executable ||
         entry.encrypted ||
         entry.comment ||
-        !/^(manifest\.json|items\/[a-f0-9-]{36}\.json|originals\/[a-f0-9-]{36}\.pdf)$/.test(
+        !/^(manifest\.json|todos\.json|items\/[a-f0-9-]{36}\.json|originals\/[a-f0-9-]{36}\.pdf)$/.test(
           entry.filename,
         ) ||
         entries.has(entry.filename)
@@ -91,7 +92,9 @@ export async function openBackup(
       const limit =
         entry.filename === "manifest.json"
           ? BACKUP_LIMITS.manifestBytes
-          : entry.filename.endsWith(".pdf")
+          : entry.filename==="todos.json"
+            ? BACKUP_LIMITS.todoBytes
+            : entry.filename.endsWith(".pdf")
             ? BACKUP_LIMITS.pdfBytes
             : BACKUP_LIMITS.itemBytes;
       if (
@@ -146,6 +149,7 @@ export async function openBackup(
       );
     const expected = new Set([
       "manifest.json",
+      ...(manifest.todos?[manifest.todos.path]:[]),
       ...manifest.items.flatMap((row) => [
         row.path,
         ...(row.original ? [row.original.path] : []),
@@ -204,10 +208,22 @@ export async function openBackup(
         throw new ArchiveError("A PDF failed its backup checksum.");
       return bytes;
     }
+    async function readTodos(){
+      if(!manifest.todos)throw new ArchiveError("This backup does not include Todo tasks.");
+      const bytes=await read(manifest.todos.path,BACKUP_LIMITS.todoBytes);
+      if(bytes.length!==manifest.todos.byteSize||(await sha256(bytes))!==manifest.todos.sha256)throw new ArchiveError("Todo data failed its backup checksum.");
+      try{
+        const todos=portableTodoBundle.parse(JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(bytes)));
+        const projectIds=new Set(manifest.projects.map(project=>project.id));
+        if([...todos.lists,...todos.recurrences,...todos.tasks].some(row=>row.projectId&&!projectIds.has(row.projectId)))throw new ArchiveError("Todo data references a project missing from the backup.");
+        return{todos,bytes};
+      }catch(error){if(error instanceof ArchiveError)throw error;throw new ArchiveError("Todo data is damaged or has an unsupported format.");}
+    }
     return {
       manifest,
       manifestBytes,
       readItem,
+      readTodos,
       readOriginal,
       close: () => reader.close(),
     };
