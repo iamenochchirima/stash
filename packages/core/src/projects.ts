@@ -127,6 +127,8 @@ export function projectService(db: Database, userId: string) {
         if (!row.archived_at) throw new AppError(409, "Archive this project before deleting it.");
         const contents = await tx.execute(sql`select 1 from resources where project_id=${id} and user_id=${userId} limit 1`);
         if (contents.rows.length) throw new AppError(409, "Move or permanently delete all project items, including Trash, before deleting this project.");
+        const taskContents = await tx.execute(sql`select 1 from todos where project_id=${id} and user_id=${userId} union all select 1 from todo_lists where project_id=${id} and user_id=${userId} union all select 1 from todo_recurrences where project_id=${id} and user_id=${userId} limit 1`);
+        if (taskContents.rows.length) throw new AppError(409, "Move or permanently delete all project tasks, lists and recurring schedules, including Trash, before deleting this project.");
         await tx.execute(sql`delete from projects where id=${id} and user_id=${userId}`);
         return { deleted: true };
       });

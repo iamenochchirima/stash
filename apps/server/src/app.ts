@@ -2,6 +2,7 @@ import { registerBackupRestoreRoutes } from "./backup-restore-routes.js";
 import { registerBackupRoutes } from "./backup-routes.js";
 import { registerProjects } from "./project-routes.js";
 import { registerTopics } from "./topic-routes.js";
+import { registerTodos } from "./todo-routes.js";
 import Fastify from "fastify";
 import cookie from "@fastify/cookie";
 import rateLimit from "@fastify/rate-limit";
@@ -238,6 +239,7 @@ export async function createApp(
   registerBackupRestoreRoutes(app,db,{production:options.production,enabled:options.itemsEnabled??!options.production,storageAvailable:!!options.fileStore,publicApiUrl});
   registerTopics(app,db,options);
   registerProjects(app,db,!!options.production);
+  registerTodos(app,db,!!options.production);
   registerItems(app, db, { production: options.production, enabled: options.itemsEnabled ?? !options.production });
   app.get("/api/resources", async (request) =>
     library(db, (await authentication.user(request)).id).list(

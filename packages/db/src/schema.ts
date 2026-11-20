@@ -77,6 +77,45 @@ export const projects = pgTable("projects", {
  revision: integer("revision").notNull().default(1), archivedAt: timestamp("archived_at", { withTimezone: true }),
  createdAt: createdAt(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+export const todoLists = pgTable("todo_lists", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  projectId: uuid("project_id"), name: text("name").notNull(), revision: integer("revision").notNull().default(1),
+  position: integer("position").notNull().default(0), createdAt: createdAt(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, t => [uniqueIndex("todo_list_id_owner").on(t.id,t.userId), uniqueIndex("todo_list_scope_owner").on(t.id,t.userId,t.projectId), foreignKey({columns:[t.projectId,t.userId],foreignColumns:[projects.id,projects.userId]}).onDelete("cascade")]);
+export const todoRecurrences = pgTable("todo_recurrences", {
+  id: uuid("id").defaultRandom().primaryKey(), userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }), projectId: uuid("project_id"),
+  rule: jsonb("rule").$type<Record<string,unknown>>().notNull(), timezone: text("timezone").notNull(), anchorDate: text("anchor_date").notNull(), localTime: text("local_time"), endsOn: text("ends_on"),
+  remainingCount: integer("remaining_count"), active: boolean("active").notNull().default(true), currentTodoId: uuid("current_todo_id"), completedCount: integer("completed_count").notNull().default(0),
+  createdAt: createdAt(), updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, t => [uniqueIndex("todo_recurrence_id_owner").on(t.id,t.userId), foreignKey({columns:[t.projectId,t.userId],foreignColumns:[projects.id,projects.userId]}).onDelete("cascade")]);
+export const todos = pgTable("todos", {
+  id: uuid("id").defaultRandom().primaryKey(), userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }), projectId: uuid("project_id"), listId: uuid("list_id"), recurrenceId: uuid("recurrence_id"),
+  title: text("title").notNull(), description: text("description").notNull().default(""), state: text("state", { enum:["todo","in_progress","done"] }).notNull().default("todo"),
+  priority: text("priority", { enum:["low","normal","high"] }).notNull().default("normal"), plannedDate: text("planned_date"), deadlineDate: text("deadline_date"), deadlineAt: timestamp("deadline_at",{withTimezone:true}), timezone: text("timezone").notNull().default("UTC"),
+  completedAt: timestamp("completed_at",{withTimezone:true}), trashedAt: timestamp("trashed_at",{withTimezone:true}), position: integer("position").notNull().default(0), revision: integer("revision").notNull().default(1), createdAt: createdAt(), updatedAt: timestamp("updated_at",{withTimezone:true}).notNull().defaultNow(),
+}, t => [uniqueIndex("todo_id_owner").on(t.id,t.userId), foreignKey({columns:[t.projectId,t.userId],foreignColumns:[projects.id,projects.userId]}).onDelete("cascade"), foreignKey({columns:[t.listId,t.userId],foreignColumns:[todoLists.id,todoLists.userId]}).onDelete("restrict"), foreignKey({columns:[t.listId,t.userId,t.projectId],foreignColumns:[todoLists.id,todoLists.userId,todoLists.projectId]}).onDelete("restrict"), foreignKey({columns:[t.recurrenceId,t.userId],foreignColumns:[todoRecurrences.id,todoRecurrences.userId]}).onDelete("no action")]);
+export const todoSubtasks = pgTable("todo_subtasks", {
+  id: uuid("id").defaultRandom().primaryKey(), userId: uuid("user_id").notNull().references(() => users.id,{onDelete:"cascade"}), todoId: uuid("todo_id").notNull(), title: text("title").notNull(), completedAt: timestamp("completed_at",{withTimezone:true}),
+  position: integer("position").notNull().default(0), revision: integer("revision").notNull().default(1), createdAt: createdAt(), updatedAt: timestamp("updated_at",{withTimezone:true}).notNull().defaultNow(),
+}, t => [foreignKey({columns:[t.todoId,t.userId],foreignColumns:[todos.id,todos.userId]}).onDelete("cascade")]);
+export const todoSources = pgTable("todo_sources", {
+  id: uuid("id").defaultRandom().primaryKey(), userId: uuid("user_id").notNull().references(() => users.id,{onDelete:"cascade"}), todoId: uuid("todo_id").notNull(), resourceId: uuid("resource_id"), createdAt: createdAt(),
+}, t => [foreignKey({columns:[t.todoId,t.userId],foreignColumns:[todos.id,todos.userId]}).onDelete("cascade"), foreignKey({columns:[t.resourceId,t.userId],foreignColumns:[resources.id,resources.userId]}).onDelete("no action")]);
+export const todoOccurrences = pgTable("todo_occurrences", {
+  id: uuid("id").defaultRandom().primaryKey(), userId: uuid("user_id").notNull().references(() => users.id,{onDelete:"cascade"}), recurrenceId: uuid("recurrence_id").notNull(), todoId: uuid("todo_id").notNull(),
+  occurrenceNumber: integer("occurrence_number").notNull(), scheduledDate: text("scheduled_date").notNull(), completedAt: timestamp("completed_at",{withTimezone:true}), createdAt: createdAt(),
+}, t => [foreignKey({columns:[t.recurrenceId,t.userId],foreignColumns:[todoRecurrences.id,todoRecurrences.userId]}).onDelete("cascade"), foreignKey({columns:[t.todoId,t.userId],foreignColumns:[todos.id,todos.userId]}).onDelete("cascade")]);
+export const todoReminders = pgTable("todo_reminders", {
+  id: uuid("id").defaultRandom().primaryKey(), userId: uuid("user_id").notNull().references(() => users.id,{onDelete:"cascade"}), todoId: uuid("todo_id").notNull(), channel: text("channel",{enum:["in_app","email"]}).notNull(),
+  status: text("status",{enum:["pending","sending","sent","failed","missed","cancelled","read","dismissed"]}).notNull().default("pending"), scheduledAt: timestamp("scheduled_at",{withTimezone:true}).notNull(), idempotencyKey: text("idempotency_key").notNull(),
+  attempts: integer("attempts").notNull().default(0), leaseUntil: timestamp("lease_until",{withTimezone:true}), sentAt: timestamp("sent_at",{withTimezone:true}), readAt: timestamp("read_at",{withTimezone:true}), dismissedAt: timestamp("dismissed_at",{withTimezone:true}),
+  lastError: text("last_error"), createdAt: createdAt(), updatedAt: timestamp("updated_at",{withTimezone:true}).notNull().defaultNow(),
+}, t => [foreignKey({columns:[t.todoId,t.userId],foreignColumns:[todos.id,todos.userId]}).onDelete("cascade")]);
+export const todoPreferences = pgTable("todo_preferences", { userId: uuid("user_id").primaryKey().references(() => users.id,{onDelete:"cascade"}), timezone: text("timezone").notNull().default("UTC"), emailReminders: boolean("email_reminders").notNull().default(false), inAppReminders: boolean("in_app_reminders").notNull().default(true), updatedAt: timestamp("updated_at",{withTimezone:true}).notNull().defaultNow() });
+export const todoRequests = pgTable("todo_requests", {
+  userId: uuid("user_id").notNull().references(() => users.id,{onDelete:"cascade"}), requestId: uuid("request_id").notNull(), action: text("action").notNull(), fingerprint: text("fingerprint").notNull(), todoId: uuid("todo_id"), result: jsonb("result").$type<Record<string,unknown>>().notNull(), createdAt: createdAt(),
+}, t => [primaryKey({columns:[t.userId,t.requestId]}), foreignKey({columns:[t.todoId,t.userId],foreignColumns:[todos.id,todos.userId]}).onDelete("no action")]);
 export const resources = pgTable(
   "resources",
   {
