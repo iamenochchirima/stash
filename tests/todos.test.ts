@@ -56,7 +56,7 @@ test("Todos are private task records with owned projects, lists, sources and ret
     const reordered=await f.request("POST","/api/todos/reorder",reorderInput,a.cookie);
     assert.equal(reordered.statusCode,200,reordered.body);
     const manual=(await f.request("GET",`/api/todos?sort=manual&projectId=${project.id}&listId=${list.id}`,undefined,a.cookie)).json().items;
-    assert.ok(manual.findIndex((task:any)=>task.id===beforeOrder[1].id)<manual.findIndex((task:any)=>task.id===beforeOrder[0].id),"manual view applies saved positions");
+    assert.ok(manual.findIndex((task:any)=>task.id===beforeOrder[1].id)<manual.findIndex((task:any)=>task.id===beforeOrder[0].id),`manual view applies saved positions: ${JSON.stringify({before:beforeOrder.map((task:any)=>({id:task.id,title:task.title,position:task.position})),requested:reorderInput.tasks,reordered:reordered.json().todos.map((task:any)=>({id:task.id,title:task.title,position:task.position})),manual:manual.map((task:any)=>({id:task.id,title:task.title,position:task.position}))})}`);
     assert.equal((await f.request("POST","/api/todos/reorder",reorderInput,a.cookie)).json().todos[0].revision,reordered.json().todos[0].revision,"reorder retries return their original result");
     const orderedTasks=reordered.json().todos;
     const unfinished=orderedTasks.find((task:any)=>task.id===preferenceTask.id);
@@ -105,6 +105,81 @@ test("Todos are private task records with owned projects, lists, sources and ret
   } finally { await f.close(); }
 });
 
+test("Recurring tasks keep history, create one next occurrence and stop at their count",async()=>{
+  const f=await fixture();
+  try{
+    const account=await f.signup();
+    const source=(await f.request("POST","/api/items",{kind:"link",url:"https://example.test/repeating-source",title:"Recurring source"},account.cookie)).json().item;
+    const task=(await f.request("POST","/api/todos",{title:"Review this source",timezone:"Africa/Johannesburg",plannedDate:"2026-11-20",sourceIds:[source.id],requestId:randomUUID()},account.cookie)).json().todo;
+    await f.request("POST",`/api/todos/${task.id}/subtasks`,{title:"Check the citations"},account.cookie);
+    const current=(await f.request("GET",`/api/todos/${task.id}`,undefined,account.cookie)).json().todo;
+    const schedule={revision:current.revision,requestId:randomUUID(),rule:{frequency:"daily",interval:2},timezone:"Africa/Johannesburg",anchorDate:"2026-11-20",count:3,endsOn:"2026-12-10"};
+    const started=await f.request("PUT",`/api/todos/${task.id}/recurrence`,schedule,account.cookie);
+    assert.equal(started.statusCode,200,started.body);assert.equal(started.json().recurrence.remainingCount,3);
+    assert.equal((await f.request("PATCH",`/api/todos/${task.id}`,{revision:started.json().todo.revision,state:"done"},account.cookie)).statusCode,409,"recurring completion must record an occurrence");
+    const bulk=await f.request("POST","/api/todos/bulk",{action:"complete",tasks:[{id:task.id,revision:started.json().todo.revision}],requestId:randomUUID()},account.cookie);
+    assert.equal(bulk.statusCode,409,"bulk completion cannot skip recurrence history");
+    const firstCompletion={revision:started.json().todo.revision,requestId:randomUUID(),subtasks:"parent_only"};
+    const first=await f.request("POST",`/api/todos/${task.id}/complete`,firstCompletion,account.cookie);
+    assert.equal(first.statusCode,200,first.body);
+    const firstReplay=await f.request("POST",`/api/todos/${task.id}/complete`,firstCompletion,account.cookie);
+    assert.equal(firstReplay.json().todo.revision,first.json().todo.revision,"retry does not create a duplicate occurrence");
+    let recurrence=(await f.request("GET",`/api/todos/${task.id}/recurrence`,undefined,account.cookie)).json().recurrence;
+    assert.equal(recurrence.history.length,2);assert.equal(recurrence.history[0].scheduledDate,"2026-11-22");
+    let next=(await f.request("GET","/api/todos?view=all",undefined,account.cookie)).json().items.find((item:any)=>item.recurrenceId===recurrence.id);
+    assert.equal(next.plannedDate,"2026-11-22");
+    let full=(await f.request("GET",`/api/todos/${next.id}`,undefined,account.cookie)).json().todo;
+    assert.equal(full.sources[0].resourceId,source.id);assert.equal(full.subtasks[0].completedAt,null);
+    await f.request("POST",`/api/todos/${next.id}/complete`,{revision:next.revision,requestId:randomUUID(),subtasks:"parent_only"},account.cookie);
+    recurrence=(await f.request("GET",`/api/todos/${task.id}/recurrence`,undefined,account.cookie)).json().recurrence;
+    next=(await f.request("GET","/api/todos?view=all",undefined,account.cookie)).json().items.find((item:any)=>item.recurrenceId===recurrence.id);
+    assert.equal(next.plannedDate,"2026-11-24");
+    const finalCompletion=await f.request("POST",`/api/todos/${next.id}/complete`,{revision:next.revision,requestId:randomUUID(),subtasks:"parent_only"},account.cookie);
+    assert.equal(finalCompletion.statusCode,200,finalCompletion.body);
+    recurrence=(await f.request("GET",`/api/todos/${task.id}/recurrence`,undefined,account.cookie)).json().recurrence;
+    assert.equal(recurrence.active,false,JSON.stringify(recurrence));assert.equal(recurrence.currentTodoId,null);assert.equal(recurrence.remainingCount,0);assert.equal(recurrence.history.length,3);
+    assert.equal((await f.request("GET","/api/todos?view=all",undefined,account.cookie)).json().total,0,"a finished series has no open task");
+  }finally{await f.close();}
+});
+
+test("Recurring completion undo removes only an untouched next occurrence",async()=>{
+  const f=await fixture();
+  try{
+    const account=await f.signup();
+    const task=(await f.request("POST","/api/todos",{title:"Review weekly findings",plannedDate:"2026-11-20",timezone:"Africa/Johannesburg",requestId:randomUUID()},account.cookie)).json().todo;
+    const schedule=await f.request("PUT",`/api/todos/${task.id}/recurrence`,{revision:task.revision,requestId:randomUUID(),rule:{frequency:"daily",interval:1},timezone:"Africa/Johannesburg",anchorDate:"2026-11-20",count:4},account.cookie);
+    assert.equal(schedule.statusCode,200,schedule.body);
+    const firstDone=await f.request("POST",`/api/todos/${task.id}/complete`,{revision:schedule.json().todo.revision,requestId:randomUUID()},account.cookie);
+    assert.equal(firstDone.statusCode,200,firstDone.body);
+    const next=(await f.request("GET","/api/todos?view=all",undefined,account.cookie)).json().items.find((item:any)=>item.recurrenceId===schedule.json().recurrence.id);
+    const undone=await f.request("POST",`/api/todos/${task.id}/reopen`,{revision:firstDone.json().todo.revision},account.cookie);
+    assert.equal(undone.statusCode,200,undone.body);
+    let recurrence=(await f.request("GET",`/api/todos/${task.id}/recurrence`,undefined,account.cookie)).json().recurrence;
+    assert.equal(recurrence.currentTodoId,task.id);assert.equal(recurrence.completedCount,0);assert.equal(recurrence.remainingCount,4);
+    assert.equal(recurrence.history.length,1);assert.equal(recurrence.history[0].completedAt,null);
+    let active=(await f.request("GET","/api/todos?view=all",undefined,account.cookie)).json().items.filter((item:any)=>item.recurrenceId===recurrence.id);
+    assert.deepEqual(active.map((item:any)=>item.id),[task.id],"undo deletes only the untouched generated occurrence");
+
+    const completedAgain=await f.request("POST",`/api/todos/${task.id}/complete`,{revision:undone.json().todo.revision,requestId:randomUUID()},account.cookie);
+    assert.equal(completedAgain.statusCode,200,completedAgain.body);
+    const createdNext=(await f.request("GET","/api/todos?view=all",undefined,account.cookie)).json().items.find((item:any)=>item.id!==task.id&&item.recurrenceId===recurrence.id);
+    const editedNext=await f.request("PATCH",`/api/todos/${createdNext.id}`,{revision:createdNext.revision,title:"Keep this edited occurrence"},account.cookie);
+    assert.equal(editedNext.statusCode,200,editedNext.body);
+    const unsafeUndo=await f.request("POST",`/api/todos/${task.id}/reopen`,{revision:completedAgain.json().todo.revision},account.cookie);
+    assert.equal(unsafeUndo.statusCode,409,"undo must not delete edits made to the next occurrence");
+    assert.equal((await f.request("GET",`/api/todos/${createdNext.id}`,undefined,account.cookie)).json().todo.title,"Keep this edited occurrence");
+
+    const stopped=await f.request("POST",`/api/todos/${createdNext.id}/recurrence/stop`,{revision:editedNext.json().todo.revision,requestId:randomUUID()},account.cookie);
+    assert.equal(stopped.statusCode,200,stopped.body);
+    const finished=await f.request("POST",`/api/todos/${createdNext.id}/complete`,{revision:editedNext.json().todo.revision,requestId:randomUUID()},account.cookie);
+    assert.equal(finished.statusCode,200,finished.body);
+    recurrence=(await f.request("GET",`/api/todos/${task.id}/recurrence`,undefined,account.cookie)).json().recurrence;
+    assert.equal(recurrence.active,false);assert.equal(recurrence.history.filter((item:any)=>item.completedAt).length,2);
+    active=(await f.request("GET","/api/todos?view=all",undefined,account.cookie)).json().items.filter((item:any)=>item.recurrenceId===recurrence.id);
+    assert.equal(active.length,0,"stopping a series never creates another occurrence");
+  }finally{await f.close();}
+});
+
 test("Todo MCP tools share records and preserve read-only and account boundaries",async()=>{
   const f=await fixture();let app:any;const clients:Client[]=[];
   try{
@@ -148,5 +223,12 @@ test("Todo MCP tools share records and preserve read-only and account boundaries
     assert.ok(bulkCompleted.todos.every((todo:any)=>todo.state==="done"));
     const bulkReplay=data(await writer.callTool({name:"bulk_update_todos",arguments:bulkArgs}));
     assert.deepEqual(bulkReplay.todos.map((todo:any)=>todo.revision),bulkCompleted.todos.map((todo:any)=>todo.revision));
+    const recurring=data(await writer.callTool({name:"create_todo",arguments:{title:"Weekly review",description:"",projectId:null,listId:null,priority:"normal",plannedDate:"2026-11-20",deadlineDate:null,deadlineAt:null,timezone:"Africa/Johannesburg",sourceIds:[],requestId:randomUUID()}}));
+    const schedule=data(await writer.callTool({name:"set_todo_recurrence",arguments:{id:recurring.id,revision:recurring.revision,requestId:randomUUID(),rule:{frequency:"weekly",interval:1,weekdays:[1,3,5]},timezone:"Africa/Johannesburg",anchorDate:"2026-11-20",count:4}}));
+    assert.equal(schedule.recurrence.active,true);
+    const recurrenceInfo=data(await reader.callTool({name:"get_todo_recurrence",arguments:{id:recurring.id}}));
+    assert.equal(recurrenceInfo.rule.frequency,"weekly");
+    const stopped=data(await writer.callTool({name:"stop_todo_recurrence",arguments:{id:recurring.id,revision:schedule.todo.revision,requestId:randomUUID()}}));
+    assert.equal(stopped.active,false);
   }finally{for(const client of clients)await client.close();if(app)await app.close();await f.close();}
 });

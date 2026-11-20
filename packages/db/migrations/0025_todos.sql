@@ -82,6 +82,7 @@ CREATE INDEX todo_list_state ON todos(user_id, list_id, state, trashed_at, posit
 CREATE INDEX todo_owner_updated ON todos(user_id, updated_at DESC, id DESC);
 CREATE INDEX todo_due ON todos(user_id, deadline_at) WHERE deadline_at IS NOT NULL AND trashed_at IS NULL AND state <> 'done';
 CREATE INDEX todo_date_due ON todos(user_id, deadline_date) WHERE deadline_date IS NOT NULL AND trashed_at IS NULL AND state <> 'done';
+CREATE UNIQUE INDEX todo_one_open_recurrence ON todos(recurrence_id) WHERE recurrence_id IS NOT NULL AND state <> 'done' AND trashed_at IS NULL;
 CREATE TRIGGER todo_list_scope BEFORE INSERT OR UPDATE OF list_id, project_id, user_id ON todos
 FOR EACH ROW EXECUTE FUNCTION enforce_todo_list_scope();
 

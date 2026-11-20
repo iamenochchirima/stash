@@ -60,6 +60,25 @@ export const todoReorderInput = z.object({
   tasks: z.array(z.object({ id:z.string().uuid(),revision:z.number().int().positive(),position:z.number().int().min(0) })).length(2),
   requestId:z.string().uuid(),
 }).refine(value=>new Set(value.tasks.map(task=>task.id)).size===2,{path:["tasks"],message:"Choose two different tasks."});
+export const todoRecurrenceRule = z.object({
+  frequency:z.enum(["daily","weekly","monthly"]),
+  interval:z.number().int().min(1).max(365),
+  weekdays:z.array(z.number().int().min(0).max(6)).max(7).optional(),
+}).superRefine((value,ctx)=>{
+  if(new Set(value.weekdays||[]).size!==(value.weekdays||[]).length)ctx.addIssue({code:"custom",path:["weekdays"],message:"Choose each weekday only once."});
+  if(value.frequency!=="weekly"&&value.weekdays?.length)ctx.addIssue({code:"custom",path:["weekdays"],message:"Weekdays apply to weekly recurrence only."});
+});
+export const todoRecurrenceInput = z.object({
+  revision:z.number().int().positive(),
+  requestId:z.string().uuid(),
+  rule:todoRecurrenceRule,
+  timezone,
+  anchorDate:localDate.optional(),
+  localTime:z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/).nullable().optional(),
+  endsOn:localDate.nullable().optional(),
+  count:z.number().int().positive().max(10000).nullable().optional(),
+}).refine(value=>!value.anchorDate||!value.endsOn||value.endsOn>=value.anchorDate,{path:["endsOn"],message:"Choose an end date on or after the first occurrence."});
+export const todoRecurrenceStopInput=z.object({revision:z.number().int().positive(),requestId:z.string().uuid()});
 export const todoBulkInput = z.object({
   action: z.enum(["complete", "move", "trash"]),
   tasks: z.array(z.object({ id: z.string().uuid(), revision: z.number().int().positive() })).min(1).max(100),

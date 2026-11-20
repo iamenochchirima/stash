@@ -1,5 +1,36 @@
 const minuteMs=60_000;
 type Wall={year:number;month:number;day:number;hour:number;minute:number};
+export type TodoRecurrenceRule={frequency:"daily"|"weekly"|"monthly";interval:number;weekdays?:number[]};
+const parseDate=(value:string)=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(value))throw new Error("Enter a valid recurrence date.");const date=new Date(`${value}T00:00:00.000Z`);if(Number.isNaN(date.valueOf())||date.toISOString().slice(0,10)!==value)throw new Error("Enter a valid recurrence date.");return date;};
+const dayKey=(date:Date)=>date.toISOString().slice(0,10);
+const dayFloor=(date:Date)=>Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),date.getUTCDate());
+function recurrenceMatches(candidate:Date,anchor:Date,rule:TodoRecurrenceRule){
+  const dayDiff=(dayFloor(candidate)-dayFloor(anchor))/86_400_000;
+  if(rule.frequency==="daily")return dayDiff>0&&dayDiff%rule.interval===0;
+  if(rule.frequency==="weekly"){
+    const anchorWeek=dayFloor(anchor)-((anchor.getUTCDay()+6)%7)*86_400_000;
+    const candidateWeek=dayFloor(candidate)-((candidate.getUTCDay()+6)%7)*86_400_000;
+    const weekDiff=(candidateWeek-anchorWeek)/(7*86_400_000);
+    const weekdays=rule.weekdays?.length?rule.weekdays:[anchor.getUTCDay()];
+    return weekDiff>=0&&weekDiff%rule.interval===0&&weekdays.includes(candidate.getUTCDay());
+  }
+  const monthDiff=(candidate.getUTCFullYear()-anchor.getUTCFullYear())*12+candidate.getUTCMonth()-anchor.getUTCMonth();
+  const targetDay=Math.min(anchor.getUTCDate(),new Date(Date.UTC(candidate.getUTCFullYear(),candidate.getUTCMonth()+1,0)).getUTCDate());
+  return monthDiff>0&&monthDiff%rule.interval===0&&candidate.getUTCDate()===targetDay;
+}
+/** Return the next scheduled local calendar date, skipping missed periods without creating a backlog. */
+export function nextTodoOccurrenceDate(anchorDate:string,currentDate:string,todayDate:string,rule:TodoRecurrenceRule,endsOn?:string|null):string|null{
+  const anchor=parseDate(anchorDate),current=parseDate(currentDate),today=parseDate(todayDate);
+  if(!Number.isInteger(rule.interval)||rule.interval<1||rule.interval>365)throw new Error("Choose a recurrence interval from 1 to 365.");
+  if(rule.frequency==="weekly"&&rule.weekdays?.some(day=>!Number.isInteger(day)||day<0||day>6))throw new Error("Choose valid weekdays.");
+  const end=endsOn?parseDate(endsOn):null;
+  let candidate=new Date(Math.max(dayFloor(current),dayFloor(today))+86_400_000);
+  for(let i=0;i<365_000;i++,candidate=new Date(candidate.getTime()+86_400_000)){
+    if(end&&candidate>end)return null;
+    if(recurrenceMatches(candidate,anchor,rule))return dayKey(candidate);
+  }
+  throw new Error("Could not find a future recurrence date.");
+}
 function parseWall(value:string):Wall{
   const match=/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
   if(!match)throw new Error("Enter a valid local date and time.");

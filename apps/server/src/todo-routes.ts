@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { todoBulkInput, todoCreateInput, todoListInput, todoListQuery, todoListUpdate, todoMoveInput, todoReorderInput, todoSubtaskInput, todoSubtaskUpdate, todoUpdateInput, todoDeleteInput, todoReferenceInput } from "@stash/shared";
+import { todoBulkInput, todoCreateInput, todoListInput, todoListQuery, todoListUpdate, todoMoveInput, todoRecurrenceInput, todoRecurrenceStopInput, todoReorderInput, todoSubtaskInput, todoSubtaskUpdate, todoUpdateInput, todoDeleteInput, todoReferenceInput } from "@stash/shared";
 import { todoService } from "@stash/core";
 import { auth } from "./auth.js";
 import { z } from "zod";
@@ -27,6 +27,9 @@ export function registerTodos(app: FastifyInstance, db: Parameters<typeof todoSe
     const input=z.object({trash:z.enum(["true","false"]).default("false")}).parse(request.query);
     return {todo:await (await service(request)).get(id(request.params),undefined,input.trash==="true")};
   });
+  app.get("/api/todos/:id/recurrence", async request => ({recurrence:await (await service(request)).recurrence(id(request.params))}));
+  app.put("/api/todos/:id/recurrence", async request => (await service(request)).setRecurrence(id(request.params),todoRecurrenceInput.parse(request.body)));
+  app.post("/api/todos/:id/recurrence/stop", async request => (await service(request)).stopRecurrence(id(request.params),todoRecurrenceStopInput.parse(request.body)));
   app.patch("/api/todos/:id", async request => ({todo:await (await service(request)).update(id(request.params),todoUpdateInput.parse(request.body))}));
   app.put("/api/todos/:id/sources", async request => {
     const input=todoReferenceInput.extend({revision:z.number().int().positive()}).parse(request.body);

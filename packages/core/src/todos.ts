@@ -1,13 +1,15 @@
 import { createHash } from "node:crypto";
 import { sql } from "drizzle-orm";
 import type { Database } from "@stash/db";
-import { todoBulkInput, todoCreateInput, todoListInput, todoListUpdate, todoListQuery, todoPreferencesInput, todoReorderInput, todoUpdateInput } from "@stash/shared";
+import { localDateTimeToUtc, nextTodoOccurrenceDate, utcToLocalDateTime } from "@stash/shared";
+import { todoBulkInput, todoCreateInput, todoListInput, todoListUpdate, todoListQuery, todoPreferencesInput, todoRecurrenceInput, todoRecurrenceStopInput, todoReorderInput, todoUpdateInput } from "@stash/shared";
 import { AppError } from "./index.js";
 import { z } from "zod";
 
 const LIMITS = { lists: 100, todos: 10_000, subtasks: 100, sources: 50 };
 const stamp = (value: unknown) => value instanceof Date ? value.toISOString() : value == null ? null : String(value);
 function validTimezone(value:string){try{new Intl.DateTimeFormat("en-US",{timeZone:value});}catch{throw new AppError(400,"Choose a valid IANA time zone.");}}
+function localDateAt(value:Date,timezone:string){const parts=new Intl.DateTimeFormat("en-CA-u-ca-iso8601",{timeZone:timezone,year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(value);const part=(type:string)=>parts.find(item=>item.type===type)?.value;return `${part("year")}-${part("month")}-${part("day")}`;}
 
 export function todoService(db: Database, userId: string) {
   async function active(tx: Database) {
@@ -82,6 +84,15 @@ export function todoService(db: Database, userId: string) {
         await tx.execute(sql`insert into todo_preferences(user_id,timezone) values(${userId},${input.timezone}) on conflict(user_id) do update set timezone=excluded.timezone,updated_at=now()`);
       });
       return getPreferences();
+    },
+    async recurrence(id:string){
+      const task=await db.execute(sql`select recurrence_id as "recurrenceId" from todos where id=${id} and user_id=${userId}`);
+      if(!task.rows[0])throw new AppError(404,"Task not found.");
+      if(!task.rows[0].recurrenceId)return null;
+      const result=await db.execute(sql`select id,rule,timezone,anchor_date as "anchorDate",local_time as "localTime",ends_on as "endsOn",remaining_count as "remainingCount",active,current_todo_id as "currentTodoId",completed_count as "completedCount",created_at as "createdAt",updated_at as "updatedAt" from todo_recurrences where id=${task.rows[0].recurrenceId} and user_id=${userId}`);
+      if(!result.rows[0])throw new AppError(404,"Repeating schedule not found.");
+      const history=await db.execute(sql`select occurrence_number as "occurrenceNumber",scheduled_date as "scheduledDate",completed_at as "completedAt" from todo_occurrences where recurrence_id=${task.rows[0].recurrenceId} and user_id=${userId} order by occurrence_number desc limit 100`);
+      return { ...result.rows[0],createdAt:stamp(result.rows[0].createdAt),updatedAt:stamp(result.rows[0].updatedAt),history:history.rows.map((row:Record<string,any>)=>({...row,completedAt:stamp(row.completedAt)})) };
     },
     async lists(projectId?: string | null) {
       const result = projectId === undefined
@@ -165,7 +176,7 @@ export function todoService(db: Database, userId: string) {
       if (input.q) filters.push(sql`(t.title ilike ${"%"+input.q+"%"} or t.description ilike ${"%"+input.q+"%"})`);
       const where = sql.join(filters, sql` and `);
       const order = input.sort==="manual" ? sql`t.position,t.id` : sql`coalesce(t.deadline_date,(t.deadline_at at time zone ${tz})::date,t.planned_date) asc nulls last,t.position,t.id`;
-      const result = await db.execute(sql`select t.id,t.project_id as "projectId",t.list_id as "listId",t.title,t.state,t.priority,t.planned_date as "plannedDate",t.deadline_date as "deadlineDate",t.deadline_at as "deadlineAt",t.timezone,t.completed_at as "completedAt",t.trashed_at as "trashedAt",t.position,t.revision,t.created_at as "createdAt",t.updated_at as "updatedAt",(select count(*)::int from todo_subtasks s where s.todo_id=t.id and s.user_id=t.user_id) as "subtaskCount",(select count(*)::int from todo_subtasks s where s.todo_id=t.id and s.user_id=t.user_id and s.completed_at is not null) as "completedSubtaskCount",(select count(*)::int from todo_sources s where s.todo_id=t.id and s.user_id=t.user_id) as "sourceCount" from todos t left join todo_preferences pref on pref.user_id=t.user_id where ${where} order by ${order} limit ${input.limit} offset ${input.offset}`);
+      const result = await db.execute(sql`select t.id,t.project_id as "projectId",t.list_id as "listId",t.recurrence_id as "recurrenceId",t.title,t.state,t.priority,t.planned_date as "plannedDate",t.deadline_date as "deadlineDate",t.deadline_at as "deadlineAt",t.timezone,t.completed_at as "completedAt",t.trashed_at as "trashedAt",t.position,t.revision,t.created_at as "createdAt",t.updated_at as "updatedAt",(select count(*)::int from todo_subtasks s where s.todo_id=t.id and s.user_id=t.user_id) as "subtaskCount",(select count(*)::int from todo_subtasks s where s.todo_id=t.id and s.user_id=t.user_id and s.completed_at is not null) as "completedSubtaskCount",(select count(*)::int from todo_sources s where s.todo_id=t.id and s.user_id=t.user_id) as "sourceCount" from todos t left join todo_preferences pref on pref.user_id=t.user_id where ${where} order by ${order} limit ${input.limit} offset ${input.offset}`);
       const count = await db.execute(sql`select count(*)::int as total from todos t left join todo_preferences pref on pref.user_id=t.user_id where ${where}`);
       return { items: result.rows.map((row: Record<string, any>) => ({ ...row, deadlineAt: stamp(row.deadlineAt), completedAt: stamp(row.completedAt), trashedAt: stamp(row.trashedAt), createdAt: stamp(row.createdAt), updatedAt: stamp(row.updatedAt) })), total: Number(count.rows[0].total), offset: input.offset, limit: input.limit };
     },
@@ -207,14 +218,59 @@ export function todoService(db: Database, userId: string) {
         const deadlineDate = input.deadlineDate !== undefined ? input.deadlineDate : input.deadlineAt !== undefined ? null : row.deadline_date;
         const deadlineAt = input.deadlineAt !== undefined ? input.deadlineAt : input.deadlineDate !== undefined ? null : row.deadline_at;
         const state = input.state ?? row.state;
+        if(row.recurrence_id&&state==="done"&&row.state!=="done")throw new AppError(409,"Complete this recurring task through its completion action so the next occurrence is recorded.");
         if(state==='done'&&row.state!=='done') {
           const incomplete=await tx.execute(sql`select 1 from todo_subtasks where todo_id=${id} and user_id=${userId} and completed_at is null limit 1`);
           if(incomplete.rows.length)throw new AppError(409,"Complete the unfinished subtasks or use the completion action to finish the task.");
         }
         await tx.execute(sql`update todos set project_id=${projectId},list_id=${listId},title=${input.title ?? row.title},description=${input.description ?? row.description},state=${state},priority=${input.priority ?? row.priority},planned_date=${input.plannedDate === undefined ? row.planned_date : input.plannedDate},deadline_date=${deadlineDate},deadline_at=${deadlineAt},timezone=${input.timezone ?? row.timezone},position=${input.position ?? row.position},completed_at=${state==='done' ? row.completed_at || new Date() : null},revision=revision+1,updated_at=now() where id=${id} and user_id=${userId}`);
+        if(row.recurrence_id&&projectId!==row.project_id)await tx.execute(sql`update todo_recurrences set project_id=${projectId},updated_at=now() where id=${row.recurrence_id} and user_id=${userId}`);
         if(state==='done')await tx.execute(sql`update todo_reminders set status='cancelled',lease_until=null,updated_at=now() where todo_id=${id} and user_id=${userId} and status in ('pending','sending')`);
       });
       return get(id);
+    },
+    async setRecurrence(id:string,raw:unknown){
+      const input=todoRecurrenceInput.parse(raw);validTimezone(input.timezone);
+      const outcome=await db.transaction(async tx=>{
+        await active(tx);
+        const replay=await requests(tx,input.requestId,"recurrence_start",{id,...input});
+        if(replay.replay)return replay.result;
+        const result=await tx.execute(sql`select * from todos where id=${id} and user_id=${userId} for update`),row=result.rows[0];
+        if(!row)throw new AppError(404,"Task not found.");
+        if(row.trashed_at||row.state==="done")throw new AppError(409,"Restore or reopen this task before repeating it.");
+        if(Number(row.revision)!==input.revision)throw new AppError(409,"This task changed elsewhere. Reload before scheduling recurrence.");
+        if(row.recurrence_id)throw new AppError(409,"This task already belongs to a repeating series.");
+        await project(tx,row.project_id as string|null,true);
+        const anchor=input.anchorDate??(row.planned_date?String(row.planned_date).slice(0,10):row.deadline_date?String(row.deadline_date).slice(0,10):row.deadline_at?utcToLocalDateTime(stamp(row.deadline_at)!,input.timezone).slice(0,10):localDateAt(new Date(),input.timezone));
+        const localTime=input.localTime===undefined?(row.deadline_at?utcToLocalDateTime(stamp(row.deadline_at)!,input.timezone).slice(11,16):null):input.localTime;
+        if(input.endsOn&&input.endsOn<anchor)throw new AppError(400,"Choose an end date on or after the first occurrence.");
+        const inserted=await tx.execute(sql`insert into todo_recurrences(user_id,project_id,rule,timezone,anchor_date,local_time,ends_on,remaining_count) values(${userId},${row.project_id},${JSON.stringify(input.rule)}::jsonb,${input.timezone},${anchor},${localTime},${input.endsOn??null},${input.count??null}) returning id`);
+        const recurrenceId=String(inserted.rows[0].id);
+        const task=await tx.execute(sql`update todos set recurrence_id=${recurrenceId},planned_date=coalesce(planned_date,${anchor}),timezone=${input.timezone},revision=revision+1,updated_at=now() where id=${id} and user_id=${userId} returning id`);
+        await tx.execute(sql`insert into todo_occurrences(user_id,recurrence_id,todo_id,occurrence_number,scheduled_date) values(${userId},${recurrenceId},${id},1,${anchor})`);
+        await tx.execute(sql`update todo_recurrences set current_todo_id=${id},updated_at=now() where id=${recurrenceId} and user_id=${userId}`);
+        const todo=await get(String(task.rows[0].id),tx);
+        const response={todo,recurrence:{id:recurrenceId,rule:input.rule,timezone:input.timezone,anchorDate:anchor,localTime,endsOn:input.endsOn??null,remainingCount:input.count??null,active:true}};
+        await saveRequest(tx,input.requestId,"recurrence_start",replay.fingerprint,id,response);
+        return response;
+      });
+      return outcome;
+    },
+    async stopRecurrence(id:string,raw:unknown){
+      const input=todoRecurrenceStopInput.parse(raw);
+      return db.transaction(async tx=>{
+        await active(tx);
+        const replay=await requests(tx,input.requestId,"recurrence_stop",{id,...input});
+        if(replay.replay)return replay.result;
+        const result=await tx.execute(sql`select t.revision,t.recurrence_id as "recurrenceId",t.project_id as "projectId",r.active,r.rule,r.timezone,r.anchor_date as "anchorDate",r.local_time as "localTime",r.ends_on as "endsOn",r.remaining_count as "remainingCount" from todos t join todo_recurrences r on r.id=t.recurrence_id and r.user_id=t.user_id where t.id=${id} and t.user_id=${userId} for update of t,r`),row=result.rows[0];
+        if(!row)throw new AppError(404,"Repeating task not found.");
+        if(Number(row.revision)!==input.revision)throw new AppError(409,"This task changed elsewhere. Reload before stopping recurrence.");
+        await project(tx,row.projectId as string|null,true);
+        await tx.execute(sql`update todo_recurrences set active=false,current_todo_id=null,updated_at=now() where id=${row.recurrenceId} and user_id=${userId}`);
+        const response={id:row.recurrenceId,active:false,rule:row.rule,timezone:row.timezone,anchorDate:row.anchorDate,localTime:row.localTime,endsOn:row.endsOn,remainingCount:row.remainingCount};
+        await saveRequest(tx,input.requestId,"recurrence_stop",replay.fingerprint,id,response);
+        return response;
+      });
     },
     async bulk(raw: unknown) {
       const input = todoBulkInput.parse(raw);
@@ -227,6 +283,7 @@ export function todoService(db: Database, userId: string) {
         const idList = sql.join(ids.map(id=>sql`${id}::uuid`),sql`, `);
         const found = await tx.execute(sql`select * from todos where user_id=${userId} and id in (${idList}) order by id for update`);
         if(found.rows.length!==input.tasks.length)throw new AppError(404,"One or more tasks are unavailable.");
+        if(input.action==="complete"&&found.rows.some((row:Record<string,any>)=>row.recurrence_id))throw new AppError(409,"Complete repeating tasks individually so each next occurrence is recorded.");
         const expected = new Map(input.tasks.map(task=>[task.id,task.revision]));
         for(const row of found.rows){
           if(Number(row.revision)!==expected.get(String(row.id)))throw new AppError(409,"One or more tasks changed elsewhere. Reload before continuing.");
@@ -251,6 +308,7 @@ export function todoService(db: Database, userId: string) {
             await tx.execute(sql`update todo_reminders set status='cancelled',lease_until=null,updated_at=now() where todo_id=${id} and user_id=${userId} and status in ('pending','sending')`);
           }else{
             await tx.execute(sql`update todos set project_id=${input.projectId!},list_id=${input.listId!},position=coalesce((select max(position)+1 from todos where user_id=${userId} and project_id is not distinct from ${input.projectId!} and list_id is not distinct from ${input.listId!} and trashed_at is null),0),revision=revision+1,updated_at=now() where id=${id} and user_id=${userId}`);
+            if(row.recurrence_id)await tx.execute(sql`update todo_recurrences set project_id=${input.projectId!},updated_at=now() where id=${row.recurrence_id} and user_id=${userId}`);
           }
         }
         const items=[];
@@ -320,6 +378,26 @@ export function todoService(db: Database, userId: string) {
         if(action==="trash"&&row.trashed_at)return;
         if(action==="restore"&&!row.trashed_at)return;
         await project(tx,row.project_id as string|null,true);
+        if(action==="reopen"&&row.recurrence_id){
+          const seriesResult=await tx.execute(sql`select * from todo_recurrences where id=${row.recurrence_id} and user_id=${userId} for update`),series=seriesResult.rows[0];
+          const occurrence=await tx.execute(sql`select occurrence_number from todo_occurrences where recurrence_id=${row.recurrence_id} and todo_id=${id} and user_id=${userId} for update`),currentNumber=Number(occurrence.rows[0]?.occurrence_number);
+          if(!series||!currentNumber)throw new AppError(409,"This repeating occurrence is no longer available.");
+          const maximum=await tx.execute(sql`select coalesce(max(occurrence_number),0)::int as n from todo_occurrences where recurrence_id=${row.recurrence_id} and user_id=${userId}`);
+          if(series.active&&series.current_todo_id!==id){
+            if(Number(maximum.rows[0].n)!==currentNumber+1||series.current_todo_id===null)throw new AppError(409,"Only the most recent repeating completion can be undone.");
+            const next=await tx.execute(sql`select revision from todos where id=${series.current_todo_id} and user_id=${userId} for update`);
+            const reminders=await tx.execute(sql`select 1 from todo_reminders where todo_id=${series.current_todo_id} and user_id=${userId} limit 1`);
+            if(Number(next.rows[0]?.revision)!==1||reminders.rows.length)throw new AppError(409,"The next occurrence has changed, so this completion cannot be undone safely.");
+            await tx.execute(sql`delete from todos where id=${series.current_todo_id} and user_id=${userId}`);
+            await tx.execute(sql`update todo_occurrences set completed_at=null where recurrence_id=${row.recurrence_id} and todo_id=${id} and user_id=${userId}`);
+            await tx.execute(sql`update todo_recurrences set current_todo_id=${id},completed_count=greatest(completed_count-1,0),remaining_count=case when remaining_count is null then null else remaining_count+1 end,updated_at=now() where id=${row.recurrence_id} and user_id=${userId}`);
+          }else if(!series.active&&Number(maximum.rows[0].n)>currentNumber){
+            throw new AppError(409,"Only the most recent repeating completion can be reopened.");
+          }else{
+            await tx.execute(sql`update todo_occurrences set completed_at=null where recurrence_id=${row.recurrence_id} and todo_id=${id} and user_id=${userId}`);
+            if(!series.active)await tx.execute(sql`update todo_recurrences set completed_count=greatest(completed_count-1,0),updated_at=now() where id=${row.recurrence_id} and user_id=${userId}`);
+          }
+        }
         if(action==="complete") {
           const incomplete=await tx.execute(sql`select 1 from todo_subtasks where todo_id=${id} and user_id=${userId} and completed_at is null limit 1`);
           if(incomplete.rows.length&&!subtaskMode)throw new AppError(409,"Choose whether to complete the unfinished subtasks too.");
@@ -328,6 +406,33 @@ export function todoService(db: Database, userId: string) {
         const nextState=action==="complete"?"done":action==="reopen"?"todo":row.state;
         await tx.execute(sql`update todos set state=${nextState},completed_at=${action==="complete"?row.completed_at||new Date():action==="reopen"?null:row.completed_at},trashed_at=${action==="trash"?new Date():action==="restore"?null:row.trashed_at},revision=revision+1,updated_at=now() where id=${id} and user_id=${userId}`);
         if(action==="trash"||action==="complete")await tx.execute(sql`update todo_reminders set status='cancelled',lease_until=null,updated_at=now() where todo_id=${id} and user_id=${userId} and status in ('pending','sending')`);
+        if(action==="complete"&&row.recurrence_id){
+          const recurrence=await tx.execute(sql`select * from todo_recurrences where id=${row.recurrence_id} and user_id=${userId} for update`),series=recurrence.rows[0];
+          if(series){
+            const occurrence=await tx.execute(sql`select scheduled_date from todo_occurrences where todo_id=${id} and recurrence_id=${series.id} and user_id=${userId} for update`);
+            await tx.execute(sql`update todo_occurrences set completed_at=coalesce(completed_at,now()) where todo_id=${id} and recurrence_id=${series.id} and user_id=${userId}`);
+            if(series.active&&series.current_todo_id===id){
+            const scheduled=occurrence.rows[0]?String(occurrence.rows[0].scheduled_date).slice(0,10):String(series.anchor_date).slice(0,10);
+            const completedCount=Number(series.completed_count)+1,remaining=series.remaining_count===null?null:Number(series.remaining_count);
+            const rule=series.rule as {frequency:"daily"|"weekly"|"monthly";interval:number;weekdays?:number[]};
+            const nextDate=remaining!==null&&remaining<=1?null:nextTodoOccurrenceDate(String(series.anchor_date).slice(0,10),scheduled,localDateAt(new Date(),series.timezone),rule,series.ends_on?String(series.ends_on).slice(0,10):null);
+            if(nextDate){
+              const localTime=series.local_time?String(series.local_time).slice(0,5):row.deadline_at?utcToLocalDateTime(stamp(row.deadline_at)!,series.timezone).slice(11,16):null;
+              const deadlineAt=row.deadline_at&&localTime?localDateTimeToUtc(`${nextDate}T${localTime}`,series.timezone):null;
+              const inserted=await tx.execute(sql`insert into todos(user_id,project_id,list_id,recurrence_id,title,description,state,priority,planned_date,deadline_date,deadline_at,timezone,position) values(${userId},${row.project_id},${row.list_id},${series.id},${row.title},${row.description},'todo',${row.priority},${nextDate},${row.deadline_date?nextDate:null},${deadlineAt},${series.timezone},coalesce((select max(position)+1 from todos where user_id=${userId} and project_id is not distinct from ${row.project_id} and list_id is not distinct from ${row.list_id} and trashed_at is null),0)) returning id`);
+              const nextId=String(inserted.rows[0].id);
+              await tx.execute(sql`insert into todo_subtasks(user_id,todo_id,title,position) select user_id,${nextId},title,position from todo_subtasks where todo_id=${id} and user_id=${userId} order by position,id`);
+              await tx.execute(sql`insert into todo_sources(user_id,todo_id,resource_id) select user_id,${nextId},resource_id from todo_sources where todo_id=${id} and user_id=${userId}`);
+              await tx.execute(sql`insert into todo_occurrences(user_id,recurrence_id,todo_id,occurrence_number,scheduled_date) values(${userId},${series.id},${nextId},${completedCount+1},${nextDate})`);
+              await tx.execute(sql`update todo_recurrences set current_todo_id=${nextId},completed_count=${completedCount},remaining_count=${remaining===null?null:remaining-1},updated_at=now() where id=${series.id} and user_id=${userId}`);
+            }else{
+              await tx.execute(sql`update todo_recurrences set active=false,current_todo_id=null,completed_count=${completedCount},remaining_count=${remaining===null?null:0},updated_at=now() where id=${series.id} and user_id=${userId}`);
+            }
+            }else{
+              await tx.execute(sql`update todo_recurrences set completed_count=completed_count+1,updated_at=now() where id=${series.id} and user_id=${userId}`);
+            }
+          }
+        }
         if(requestId&&replay) {
           const result=await get(id,tx,action==="trash");
           await saveRequest(tx,requestId,action,replay.fingerprint,id,result);
