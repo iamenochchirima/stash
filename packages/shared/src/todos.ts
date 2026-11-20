@@ -43,6 +43,7 @@ export const todoUpdateInput = z.object({
 });
 export const todoListQuery = z.object({
   view: z.enum(["inbox", "all", "today", "upcoming", "completed", "trash"]).default("all"),
+  sort: z.enum(["due", "manual"]).default("due"),
   q: z.string().trim().max(200).default(""),
   projectId: z.string().uuid().optional(),
   listId: z.string().uuid().optional(),
@@ -55,6 +56,10 @@ export const todoSubtaskInput = z.object({ title: z.string().trim().min(1).max(2
 export const todoSubtaskUpdate = z.object({ revision: z.number().int().positive(), title: z.string().trim().min(1).max(200).optional(), completed: z.boolean().optional(), position: z.number().int().min(0).optional() }).refine(v => v.title !== undefined || v.completed !== undefined || v.position !== undefined);
 export const todoReferenceInput = z.object({ sourceIds: resourceIds });
 export const todoMoveInput = z.object({ revision: z.number().int().positive(), projectId: z.string().uuid().nullable(), listId: z.string().uuid().nullable() });
+export const todoReorderInput = z.object({
+  tasks: z.array(z.object({ id:z.string().uuid(),revision:z.number().int().positive(),position:z.number().int().min(0) })).length(2),
+  requestId:z.string().uuid(),
+}).refine(value=>new Set(value.tasks.map(task=>task.id)).size===2,{path:["tasks"],message:"Choose two different tasks."});
 export const todoBulkInput = z.object({
   action: z.enum(["complete", "move", "trash"]),
   tasks: z.array(z.object({ id: z.string().uuid(), revision: z.number().int().positive() })).min(1).max(100),

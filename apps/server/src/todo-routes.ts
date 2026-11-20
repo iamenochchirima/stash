@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { todoBulkInput, todoCreateInput, todoListInput, todoListQuery, todoListUpdate, todoMoveInput, todoSubtaskInput, todoSubtaskUpdate, todoUpdateInput, todoDeleteInput, todoReferenceInput } from "@stash/shared";
+import { todoBulkInput, todoCreateInput, todoListInput, todoListQuery, todoListUpdate, todoMoveInput, todoReorderInput, todoSubtaskInput, todoSubtaskUpdate, todoUpdateInput, todoDeleteInput, todoReferenceInput } from "@stash/shared";
 import { todoService } from "@stash/core";
 import { auth } from "./auth.js";
 import { z } from "zod";
@@ -21,6 +21,7 @@ export function registerTodos(app: FastifyInstance, db: Parameters<typeof todoSe
   });
   app.get("/api/todos", async request => (await service(request)).list(todoListQuery.parse(request.query)));
   app.post("/api/todos/bulk", async request => (await service(request)).bulk(todoBulkInput.parse(request.body)));
+  app.post("/api/todos/reorder", async request => (await service(request)).reorder(todoReorderInput.parse(request.body)));
   app.post("/api/todos", async request => ({todo:await (await service(request)).create(todoCreateInput.parse(request.body))}));
   app.get("/api/todos/:id", async request => {
     const input=z.object({trash:z.enum(["true","false"]).default("false")}).parse(request.query);

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { sql } from "drizzle-orm";
 import type { Database } from "@stash/db";
-import { todoBulkInput, todoCreateInput, todoListInput, todoListUpdate, todoListQuery, todoPreferencesInput, todoUpdateInput } from "@stash/shared";
+import { todoBulkInput, todoCreateInput, todoListInput, todoListUpdate, todoListQuery, todoPreferencesInput, todoReorderInput, todoUpdateInput } from "@stash/shared";
 import { AppError } from "./index.js";
 import { z } from "zod";
 
@@ -164,9 +164,33 @@ export function todoService(db: Database, userId: string) {
       if (input.priority) filters.push(sql`t.priority=${input.priority}`);
       if (input.q) filters.push(sql`(t.title ilike ${"%"+input.q+"%"} or t.description ilike ${"%"+input.q+"%"})`);
       const where = sql.join(filters, sql` and `);
-      const result = await db.execute(sql`select t.id,t.project_id as "projectId",t.list_id as "listId",t.title,t.state,t.priority,t.planned_date as "plannedDate",t.deadline_date as "deadlineDate",t.deadline_at as "deadlineAt",t.timezone,t.completed_at as "completedAt",t.trashed_at as "trashedAt",t.position,t.revision,t.created_at as "createdAt",t.updated_at as "updatedAt",(select count(*)::int from todo_subtasks s where s.todo_id=t.id and s.user_id=t.user_id) as "subtaskCount",(select count(*)::int from todo_subtasks s where s.todo_id=t.id and s.user_id=t.user_id and s.completed_at is not null) as "completedSubtaskCount",(select count(*)::int from todo_sources s where s.todo_id=t.id and s.user_id=t.user_id) as "sourceCount" from todos t left join todo_preferences pref on pref.user_id=t.user_id where ${where} order by coalesce(t.deadline_date,(t.deadline_at at time zone ${tz})::date,t.planned_date) asc nulls last,t.position,t.id limit ${input.limit} offset ${input.offset}`);
+      const order = input.sort==="manual" ? sql`t.position,t.id` : sql`coalesce(t.deadline_date,(t.deadline_at at time zone ${tz})::date,t.planned_date) asc nulls last,t.position,t.id`;
+      const result = await db.execute(sql`select t.id,t.project_id as "projectId",t.list_id as "listId",t.title,t.state,t.priority,t.planned_date as "plannedDate",t.deadline_date as "deadlineDate",t.deadline_at as "deadlineAt",t.timezone,t.completed_at as "completedAt",t.trashed_at as "trashedAt",t.position,t.revision,t.created_at as "createdAt",t.updated_at as "updatedAt",(select count(*)::int from todo_subtasks s where s.todo_id=t.id and s.user_id=t.user_id) as "subtaskCount",(select count(*)::int from todo_subtasks s where s.todo_id=t.id and s.user_id=t.user_id and s.completed_at is not null) as "completedSubtaskCount",(select count(*)::int from todo_sources s where s.todo_id=t.id and s.user_id=t.user_id) as "sourceCount" from todos t left join todo_preferences pref on pref.user_id=t.user_id where ${where} order by ${order} limit ${input.limit} offset ${input.offset}`);
       const count = await db.execute(sql`select count(*)::int as total from todos t left join todo_preferences pref on pref.user_id=t.user_id where ${where}`);
       return { items: result.rows.map((row: Record<string, any>) => ({ ...row, deadlineAt: stamp(row.deadlineAt), completedAt: stamp(row.completedAt), trashedAt: stamp(row.trashedAt), createdAt: stamp(row.createdAt), updatedAt: stamp(row.updatedAt) })), total: Number(count.rows[0].total), offset: input.offset, limit: input.limit };
+    },
+    async reorder(raw: unknown) {
+      const input=todoReorderInput.parse(raw),order=[...input.tasks].sort((a,b)=>a.id.localeCompare(b.id));
+      const result=await db.transaction(async tx=>{
+        await active(tx);
+        const replay=await requests(tx,input.requestId,"reorder",input);
+        if(replay.replay)return replay.result;
+        const ids=order.map(task=>task.id),idList=sql.join(ids.map(id=>sql`${id}::uuid`),sql`, `);
+        const found=await tx.execute(sql`select * from todos where user_id=${userId} and id in (${idList}) order by id for update`);
+        if(found.rows.length!==2)throw new AppError(404,"One or more tasks are unavailable.");
+        const rows=new Map<string,Record<string,any>>(found.rows.map((row:Record<string,any>)=>[String(row.id),row]));
+        const first=rows.get(input.tasks[0].id)!,second=rows.get(input.tasks[1].id)!;
+        if(Number(first.revision)!==input.tasks[0].revision||Number(second.revision)!==input.tasks[1].revision)throw new AppError(409,"One or more tasks changed elsewhere. Reload before reordering.");
+        if(first.trashed_at||second.trashed_at)throw new AppError(409,"Restore tasks from Trash before reordering.");
+        if(first.project_id!==second.project_id||first.list_id!==second.list_id)throw new AppError(409,"Reorder tasks from the same list and workspace.");
+        await project(tx,first.project_id as string|null,true);
+        for(const task of input.tasks)await tx.execute(sql`update todos set position=${task.position},revision=revision+1,updated_at=now() where id=${task.id} and user_id=${userId}`);
+        const items=[];
+        for(const task of input.tasks)items.push(await get(task.id,tx));
+        await saveRequest(tx,input.requestId,"reorder",replay.fingerprint,null,items);
+        return items;
+      });
+      return {todos:result};
     },
     async update(id: string, raw: z.input<typeof todoUpdateInput>) {
       const input = todoUpdateInput.parse(raw);
