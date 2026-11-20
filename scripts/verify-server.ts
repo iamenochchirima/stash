@@ -8,14 +8,18 @@ import { fixture } from "../tests/helpers.js";
 import { createApp } from "../apps/server/src/app.js";
 import { createMailer } from "../apps/server/src/mail.js";
 const f = await fixture();
+const apiPort = Number(process.env.VERIFY_API_PORT ?? 4100);
+const webPort = Number(process.env.VERIFY_WEB_PORT ?? 3100);
+const adminPort = Number(process.env.VERIFY_ADMIN_PORT ?? 3101);
+const schemaFile = `.data/browser-schema-${apiPort}.json`;
 await mkdir(".data", { recursive: true });
 await writeFile(
-  ".data/browser-schema.json",
+  schemaFile,
   JSON.stringify({ schema: f.schema }),
   { mode: 0o600 },
 );
 const adminOptions = {
-  origin: "http://127.0.0.1:3101", encryptionKey: randomBytes(32).toString("base64"), production: false,
+  origin: `http://127.0.0.1:${adminPort}`, encryptionKey: randomBytes(32).toString("base64"), production: false,
   mailer: createMailer({ directory: resolve(".data/verification-mail"), production: false }),
 };
 const app = await createApp(f.db, {
@@ -24,16 +28,16 @@ const app = await createApp(f.db, {
   requestRateLimit: 3000,
   adminOrigin: adminOptions.origin,
   adminEncryptionKey: adminOptions.encryptionKey,
-  origin: "http://127.0.0.1:3100",
-  publicApiUrl: "http://127.0.0.1:4100",
+  origin: `http://127.0.0.1:${webPort}`,
+  publicApiUrl: `http://127.0.0.1:${apiPort}`,
   mailer: createMailer({
     directory: resolve(".data/verification-mail"),
     production: false,
   }),
 });
-await app.listen({ port: 4100, host: "127.0.0.1" });
+await app.listen({ port: apiPort, host: "127.0.0.1" });
 await inviteAdmin(f.db,adminOptions,{email:"owner@admin.example.test",name:"Stash owner",role:"owner",bootstrap:true});
-console.log("Isolated Stash verification server ready on 4100.");
+console.log(`Isolated Stash verification server ready on ${apiPort}.`);
 let stopping = false;
 for (const signal of ["SIGINT", "SIGTERM"] as const)
   process.on(signal, async () => {

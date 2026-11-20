@@ -22,6 +22,7 @@ import {
   Plus,
   Settings,
   Hash,
+  ListTodo,
 } from "lucide-react";
 import type { Profile, Collection, Topic } from "@stash/shared";
 import { api, ApiError } from "../../lib/api";
@@ -161,6 +162,7 @@ export function AppShell({
     pathname = usePathname(),
     blocked = modalOpen || collectionOpen;
   const links = [
+    { href: "/todos", label: "Todos", icon: ListTodo },
     { href: "/topics", label: "Topics", icon: Hash },
     { href: "/projects", label: "Projects", icon: Folder },
     { href: "/library", label: "All items", icon: Library },

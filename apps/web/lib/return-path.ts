@@ -17,7 +17,7 @@ export function accountReturnPath(value: string): string {
     )
       return "";
     if (
-      /^\/(?:library(?:\/(?:archive|trash|favourites|collections\/[a-f0-9-]{36}))?|connections|profile)$/.test(
+      /^\/(?:library(?:\/(?:archive|trash|favourites|collections\/[a-f0-9-]{36}))?|todos|connections|profile)$/.test(
         url.pathname,
       )
     )

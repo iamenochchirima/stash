@@ -1,14 +1,18 @@
 import type { FastifyInstance } from "fastify";
-import { todoBulkInput, todoCreateInput, todoListInput, todoListQuery, todoListUpdate, todoMoveInput, todoRecurrenceInput, todoRecurrenceStopInput, todoReorderInput, todoSubtaskInput, todoSubtaskUpdate, todoUpdateInput, todoDeleteInput, todoReferenceInput } from "@stash/shared";
-import { todoService } from "@stash/core";
+import { todoBulkInput, todoCreateInput, todoListInput, todoListQuery, todoListUpdate, todoMoveInput, todoRecurrenceInput, todoRecurrenceStopInput, todoReorderInput, todoSubtaskInput, todoSubtaskUpdate, todoUpdateInput, todoDeleteInput, todoReferenceInput, todoReminderScheduleInput, todoPreferencesInput } from "@stash/shared";
+import { AppError, todoReminderService, todoService } from "@stash/core";
 import { auth } from "./auth.js";
 import { z } from "zod";
 
-export function registerTodos(app: FastifyInstance, db: Parameters<typeof todoService>[0], production = false) {
+export function registerTodos(app: FastifyInstance, db: Parameters<typeof todoService>[0], production = false,emailEnabled=true) {
   const authentication = auth(db, production), id = (raw: unknown) => z.object({id:z.string().uuid()}).parse(raw).id;
   const service = async (request: Parameters<typeof authentication.user>[0]) => todoService(db,(await authentication.user(request)).id);
-  app.get("/api/todo-preferences", async request => ({preferences:await (await service(request)).preferences()}));
-  app.put("/api/todo-preferences", async request => ({preferences:await (await service(request)).updatePreferences(request.body)}));
+  const reminders = async (request: Parameters<typeof authentication.user>[0]) => todoReminderService(db,(await authentication.user(request)).id,{emailEnabled});
+  app.get("/api/todo-preferences", async request => ({preferences:{...(await (await service(request)).preferences()),emailConfigured:emailEnabled}}));
+  app.put("/api/todo-preferences", async request => {const input=todoPreferencesInput.parse(request.body);if(input.emailReminders===true&&!emailEnabled)throw new AppError(409,"Email delivery is not configured.");return{preferences:{...(await (await service(request)).updatePreferences(input)),emailConfigured:emailEnabled}};});
+  app.get("/api/todo-reminders",async request=>{const input=z.object({unreadOnly:z.coerce.boolean().default(false),limit:z.coerce.number().int().min(1).max(100).default(50)}).parse(request.query);return{items:await(await reminders(request)).list(input)};});
+  app.post("/api/todos/:id/reminders",async request=>{const input=todoReminderScheduleInput.parse(request.body);return(await reminders(request)).schedule(id(request.params),input);});
+  app.post("/api/todo-reminders/:id/action",async request=>(await reminders(request)).act(id(request.params),request.body));
   app.get("/api/todo-lists", async request => {
     const input=z.object({projectId:z.string().uuid().nullable().optional()}).parse(request.query);
     return {items:await (await service(request)).lists(input.projectId)};

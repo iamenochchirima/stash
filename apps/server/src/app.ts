@@ -3,6 +3,7 @@ import { registerBackupRoutes } from "./backup-routes.js";
 import { registerProjects } from "./project-routes.js";
 import { registerTopics } from "./topic-routes.js";
 import { registerTodos } from "./todo-routes.js";
+import { registerTodoReminderWorker } from "./todo-reminder-worker.js";
 import Fastify from "fastify";
 import cookie from "@fastify/cookie";
 import rateLimit from "@fastify/rate-limit";
@@ -239,7 +240,8 @@ export async function createApp(
   registerBackupRestoreRoutes(app,db,{production:options.production,enabled:options.itemsEnabled??!options.production,storageAvailable:!!options.fileStore,publicApiUrl});
   registerTopics(app,db,options);
   registerProjects(app,db,!!options.production);
-  registerTodos(app,db,!!options.production);
+  registerTodos(app,db,!!options.production,!options.emailDisabled);
+  registerTodoReminderWorker(app,db,options.mailer||createMailer({directory:options.mailPath||".data/mail",production:!!options.production,disabled:options.emailDisabled}),{webOrigin:origin,emailEnabled:!options.emailDisabled});
   registerItems(app, db, { production: options.production, enabled: options.itemsEnabled ?? !options.production });
   app.get("/api/resources", async (request) =>
     library(db, (await authentication.user(request)).id).list(
@@ -389,7 +391,7 @@ export async function createApp(
     return exportLibrary(db, user.id);
   });
   app.post("/mcp", async (request, reply) =>
-    handleMcp(db, await authentication.agent(request), request, reply, options.itemsEnabled ?? !options.production, !!options.summaryProvider),
+    handleMcp(db, await authentication.agent(request), request, reply, options.itemsEnabled ?? !options.production, !!options.summaryProvider,!options.emailDisabled),
   );
   app.route({
     method: ["GET", "DELETE"],

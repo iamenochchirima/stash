@@ -67,10 +67,9 @@ export function todoService(db: Database, userId: string) {
     await tx.execute(sql`insert into todo_requests(user_id,request_id,action,fingerprint,todo_id,result) values(${userId},${requestId},${action},${fingerprint},${todoId},${JSON.stringify(result)}::jsonb)`);
   };
   const getPreferences = async () => {
-    const result = await db.execute(sql`select timezone,email_reminders as "emailReminders",in_app_reminders as "inAppReminders" from todo_preferences where user_id=${userId}`);
-    return result.rows[0]
-      ? { ...result.rows[0], configured: true }
-      : { timezone: "UTC", emailReminders: false, inAppReminders: true, configured: false };
+    const result = await db.execute(sql`select p.timezone,p.email_reminders as "emailReminders",p.in_app_reminders as "inAppReminders",u.email_verified_at as "emailVerified" from users u left join todo_preferences p on p.user_id=u.id where u.id=${userId}`);
+    const row=result.rows[0];
+    return { timezone:row?.timezone||"UTC",emailReminders:!!row?.emailReminders,inAppReminders:row?.inAppReminders!==false,emailVerified:!!row?.emailVerified,configured:!!row?.timezone };
   };
 
   return {
@@ -81,7 +80,8 @@ export function todoService(db: Database, userId: string) {
       validTimezone(input.timezone);
       await db.transaction(async tx => {
         await active(tx);
-        await tx.execute(sql`insert into todo_preferences(user_id,timezone) values(${userId},${input.timezone}) on conflict(user_id) do update set timezone=excluded.timezone,updated_at=now()`);
+        if(input.emailReminders===true){const verified=await tx.execute(sql`select email_verified_at from users where id=${userId} and email_verified_at is not null`);if(!verified.rows.length)throw new AppError(409,"Verify your email address before enabling email reminders.");}
+        await tx.execute(sql`insert into todo_preferences(user_id,timezone,email_reminders,in_app_reminders) values(${userId},${input.timezone},${input.emailReminders??false},${input.inAppReminders??true}) on conflict(user_id) do update set timezone=excluded.timezone,email_reminders=case when ${input.emailReminders!==undefined} then excluded.email_reminders else todo_preferences.email_reminders end,in_app_reminders=case when ${input.inAppReminders!==undefined} then excluded.in_app_reminders else todo_preferences.in_app_reminders end,updated_at=now()`);
       });
       return getPreferences();
     },

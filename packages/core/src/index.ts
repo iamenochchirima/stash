@@ -240,3 +240,4 @@ export { projectService } from "./projects.js";
 
 export { topicService, setOrganizationMembership, validateOrganization } from "./topics.js";
 export { todoService } from "./todos.js";
+export { todoReminderService } from "./todo-reminders.js";

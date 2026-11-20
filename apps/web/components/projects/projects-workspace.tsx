@@ -10,6 +10,7 @@ import { ArrowLeft, Plus, Folder, Search, Archive } from "lucide-react";
 import type { Project, Item } from "@stash/shared";
 import { api, ApiError } from "../../lib/api";
 import { ItemEditor } from "../items/item-editor";
+import { TodoWorkspace } from "../todos/todo-workspace";
 export function ProjectsWorkspace({
   id,
   initialQuery = "",
@@ -31,7 +32,8 @@ export function ProjectsWorkspace({
       Math.max(0, Math.min(100000, Number(search.get("offset")) || 0)),
     ),
     [total, setTotal] = useState(0),
-    [trash, setTrash] = useState(() => search.get("trash") === "true");
+    [trash, setTrash] = useState(() => search.get("trash") === "true"),
+    [projectTab,setProjectTab]=useState<"research"|"tasks">(()=>search.get("tab")==="tasks"?"tasks":"research");
   const [creating, setCreating] = useState(false),
     [editing, setEditing] = useState(false),
     [capture, setCapture] = useState(false),
@@ -42,6 +44,7 @@ export function ProjectsWorkspace({
   const params = new URLSearchParams();
   if (query) params.set("q", query);
   if (trash) params.set("trash", "true");
+  if (projectTab === "tasks") params.set("tab","tasks");
   if (offset) params.set("offset", String(offset));
   const returnPath = `/projects/${id}${params.size ? `?${params}` : ""}`;
   useEffect(() => {
@@ -317,17 +320,20 @@ export function ProjectsWorkspace({
               <>
                 <div className="project-tabs">
                   <button
-                    className={!trash ? "active" : ""}
+                    className={projectTab==="research"&&!trash ? "active" : ""}
                     onClick={() => {
+                      setProjectTab("research");
                       setTrash(false);
                       setOffset(0);
                     }}
                   >
                     Research
                   </button>
+                  <button className={projectTab==="tasks"?"active":""} onClick={()=>{setProjectTab("tasks");setTrash(false);setOffset(0);}}>Tasks</button>
                   <button
-                    className={trash ? "active" : ""}
+                    className={projectTab==="research"&&trash ? "active" : ""}
                     onClick={() => {
+                      setProjectTab("research");
                       setTrash(true);
                       setOffset(0);
                     }}
@@ -335,6 +341,7 @@ export function ProjectsWorkspace({
                     Trash
                   </button>
                 </div>
+                {projectTab==="tasks"?<TodoWorkspace projectId={id} initialQuery={initialQuery} embedded readOnly={!!project!.archivedAt}/>:<>
                 <div className="project-tools">
                   <label className="project-search">
                     <Search size={17} />
@@ -436,6 +443,7 @@ export function ProjectsWorkspace({
                     </button>
                   </nav>
                 )}
+                </>}
               </>
             )}
           </>

@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ArrowLeft, ArrowUpRight, Copy, LoaderCircle, Pencil, X, Star, Archive, Trash2, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Copy, LoaderCircle, Pencil, X, Star, Archive, Trash2, RotateCcw, ListTodo } from "lucide-react";
 import type { Item, Collection } from "@stash/shared";
 import { api, ApiError } from "../../lib/api";
 import { SummaryPanel } from "./summary-panel";
@@ -74,7 +74,7 @@ export function ItemDetail({ id }: { id: string }) {
       if (
         url.origin === location.origin &&
         (url.pathname === "/" ||
-          /^(?:\/library(?:\/(?:archive|trash|favourites|collections\/[a-f0-9-]{36}))?|\/topics\/[a-f0-9-]{36})$/.test(
+          /^(?:\/library(?:\/(?:archive|trash|favourites|collections\/[a-f0-9-]{36}))?|\/todos|\/topics\/[a-f0-9-]{36})$/.test(
             url.pathname,
           ) ||
           /^\/projects\/[0-9a-f-]{36}$/.test(url.pathname))
@@ -220,6 +220,7 @@ export function ItemDetail({ id }: { id: string }) {
                           Open source <ArrowUpRight size={16} />
                         </a>
                       )}
+                      <button className="button secondary" onClick={()=>router.push(`/todos?sourceId=${encodeURIComponent(item.id)}${item.projectId?`&projectId=${encodeURIComponent(item.projectId)}`:""}`)}><ListTodo size={15}/>Create task</button>
                       <button
                         className="button secondary"
                         disabled={projectArchived}

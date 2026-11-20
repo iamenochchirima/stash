@@ -52,11 +52,12 @@ test("Todos are private task records with owned projects, lists, sources and ret
     const bulkMoveReplay=await f.request("POST","/api/todos/bulk",bulkMoveInput,a.cookie);
     assert.equal(bulkMoveReplay.statusCode,200,bulkMoveReplay.body);assert.equal(bulkMoveReplay.json().todos[0].revision,bulkMoved.json().todos[0].revision,"bulk move retries return their original result");
     const beforeOrder=bulkMoved.json().todos;
-    const reorderInput={tasks:[{id:beforeOrder[0].id,revision:beforeOrder[0].revision,position:beforeOrder[1].position},{id:beforeOrder[1].id,revision:beforeOrder[1].revision,position:beforeOrder[0].position}],requestId:randomUUID()};
+    const orderedBefore=[...beforeOrder].sort((a:any,b:any)=>a.position-b.position);
+    const reorderInput={tasks:[{id:orderedBefore[0].id,revision:orderedBefore[0].revision,position:orderedBefore[1].position},{id:orderedBefore[1].id,revision:orderedBefore[1].revision,position:orderedBefore[0].position}],requestId:randomUUID()};
     const reordered=await f.request("POST","/api/todos/reorder",reorderInput,a.cookie);
     assert.equal(reordered.statusCode,200,reordered.body);
     const manual=(await f.request("GET",`/api/todos?sort=manual&projectId=${project.id}&listId=${list.id}`,undefined,a.cookie)).json().items;
-    assert.ok(manual.findIndex((task:any)=>task.id===beforeOrder[1].id)<manual.findIndex((task:any)=>task.id===beforeOrder[0].id),`manual view applies saved positions: ${JSON.stringify({before:beforeOrder.map((task:any)=>({id:task.id,title:task.title,position:task.position})),requested:reorderInput.tasks,reordered:reordered.json().todos.map((task:any)=>({id:task.id,title:task.title,position:task.position})),manual:manual.map((task:any)=>({id:task.id,title:task.title,position:task.position}))})}`);
+    assert.ok(manual.findIndex((task:any)=>task.id===orderedBefore[1].id)<manual.findIndex((task:any)=>task.id===orderedBefore[0].id),`manual view applies saved positions: ${JSON.stringify({before:beforeOrder.map((task:any)=>({id:task.id,title:task.title,position:task.position})),requested:reorderInput.tasks,reordered:reordered.json().todos.map((task:any)=>({id:task.id,title:task.title,position:task.position})),manual:manual.map((task:any)=>({id:task.id,title:task.title,position:task.position}))})}`);
     assert.equal((await f.request("POST","/api/todos/reorder",reorderInput,a.cookie)).json().todos[0].revision,reordered.json().todos[0].revision,"reorder retries return their original result");
     const orderedTasks=reordered.json().todos;
     const unfinished=orderedTasks.find((task:any)=>task.id===preferenceTask.id);
@@ -195,8 +196,9 @@ test("Todo MCP tools share records and preserve read-only and account boundaries
       clients.push(client);
     }
     const [writer,reader,foreign]=clients;
-    const readNames=(await reader.listTools()).tools.map(tool=>tool.name);
-    assert.ok(readNames.includes("list_todos"));assert.ok(readNames.includes("get_todo"));assert.ok(!readNames.includes("create_todo"));
+    const readNames=(await reader.listTools()).tools.map(tool=>tool.name),writeNames=(await writer.listTools()).tools.map(tool=>tool.name);
+    assert.ok(readNames.includes("list_todos"));assert.ok(readNames.includes("get_todo"));assert.ok(readNames.includes("list_todo_reminders"));assert.ok(!readNames.includes("create_todo"));assert.ok(!readNames.includes("schedule_todo_reminder"));
+    assert.ok(writeNames.includes("schedule_todo_reminder"));assert.ok(writeNames.includes("act_on_todo_reminder"));assert.ok(writeNames.includes("update_todo_preferences"));
     const requestId=randomUUID();
     const created=data(await writer.callTool({name:"create_todo",arguments:{title:"Review the saved finding",description:"Keep the context",projectId:null,listId:null,priority:"normal",plannedDate:null,deadlineDate:null,deadlineAt:null,timezone:"Africa/Johannesburg",sourceIds:[],requestId}}));
     const readerList=data(await reader.callTool({name:"list_todos",arguments:{view:"all",q:null,projectId:null,listId:null,state:null,priority:null,offset:0,limit:50}}));
@@ -230,5 +232,10 @@ test("Todo MCP tools share records and preserve read-only and account boundaries
     assert.equal(recurrenceInfo.rule.frequency,"weekly");
     const stopped=data(await writer.callTool({name:"stop_todo_recurrence",arguments:{id:recurring.id,revision:schedule.todo.revision,requestId:randomUUID()}}));
     assert.equal(stopped.active,false);
+    const reminderTask=data(await writer.callTool({name:"create_todo",arguments:{title:"Read this tomorrow",description:"",projectId:null,listId:null,priority:"normal",plannedDate:null,deadlineDate:null,deadlineAt:null,timezone:"UTC",sourceIds:[],requestId:randomUUID()}}));
+    const reminderArgs={id:reminderTask.id,requestId:randomUUID(),scheduledAt:new Date(Date.now()+60*60_000).toISOString(),channels:["in_app"]};
+    const reminder=data(await writer.callTool({name:"schedule_todo_reminder",arguments:reminderArgs}));
+    const reminderReplay=data(await writer.callTool({name:"schedule_todo_reminder",arguments:reminderArgs}));
+    assert.equal(reminder.reminders[0].id,reminderReplay.reminders[0].id,"MCP reminder retries preserve one scheduled delivery");
   }finally{for(const client of clients)await client.close();if(app)await app.close();await f.close();}
 });

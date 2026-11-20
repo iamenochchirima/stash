@@ -93,11 +93,17 @@ export const todoBulkInput = z.object({
   if(value.action!=="complete"&&value.subtasks!==undefined)ctx.addIssue({code:"custom",path:["subtasks"],message:"Only complete actions can include subtask behavior."});
 });
 export const todoDeleteInput = z.object({ revision: z.number().int().positive(), confirmation: z.literal("DELETE") });
-export const todoPreferencesInput = z.object({ timezone });
+export const todoPreferencesInput = z.object({ timezone, emailReminders:z.boolean().optional(), inAppReminders:z.boolean().optional() });
+export const todoReminderScheduleInput=z.object({requestId:z.string().uuid(),scheduledAt:z.string().datetime({offset:true}),channels:z.array(z.enum(["in_app","email"])).min(1).max(2)}).refine(value=>new Set(value.channels).size===value.channels.length,{path:["channels"],message:"Choose each reminder channel once."});
+export const todoReminderActionInput=z.discriminatedUnion("action",[
+  z.object({action:z.literal("read")}),
+  z.object({action:z.literal("dismiss")}),
+  z.object({action:z.literal("snooze"),scheduledAt:z.string().datetime({offset:true})}),
+]);
 
 export type TodoState = z.infer<typeof todoState>;
 export type TodoPriority = z.infer<typeof todoPriority>;
-export type TodoPreferences = { timezone: string; emailReminders: boolean; inAppReminders: boolean; configured: boolean };
+export type TodoPreferences = { timezone: string; emailReminders: boolean; inAppReminders: boolean; emailVerified?:boolean; emailConfigured?:boolean; configured: boolean };
 export type Todo = {
   id: string; userId: string; projectId: string | null; listId: string | null; recurrenceId: string | null;
   title: string; description: string; state: TodoState; priority: TodoPriority; plannedDate: string | null; deadlineDate: string | null;

@@ -2,11 +2,11 @@ import { readFile, writeFile, rm } from "node:fs/promises";
 import pg from "pg";
 import { BASE } from "../tests/helpers.js";
 export default async function cleanup() {
+  const apiPort = Number(process.env.VERIFY_API_PORT ?? 4100);
+  const schemaFile = `.data/browser-schema-${apiPort}.json`;
   let schema: string;
   try {
-    schema = JSON.parse(
-      await readFile(".data/browser-schema.json", "utf8"),
-    ).schema;
+    schema = JSON.parse(await readFile(schemaFile, "utf8")).schema;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") return;
     throw error;
@@ -42,7 +42,7 @@ export default async function cleanup() {
     if (result.rows.length)
       throw new Error("Browser verification schema was not removed.");
     await rm(`.data/verification-files/${schema}`, { recursive: true, force: true });
-    await rm(".data/browser-schema.json", { force: true });
+    await rm(schemaFile, { force: true });
   } finally {
     await pool.end();
   }

@@ -1,0 +1,81 @@
+import { test, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+import { randomUUID } from "node:crypto";
+import { mkdir } from "node:fs/promises";
+const webOrigin = `http://127.0.0.1:${process.env.VERIFY_WEB_PORT ?? 3100}`;
+
+for(const width of [1440,375])test(`Todos support saved-source follow-up at ${width}px`,async({page})=>{
+  await page.setViewportSize({width,height:1000});
+  const headers={origin:webOrigin},email=`todos-${randomUUID()}@example.test`,password="Todos123";
+  const account=await page.request.post("/api/auth/signup",{headers,data:{name:"Todo researcher",email,password}});expect(account.status()).toBe(201);
+  const saved=await page.request.post("/api/items",{headers,data:{kind:"link",url:"https://example.test/todo-source",title:"A source worth revisiting",notes:"Keep the evidence and the follow-up together."}});expect(saved.ok()).toBe(true);const source=(await saved.json()).item;
+  await page.goto(`/todos?sourceId=${source.id}`);
+  await expect(page.getByText("Dates use")).toBeVisible();
+  await expect(page.getByLabel("New task")).toHaveValue("Follow up: A source worth revisiting");
+  await page.getByRole("button",{name:"Add",exact:true}).click();
+  await expect(page.getByRole("dialog",{name:"Task details"})).toBeVisible();
+  await expect(page.getByRole("link",{name:/A source worth revisiting/})).toBeVisible();
+  await page.getByLabel("Notes",{exact:true}).fill("Read the source and record the useful points.");
+  await page.getByLabel("Plan for",{exact:true}).fill("2026-11-21");
+  await page.getByLabel("Deadline",{exact:true}).fill("2026-11-24");
+  await page.getByRole("combobox",{name:"Priority",exact:true}).selectOption("high");
+  await page.getByLabel("Add a subtask",{exact:true}).fill("Check the original references");
+  await page.getByRole("button",{name:"Add",exact:true}).last().click();
+  await expect(page.getByRole("checkbox",{name:"Check the original references"})).toBeVisible();
+  await page.getByRole("checkbox",{name:"Check the original references"}).check();
+  await page.getByRole("button",{name:"Save task",exact:true}).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const task=page.locator(".todo-row").filter({hasText:"Follow up: A source worth revisiting"});
+  await expect(task).toContainText("1/1 subtasks");await expect(task).toContainText("high priority");
+  await task.locator(".todo-open").click();
+  await page.getByLabel("Reminder time",{exact:true}).fill("2030-01-01T12:00");
+  await page.getByRole("button",{name:"Set reminder",exact:true}).click();
+  await expect(page.getByRole("status").filter({hasText:"Reminder scheduled."})).toBeVisible();
+  await page.getByRole("button",{name:"Set a repeating schedule"}).click();
+  await page.getByRole("combobox",{name:"Repeats",exact:true}).selectOption("daily");
+  await page.getByRole("spinbutton",{name:"Stop after occurrences",exact:true}).fill("3");
+  await page.getByRole("button",{name:"Save repeat schedule"}).click();
+  await expect(page.getByText(/Daily · Every 1 day/)).toBeVisible();
+  await page.getByRole("button",{name:"Close",exact:true}).click();
+  await page.locator(".todo-row").filter({hasText:"Follow up: A source worth revisiting"}).getByRole("button",{name:"Complete Follow up: A source worth revisiting"}).click();
+  await expect(page.locator(".todo-row").filter({hasText:"Follow up: A source worth revisiting"})).toContainText("Planned");
+  await expect(page.locator(".todo-row").filter({hasText:"Follow up: A source worth revisiting"})).toContainText("1 saved item");
+  await page.getByRole("button",{name:"Completed",exact:true}).click();
+  await expect(page.locator(".todo-row")).toContainText("Follow up: A source worth revisiting");
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  expect((await new AxeBuilder({page}).withTags(["wcag2a","wcag2aa","wcag21aa"]).analyze()).violations).toEqual([]);
+  await mkdir("docs/evidence/todos",{recursive:true});await page.screenshot({path:`docs/evidence/todos/workspace-${width}.png`,fullPage:true});
+
+  const project=(await (await page.request.post("/api/projects",{headers,data:{name:"Task integration"}})).json()).project;
+  const list=(await (await page.request.post("/api/todo-lists",{headers,data:{name:"Read next",projectId:project.id}})).json()).list;
+  await page.goto(`/projects/${project.id}?tab=tasks`);
+  await expect(page.getByRole("button",{name:"Tasks",exact:true})).toHaveClass(/active/);
+  await page.getByLabel("New task").fill("Project follow-up");
+  await page.getByLabel("Task list").selectOption(list.id);
+  await page.getByRole("button",{name:"Add",exact:true}).click();
+  await expect(page.getByText("Project follow-up",{exact:true})).toBeVisible();
+  await page.getByRole("button",{name:"Close",exact:true}).click();
+  await page.getByLabel("New task").fill("Another project task");await page.getByRole("button",{name:"Add",exact:true}).click();
+  await page.getByRole("button",{name:"Close",exact:true}).click();
+  await page.getByLabel("Task order").selectOption("manual");
+  await page.getByRole("button",{name:"Move Project follow-up down"}).click();
+  await expect(page.locator(".todo-row").first()).toContainText("Another project task");
+  const projectTask=await (await page.request.get("/api/todos?projectId="+project.id)).json();
+  expect(projectTask.items).toHaveLength(2);
+});
+
+test("Creating a task from saved research returns through sign-in",async({page,browser})=>{
+  const headers={origin:webOrigin},email=`todos-login-${randomUUID()}@example.test`,password="Todos123";
+  await page.request.post("/api/auth/signup",{headers,data:{name:"Task owner",email,password}});
+  const item=(await page.request.post("/api/items",{headers,data:{kind:"note",title:"Saved idea",body:"A note to follow up."}}).then(r=>r.json())).item;
+  const context=await browser.newContext();
+  try{
+    const visitor=await context.newPage();await visitor.goto(`/items/${item.id}`);
+    await expect(visitor).toHaveURL(/\/signin\?next=/);
+    await visitor.getByLabel("Email address").fill(email);await visitor.getByLabel("Password",{exact:true}).fill(password);await visitor.getByRole("button",{name:"Sign in",exact:true}).click();
+    await expect(visitor.getByRole("heading",{name:"Saved idea",exact:true})).toBeVisible();
+    await visitor.getByRole("button",{name:/Create task/}).click();
+    await expect(visitor).toHaveURL(/\/todos\?sourceId=/);
+    await expect(visitor.getByLabel("New task")).toHaveValue("Follow up: Saved idea");
+  }finally{await context.close();}
+});
