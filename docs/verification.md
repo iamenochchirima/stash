@@ -698,4 +698,12 @@ Data-only JSON and full ZIP backups now use version 4 and include Todo lists, ta
 
 `VERIFY_API_PORT=4110 VERIFY_WEB_PORT=3110 VERIFY_ADMIN_PORT=3111 VERIFY_SKIP_ADMIN=true pnpm test:browser tests/browser/backups.spec.ts` passed both desktop 1440px and mobile 375px journeys. The browser downloaded actual JSON/ZIP files, showed the Todo task/list and paused-reminder preview, restored the item and task, repaired the original PDF, and passed axe/overflow checks. Evidence: `docs/evidence/todos/backup-restore-preview-{1440,375}.png` and `backup-restore-complete-{1440,375}.png`. Default verification ports belonged to another workspace; the isolated harness used separate ports and its own disposable schema.
 
-`pnpm typecheck` and `NEXT_DIST_DIR=.next-todo-verification pnpm build` passed for API, consumer and admin. This checkpoint is local only: no production migration, push or deployment occurred. Todo account-deletion/suspension verification, worker operations, broader regressions and hosted acceptance remain open.
+`pnpm typecheck` and `NEXT_DIST_DIR=.next-todo-verification pnpm build` passed for API, consumer and admin. This checkpoint is local only: no production migration, push or deployment occurred.
+
+## Todos lifecycle and worker recovery, 20 November 2026
+
+The focused run `pnpm exec tsx --test --test-concurrency=1 tests/admin.test.ts tests/todo-reminders.test.ts` passed all 26 PostgreSQL-backed tests. New coverage confirms account deletion cascades across Todo lists, tasks, subtasks, source links, recurrence/occurrence history, reminders, preferences and request records. Admin suspension cancels queued in-app and email reminders before delivery. Reminder recovery releases expired email leases, resumes within the bounded retry policy using the same idempotency key, and stops exhausted jobs.
+
+The first `pnpm test` run found one stale bookmark-export test expecting bundle version 3 after Todos moved the data-only backup format to version 4. The assertion and description were updated; `pnpm exec tsx --test --test-concurrency=1 tests/bookmarks.test.ts` passed all three cases. The final `pnpm test` run passed all 138 tests. Workspace `pnpm typecheck` passed. `NEXT_DIST_DIR=.next-todos-final pnpm build` succeeded for the API, consumer client and admin client on Next.js 16.4.6.
+
+All database checks used disposable schemas in the project-owned `stash_test` database. No production data, account, credential, remote environment or hosting plan was touched. This remains a local implementation checkpoint; hosted agent-client acceptance and release are still pending.

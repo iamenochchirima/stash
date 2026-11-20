@@ -7,6 +7,7 @@ import { fixture } from "./helpers.js";
 import { inviteAdmin } from "../apps/server/src/admin-auth.js";
 import { base32, totp, totpStep, mfaCipher } from "../apps/server/src/admin-crypto.js";
 import { digest } from "../apps/server/src/auth.js";
+import { processTodoReminder } from "../apps/server/src/todo-reminder-worker.js";
 const encryptionKey = randomBytes(32).toString("base64");
 const origin = "http://127.0.0.1:3001";
 async function setup(mailFailure?:()=>boolean,deletionJournalDir?:string) {
@@ -239,6 +240,29 @@ test("AT05/AT07 suspension and deletion leave no credentials from racing login/k
   }finally{await f.close();}
  }
 });
+
+test("Suspending an account cancels its pending Todo reminders before they can be delivered",async()=>{
+  const f=await setup();
+  const customerRequest=(method:any,path:string,body?:unknown,cookie?:string)=>f.request(method,path,body,cookie,{origin:"http://127.0.0.1:3000"});
+  try{
+    const owner=await enroll(f),customer=await f.signup();
+    await customerRequest("POST","/api/auth/verify",{token:f.token("verify",customer.email)});
+    assert.equal((await customerRequest("PUT","/api/todo-preferences",{timezone:"UTC",emailReminders:true},customer.cookie)).statusCode,200);
+    const task=(await customerRequest("POST","/api/todos",{title:"Private reminder",requestId:randomUUID()},customer.cookie)).json().todo;
+    const scheduledAt=new Date(Date.now()+60_000);
+    const scheduled=await customerRequest("POST",`/api/todos/${task.id}/reminders`,{requestId:randomUUID(),scheduledAt:scheduledAt.toISOString(),channels:["in_app","email"]},customer.cookie);
+    assert.equal(scheduled.statusCode,200,scheduled.body);assert.equal(scheduled.json().reminders.length,2);
+    const suspended=await f.request("POST",`/admin-api/users/${customer.user.id}/actions`,{action:"suspend",confirmation:customer.email,reason:"Cancel queued private reminders",operationId:randomUUID()},owner.cookie);
+    assert.equal(suspended.statusCode,200,suspended.body);
+    const sent:any[]=[];
+    await processTodoReminder(f.db,{async send(message){sent.push(message);}} ,"https://stash.example",{emailEnabled:true,now:new Date(scheduledAt.getTime()+1000)});
+    assert.equal(sent.length,0);
+    const states=await f.db.execute(sql`select status from todo_reminders where user_id=${customer.user.id}`);
+    assert.equal(states.rows.length,2);assert.ok(states.rows.every((row:any)=>row.status==="cancelled"));
+    assert.equal((await customerRequest("GET","/api/todo-reminders",undefined,customer.cookie)).statusCode,401);
+  }finally{await f.close();}
+});
+
 test("AT03 concurrent final-owner removals preserve a usable owner and audit failure prevents account mutation",async()=>{
   const f=await setup();
   try{
