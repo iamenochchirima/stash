@@ -85,6 +85,33 @@ test("Expired trash is really purged and restore cannot resurrect a purged item"
   } finally { await f.close(); }
 });
 
+test("Manual and retention purge keep linked Todos with an unavailable-source marker", async () => {
+  const { maintainLibrary } = await import("../apps/server/src/library-maintenance.js");
+  const f = await fixture();
+  try {
+    const account = await f.signup();
+    const manualSource = (await f.request("POST", "/api/items", { kind: "link", url: "https://example.test/manual-purge", title: "Manual source" }, account.cookie)).json().item;
+    const manualTask = (await f.request("POST", "/api/todos", { title: "Keep after manual purge", sourceIds: [manualSource.id], requestId: randomUUID() }, account.cookie)).json().todo;
+    await f.request("POST", `/api/items/${manualSource.id}/lifecycle`, { action: "trash" }, account.cookie);
+    const purged = await f.request("POST", `/api/items/${manualSource.id}/lifecycle`, { action: "purge" }, account.cookie);
+    assert.equal(purged.statusCode, 200, purged.body);
+    const afterManual = (await f.request("GET", `/api/todos/${manualTask.id}`, undefined, account.cookie)).json().todo;
+    assert.equal(afterManual.title, manualTask.title);
+    assert.equal(afterManual.sources.length, 1);
+    assert.equal(afterManual.sources[0].resourceId, null);
+
+    const retainedSource = (await f.request("POST", "/api/items", { kind: "idea", body: "A source for retention cleanup" }, account.cookie)).json().item;
+    const retainedTask = (await f.request("POST", "/api/todos", { title: "Keep after retention purge", sourceIds: [retainedSource.id], requestId: randomUUID() }, account.cookie)).json().todo;
+    await f.request("POST", `/api/items/${retainedSource.id}/lifecycle`, { action: "trash" }, account.cookie);
+    await f.db.update(resources).set({ deletedAt: new Date(Date.now() - 31 * 86400_000) }).where(eq(resources.id, retainedSource.id));
+    assert.equal((await maintainLibrary(f.db)).purged, 1);
+    const afterRetention = (await f.request("GET", `/api/todos/${retainedTask.id}`, undefined, account.cookie)).json().todo;
+    assert.equal(afterRetention.title, retainedTask.title);
+    assert.equal(afterRetention.sources.length, 1);
+    assert.equal(afterRetention.sources[0].resourceId, null);
+  } finally { await f.close(); }
+});
+
 test("Mixed item validation and feature gating preserve existing links", async () => {
   const { createApp } = await import("../apps/server/src/app.js");
   const f = await fixture(); let disabled: Awaited<ReturnType<typeof createApp>> | undefined;

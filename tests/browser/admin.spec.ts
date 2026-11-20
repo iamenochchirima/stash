@@ -5,20 +5,22 @@ import { randomUUID } from "node:crypto";
 import { totp } from "../../apps/server/src/admin-crypto.js";
 // Enrollment screens contain MFA secrets and recovery codes. Never retain traces/screenshots there.
 test.use({ trace: "off", screenshot: "off" });
-const origin="http://127.0.0.1:3101";
+const apiOrigin=`http://127.0.0.1:${process.env.VERIFY_API_PORT??4100}`;
+const webOrigin=`http://127.0.0.1:${process.env.VERIFY_WEB_PORT??3100}`;
+const origin=`http://127.0.0.1:${process.env.VERIFY_ADMIN_PORT??3101}`;
 async function mailLink(email:string,match:string){let link="";await expect.poll(async()=>{for(const file of await readdir(".data/verification-mail")){const mail=JSON.parse(await readFile(`.data/verification-mail/${file}`,"utf8"));if(mail.to===email&&mail.subject.includes(match))link=mail.text.match(/https?:\/\/\S+/)?.[0]||"";}return !!link;}).toBe(true);return link;}
 test("Admin enrolment, private account metadata, suspension/restoration, audit and responsive navigation",async({page,request,browser})=>{
   const prefix=`admin-browser-${randomUUID()}`,email=`${prefix}@example.test`;
-  const signup=await request.post("http://127.0.0.1:4100/api/auth/signup",{headers:{origin:"http://127.0.0.1:3100"},data:{email,name:"Research user",password:"admin-browser-customer"}});
+  const signup=await request.post(`${apiOrigin}/api/auth/signup`,{headers:{origin:`${webOrigin}`},data:{email,name:"Research user",password:"admin-browser-customer"}});
   expect(signup.status()).toBe(201);const user=(await signup.json()).user;
   const customerCookie=signup.headers()["set-cookie"].split(";")[0];
-  const secondSignup=await request.post("http://127.0.0.1:4100/api/auth/signup",{headers:{origin:"http://127.0.0.1:3100"},data:{email:`${prefix}-second@example.test`,name:"Second user",password:"admin-browser-customer"}});
+  const secondSignup=await request.post(`${apiOrigin}/api/auth/signup`,{headers:{origin:`${webOrigin}`},data:{email:`${prefix}-second@example.test`,name:"Second user",password:"admin-browser-customer"}});
   expect(secondSignup.status()).toBe(201);
   const secondCookie=secondSignup.headers()["set-cookie"].split(";")[0],secondUser=(await secondSignup.json()).user;
   const verify=new URL(await mailLink(email,"Verify")).searchParams.get("verify")!;
-  await request.post("http://127.0.0.1:4100/api/auth/verify",{headers:{origin:"http://127.0.0.1:3100"},data:{token:verify}});
-  const saved=await request.post("http://127.0.0.1:4100/api/resources",{headers:{origin:"http://127.0.0.1:3100",cookie:customerCookie},data:{url:"https://example.test/admin-private",title:"Private resource must stay hidden",notes:"Private note must stay hidden"}});expect(saved.status()).toBe(200);
-  const key=await request.post("http://127.0.0.1:4100/api/keys",{headers:{origin:"http://127.0.0.1:3100",cookie:customerCookie},data:{name:"Research assistant",scope:"read"}});expect(key.status()).toBe(200);
+  await request.post(`${apiOrigin}/api/auth/verify`,{headers:{origin:`${webOrigin}`},data:{token:verify}});
+  const saved=await request.post(`${apiOrigin}/api/resources`,{headers:{origin:`${webOrigin}`,cookie:customerCookie},data:{url:"https://example.test/admin-private",title:"Private resource must stay hidden",notes:"Private note must stay hidden"}});expect(saved.status()).toBe(200);
+  const key=await request.post(`${apiOrigin}/api/keys`,{headers:{origin:`${webOrigin}`,cookie:customerCookie},data:{name:"Research assistant",scope:"read"}});expect(key.status()).toBe(200);
   const ownerInvite=new URL(await mailLink("owner@admin.example.test","invitation"));
   await page.addInitScript(fragment=>{if(location.pathname==="/enroll")history.replaceState(null,"",location.pathname+fragment);},ownerInvite.hash);
   await page.goto(`${origin}/enroll`);
@@ -34,6 +36,8 @@ test("Admin enrolment, private account metadata, suspension/restoration, audit a
   await expect(page.getByText("System status",{exact:true})).toBeVisible();
   await page.getByText("Library details",{exact:true}).click();
   await expect(page.getByText("Summary requests today",{exact:true})).toBeVisible();
+  await expect(page.getByText("Task reminders due",{exact:true})).toBeVisible();
+  await expect(page.getByText(/Reminder counts are aggregated/)).toBeVisible();
   await page.getByText("Library details",{exact:true}).click();
   const thirtyDays=page.waitForResponse(r=>r.url().includes("/admin-api/overview?days=30")&&r.status()===200);
   await page.getByRole("link",{name:"30 days",exact:true}).click();
@@ -79,8 +83,8 @@ test("Admin enrolment, private account metadata, suspension/restoration, audit a
   await page.getByRole("dialog").getByRole("textbox").last().fill(email);
   await page.getByRole("dialog").getByRole("button",{name:"Suspend account",exact:true}).click();
   await expect(page.getByText("Suspended",{exact:true})).toBeVisible();
-  const denied=await request.get("http://127.0.0.1:4100/api/me",{headers:{origin:"http://127.0.0.1:3100",cookie:customerCookie}});expect(denied.status()).toBe(401);
-  const blocked=await request.post("http://127.0.0.1:4100/mcp",{headers:{authorization:`Bearer ${(await key.json()).token}`,accept:"application/json, text/event-stream"},data:{jsonrpc:"2.0",id:1,method:"tools/list"}});expect(blocked.status()).toBe(401);
+  const denied=await request.get(`${apiOrigin}/api/me`,{headers:{origin:`${webOrigin}`,cookie:customerCookie}});expect(denied.status()).toBe(401);
+  const blocked=await request.post(`${apiOrigin}/mcp`,{headers:{authorization:`Bearer ${(await key.json()).token}`,accept:"application/json, text/event-stream"},data:{jsonrpc:"2.0",id:1,method:"tools/list"}});expect(blocked.status()).toBe(401);
   await page.getByRole("button",{name:"Restore access",exact:true}).click();
   await page.getByLabel("Reason").fill("Restore disposable account after test");await page.getByRole("dialog").getByRole("textbox").last().fill(email);
   await page.getByRole("dialog").getByRole("button",{name:"Restore access",exact:true}).click();await expect(page.getByText("Active",{exact:true})).toBeVisible();
@@ -164,7 +168,7 @@ test("Admin enrolment, private account metadata, suspension/restoration, audit a
   await operatorPage.getByRole("dialog").getByRole("textbox").last().fill(`${prefix}-second@example.test`);
   await operatorPage.getByRole("dialog").getByRole("button",{name:"Suspend account",exact:true}).click();
   await expect(operatorPage.getByText("Suspended",{exact:true})).toBeVisible();
-  expect((await request.get("http://127.0.0.1:4100/api/me",{headers:{origin:"http://127.0.0.1:3100",cookie:secondCookie}})).status()).toBe(401);
+  expect((await request.get(`${apiOrigin}/api/me`,{headers:{origin:`${webOrigin}`,cookie:secondCookie}})).status()).toBe(401);
   await operatorPage.getByRole("button",{name:"Restore access",exact:true}).click();
   await operatorPage.getByLabel("Reason").fill("Operator restores a disposable account");
   await operatorPage.getByRole("dialog").getByRole("textbox").last().fill(`${prefix}-second@example.test`);
@@ -173,10 +177,10 @@ test("Admin enrolment, private account metadata, suspension/restoration, audit a
   expect(await operatorPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await operatorPage.screenshot({path:"docs/evidence/admin/operator-mobile.png",fullPage:true});
   await operatorContext.close();
-  const secondLogin=await request.post("http://127.0.0.1:4100/api/auth/login",{headers:{origin:"http://127.0.0.1:3100"},data:{email:`${prefix}-second@example.test`,password:"admin-browser-customer"}});
+  const secondLogin=await request.post(`${apiOrigin}/api/auth/login`,{headers:{origin:`${webOrigin}`},data:{email:`${prefix}-second@example.test`,password:"admin-browser-customer"}});
   expect(secondLogin.status()).toBe(200);
   const secondRestoredCookie=secondLogin.headers()["set-cookie"].split(";")[0];
-  const secondDeleted=await request.delete("http://127.0.0.1:4100/api/me",{headers:{origin:"http://127.0.0.1:3100",cookie:secondRestoredCookie},data:{password:"admin-browser-customer",confirmation:"DELETE"}});
+  const secondDeleted=await request.delete(`${apiOrigin}/api/me`,{headers:{origin:`${webOrigin}`,cookie:secondRestoredCookie},data:{password:"admin-browser-customer",confirmation:"DELETE"}});
   expect(secondDeleted.status()).toBe(200);
   await page.context().clearCookies();
   await page.getByRole("button",{name:"Refresh page",exact:true}).click();

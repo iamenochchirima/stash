@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "clients": {
+    "writer": "Codex",
+    "reader": "OpenCode"
+  },
+  "versions": {
+    "codex": "codex-cli 0.169.0",
+    "opencode": "opencode v2.3.0"
+  },
+  "todoCreated": true,
+  "todoRetrieved": true,
+  "readerKeyRevoked": true,
+  "openCodeModel": "openrouter/nvidia/nemotron-3.5-lightning:free"
+}

@@ -22,6 +22,15 @@ export function todoService(db: Database, userId: string) {
     if (!result.rows.length) throw new AppError(404, "Project not found.");
     if (write && result.rows[0].archived_at) throw new AppError(409, "Reopen this project before changing its tasks.");
   }
+  async function projects(tx: Database, ids: Array<string | null | undefined>, write: boolean) {
+    for (const id of [...new Set(ids.filter((value): value is string => !!value))].sort()) await project(tx, id, write);
+  }
+  async function touchProjects(tx: Database, ids: Array<string | null | undefined>) {
+    const owned = [...new Set(ids.filter((value): value is string => !!value))];
+    if (!owned.length) return;
+    const idList = sql.join(owned.map(id => sql`${id}::uuid`), sql`, `);
+    await tx.execute(sql`update projects set updated_at=now() where user_id=${userId} and id in (${idList})`);
+  }
   async function get(id: string, tx: Database = db, includeTrash = false) {
     const result = await tx.execute(sql`select t.id,t.user_id as "userId",t.project_id as "projectId",t.list_id as "listId",t.recurrence_id as "recurrenceId",t.title,t.description,t.state,t.priority,t.planned_date as "plannedDate",t.deadline_date as "deadlineDate",t.deadline_at as "deadlineAt",t.timezone,t.completed_at as "completedAt",t.trashed_at as "trashedAt",t.position,t.revision,t.created_at as "createdAt",t.updated_at as "updatedAt" from todos t where t.id=${id} and t.user_id=${userId}`);
     const row = result.rows[0];
@@ -107,6 +116,7 @@ export function todoService(db: Database, userId: string) {
         const n = await tx.execute(sql`select count(*)::int as n from todo_lists where user_id=${userId}`);
         if (Number(n.rows[0].n) >= LIMITS.lists) throw new AppError(409, "Your limit of 100 task lists has been reached.");
         const row = await tx.execute(sql`insert into todo_lists(user_id,project_id,name,position) values(${userId},${input.projectId},${input.name},coalesce((select max(position)+1 from todo_lists where user_id=${userId} and project_id is not distinct from ${input.projectId}),0)) returning id`);
+        await touchProjects(tx, [input.projectId]);
         return String(row.rows[0].id);
       });
       return getList(id);
@@ -120,6 +130,7 @@ export function todoService(db: Database, userId: string) {
         if (Number(row.revision) !== input.revision) throw new AppError(409, "This list changed elsewhere. Reload before saving.");
         await project(tx, row.projectId, true);
         await tx.execute(sql`update todo_lists set name=${input.name},revision=revision+1,updated_at=now() where id=${id} and user_id=${userId}`);
+        await touchProjects(tx, [row.projectId]);
       });
       return getList(id);
     },
@@ -132,6 +143,7 @@ export function todoService(db: Database, userId: string) {
         await project(tx, row.projectId, true);
         await tx.execute(sql`update todos set list_id=null,revision=revision+1,updated_at=now() where list_id=${id} and user_id=${userId}`);
         await tx.execute(sql`delete from todo_lists where id=${id} and user_id=${userId}`);
+        await touchProjects(tx, [row.projectId]);
         return { deleted: true, movedToInbox: true };
       });
     },
@@ -153,6 +165,7 @@ export function todoService(db: Database, userId: string) {
         for (const resourceId of sources) await tx.execute(sql`insert into todo_sources(user_id,todo_id,resource_id) values(${userId},${id},${resourceId})`);
         const todo = await get(id, tx);
         await saveRequest(tx, input.requestId, "create", replay.fingerprint, id, todo);
+        await touchProjects(tx, [input.projectId]);
         return id;
       });
       if (!created) throw new AppError(409, "This task request is no longer available.");
@@ -196,6 +209,7 @@ export function todoService(db: Database, userId: string) {
         if(first.project_id!==second.project_id||first.list_id!==second.list_id)throw new AppError(409,"Reorder tasks from the same list and workspace.");
         await project(tx,first.project_id as string|null,true);
         for(const task of input.tasks)await tx.execute(sql`update todos set position=${task.position},revision=revision+1,updated_at=now() where id=${task.id} and user_id=${userId}`);
+        await touchProjects(tx, [first.project_id as string | null]);
         const items=[];
         for(const task of input.tasks)items.push(await get(task.id,tx));
         await saveRequest(tx,input.requestId,"reorder",replay.fingerprint,null,items);
@@ -214,7 +228,7 @@ export function todoService(db: Database, userId: string) {
         if (Number(row.revision)!==input.revision) throw new AppError(409,"This task changed elsewhere. Reload before saving.");
         const projectId = input.projectId === undefined ? row.project_id as string|null : input.projectId;
         const listId = input.listId === undefined ? row.list_id as string|null : input.listId;
-        await project(tx, projectId, true); await requireList(tx,listId,projectId,true);
+        await projects(tx, [row.project_id as string|null, projectId], true); await requireList(tx,listId,projectId,true);
         const deadlineDate = input.deadlineDate !== undefined ? input.deadlineDate : input.deadlineAt !== undefined ? null : row.deadline_date;
         const deadlineAt = input.deadlineAt !== undefined ? input.deadlineAt : input.deadlineDate !== undefined ? null : row.deadline_at;
         const state = input.state ?? row.state;
@@ -226,6 +240,7 @@ export function todoService(db: Database, userId: string) {
         await tx.execute(sql`update todos set project_id=${projectId},list_id=${listId},title=${input.title ?? row.title},description=${input.description ?? row.description},state=${state},priority=${input.priority ?? row.priority},planned_date=${input.plannedDate === undefined ? row.planned_date : input.plannedDate},deadline_date=${deadlineDate},deadline_at=${deadlineAt},timezone=${input.timezone ?? row.timezone},position=${input.position ?? row.position},completed_at=${state==='done' ? row.completed_at || new Date() : null},revision=revision+1,updated_at=now() where id=${id} and user_id=${userId}`);
         if(row.recurrence_id&&projectId!==row.project_id)await tx.execute(sql`update todo_recurrences set project_id=${projectId},updated_at=now() where id=${row.recurrence_id} and user_id=${userId}`);
         if(state==='done')await tx.execute(sql`update todo_reminders set status='cancelled',lease_until=null,updated_at=now() where todo_id=${id} and user_id=${userId} and status in ('pending','sending')`);
+        await touchProjects(tx, [row.project_id as string|null, projectId]);
       });
       return get(id);
     },
@@ -252,6 +267,7 @@ export function todoService(db: Database, userId: string) {
         const todo=await get(String(task.rows[0].id),tx);
         const response={todo,recurrence:{id:recurrenceId,rule:input.rule,timezone:input.timezone,anchorDate:anchor,localTime,endsOn:input.endsOn??null,remainingCount:input.count??null,active:true}};
         await saveRequest(tx,input.requestId,"recurrence_start",replay.fingerprint,id,response);
+        await touchProjects(tx, [row.project_id as string|null]);
         return response;
       });
       return outcome;
@@ -269,6 +285,7 @@ export function todoService(db: Database, userId: string) {
         await tx.execute(sql`update todo_recurrences set active=false,current_todo_id=null,updated_at=now() where id=${row.recurrenceId} and user_id=${userId}`);
         const response={id:row.recurrenceId,active:false,rule:row.rule,timezone:row.timezone,anchorDate:row.anchorDate,localTime:row.localTime,endsOn:row.endsOn,remainingCount:row.remainingCount};
         await saveRequest(tx,input.requestId,"recurrence_stop",replay.fingerprint,id,response);
+        await touchProjects(tx, [row.projectId as string|null]);
         return response;
       });
     },
@@ -288,12 +305,12 @@ export function todoService(db: Database, userId: string) {
         for(const row of found.rows){
           if(Number(row.revision)!==expected.get(String(row.id)))throw new AppError(409,"One or more tasks changed elsewhere. Reload before continuing.");
           if(row.trashed_at)throw new AppError(409,"Restore trashed tasks before changing them.");
-          await project(tx,row.project_id as string|null,true);
         }
+        await projects(tx, [...found.rows.map((row:Record<string,any>)=>row.project_id as string|null), ...(input.action==="move"?[input.projectId!]:[])], true);
         if(input.action==="move"){
-          await project(tx,input.projectId!,true);
           await requireList(tx,input.listId!,input.projectId!,true);
         }
+        const projectActivity = new Set<string>();
         for(const row of found.rows){
           const id=String(row.id);
           if(input.action==="complete"){
@@ -303,14 +320,19 @@ export function todoService(db: Database, userId: string) {
             if(incomplete.rows.length&&input.subtasks==="complete_all")await tx.execute(sql`update todo_subtasks set completed_at=now(),revision=revision+1,updated_at=now() where todo_id=${id} and user_id=${userId} and completed_at is null`);
             await tx.execute(sql`update todos set state='done',completed_at=coalesce(completed_at,now()),revision=revision+1,updated_at=now() where id=${id} and user_id=${userId}`);
             await tx.execute(sql`update todo_reminders set status='cancelled',lease_until=null,updated_at=now() where todo_id=${id} and user_id=${userId} and status in ('pending','sending')`);
+            if(row.project_id)projectActivity.add(String(row.project_id));
           }else if(input.action==="trash"){
             await tx.execute(sql`update todos set trashed_at=now(),revision=revision+1,updated_at=now() where id=${id} and user_id=${userId}`);
             await tx.execute(sql`update todo_reminders set status='cancelled',lease_until=null,updated_at=now() where todo_id=${id} and user_id=${userId} and status in ('pending','sending')`);
+            if(row.project_id)projectActivity.add(String(row.project_id));
           }else{
             await tx.execute(sql`update todos set project_id=${input.projectId!},list_id=${input.listId!},position=coalesce((select max(position)+1 from todos where user_id=${userId} and project_id is not distinct from ${input.projectId!} and list_id is not distinct from ${input.listId!} and trashed_at is null),0),revision=revision+1,updated_at=now() where id=${id} and user_id=${userId}`);
             if(row.recurrence_id)await tx.execute(sql`update todo_recurrences set project_id=${input.projectId!},updated_at=now() where id=${row.recurrence_id} and user_id=${userId}`);
+            if(row.project_id)projectActivity.add(String(row.project_id));
+            projectActivity.add(input.projectId!);
           }
         }
+        await touchProjects(tx, [...projectActivity]);
         const items=[];
         for(const task of input.tasks)items.push(await get(task.id,tx,input.action==="trash"));
         await saveRequest(tx,input.requestId,action,replay.fingerprint,null,items);
@@ -329,6 +351,7 @@ export function todoService(db: Database, userId: string) {
         await tx.execute(sql`delete from todo_sources where todo_id=${id} and user_id=${userId}`);
         for (const resourceId of sources) await tx.execute(sql`insert into todo_sources(user_id,todo_id,resource_id) values(${userId},${id},${resourceId})`);
         await tx.execute(sql`update todos set revision=revision+1,updated_at=now() where id=${id} and user_id=${userId}`);
+        await touchProjects(tx, [row.project_id as string|null]);
         return sources;
       });
       return { todo: await get(id), linked: ids.length };
@@ -343,6 +366,7 @@ export function todoService(db: Database, userId: string) {
         if (Number(count.rows[0].n)>=LIMITS.subtasks) throw new AppError(409,"A task can have up to 100 subtasks.");
         const inserted = await tx.execute(sql`insert into todo_subtasks(user_id,todo_id,title,position) values(${userId},${id},${title.trim()},coalesce((select max(position)+1 from todo_subtasks where user_id=${userId} and todo_id=${id}),0)) returning id`);
         await tx.execute(sql`update todos set revision=revision+1,updated_at=now() where id=${id} and user_id=${userId}`);
+        await touchProjects(tx, [row.project_id as string|null]);
         return String(inserted.rows[0].id);
       });
       return (await get(id)).subtasks.find((item: {id:string})=>item.id===subtaskId);
@@ -355,6 +379,7 @@ export function todoService(db: Database, userId: string) {
         const current=await tx.execute(sql`select * from todo_subtasks where id=${subtaskId} and todo_id=${id} and user_id=${userId} for update`); const old=current.rows[0]; if(!old)throw new AppError(404,"Subtask not found."); if(Number(old.revision)!==input.revision)throw new AppError(409,"This subtask changed elsewhere. Reload before saving.");
         await tx.execute(sql`update todo_subtasks set title=${input.title??old.title},completed_at=${input.completed===undefined?old.completed_at:input.completed?old.completed_at||new Date():null},position=${input.position??old.position},revision=revision+1,updated_at=now() where id=${subtaskId} and todo_id=${id} and user_id=${userId}`);
         await tx.execute(sql`update todos set revision=revision+1,updated_at=now() where id=${id} and user_id=${userId}`);
+        await touchProjects(tx, [row.project_id as string|null]);
       });
       return (await get(id)).subtasks.find((item: {id:string})=>item.id===subtaskId);
     },
@@ -363,6 +388,7 @@ export function todoService(db: Database, userId: string) {
         await active(tx); const task=await tx.execute(sql`select project_id,trashed_at from todos where id=${id} and user_id=${userId} for update`); const row=task.rows[0]; if(!row)throw new AppError(404,"Task not found."); if(row.trashed_at)throw new AppError(409,"Restore this task before editing it."); await project(tx,row.project_id as string|null,true);
         const result=await tx.execute(sql`delete from todo_subtasks where id=${subtaskId} and todo_id=${id} and user_id=${userId} and revision=${revision} returning id`); if(!result.rows.length){const exists=await tx.execute(sql`select id from todo_subtasks where id=${subtaskId} and todo_id=${id} and user_id=${userId}`);if(!exists.rows.length)throw new AppError(404,"Subtask not found.");throw new AppError(409,"This subtask changed elsewhere. Reload before deleting.");}
         await tx.execute(sql`update todos set revision=revision+1,updated_at=now() where id=${id} and user_id=${userId}`);
+        await touchProjects(tx, [row.project_id as string|null]);
       }); return {deleted:true,todo:await get(id)};
     },
     async lifecycle(id: string, action: "complete"|"reopen"|"trash"|"restore"|"delete", revision: number, confirmation?: string, subtaskMode?: "parent_only"|"complete_all", requestId?: string) {
@@ -374,7 +400,7 @@ export function todoService(db: Database, userId: string) {
         if(replay?.replay){replayResult=replay.result;return;}
         const result=await tx.execute(sql`select * from todos where id=${id} and user_id=${userId} for update`); const row=result.rows[0]; if(!row)throw new AppError(404,"Task not found.");
         if(Number(row.revision)!==revision)throw new AppError(409,"This task changed elsewhere. Reload before continuing.");
-        if(action==="delete") { if(!row.trashed_at)throw new AppError(409,"Move this task to Trash before permanently deleting it."); await tx.execute(sql`delete from todos where id=${id} and user_id=${userId}`); return; }
+        if(action==="delete") { if(!row.trashed_at)throw new AppError(409,"Move this task to Trash before permanently deleting it."); await tx.execute(sql`delete from todos where id=${id} and user_id=${userId}`); await touchProjects(tx,[row.project_id as string|null]); return; }
         if(action==="trash"&&row.trashed_at)return;
         if(action==="restore"&&!row.trashed_at)return;
         await project(tx,row.project_id as string|null,true);
@@ -406,6 +432,7 @@ export function todoService(db: Database, userId: string) {
         const nextState=action==="complete"?"done":action==="reopen"?"todo":row.state;
         await tx.execute(sql`update todos set state=${nextState},completed_at=${action==="complete"?row.completed_at||new Date():action==="reopen"?null:row.completed_at},trashed_at=${action==="trash"?new Date():action==="restore"?null:row.trashed_at},revision=revision+1,updated_at=now() where id=${id} and user_id=${userId}`);
         if(action==="trash"||action==="complete")await tx.execute(sql`update todo_reminders set status='cancelled',lease_until=null,updated_at=now() where todo_id=${id} and user_id=${userId} and status in ('pending','sending')`);
+        await touchProjects(tx, [row.project_id as string|null]);
         if(action==="complete"&&row.recurrence_id){
           const recurrence=await tx.execute(sql`select * from todo_recurrences where id=${row.recurrence_id} and user_id=${userId} for update`),series=recurrence.rows[0];
           if(series){

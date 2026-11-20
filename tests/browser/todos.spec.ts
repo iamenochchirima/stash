@@ -37,6 +37,11 @@ for(const width of [1440,375])test(`Todos support saved-source follow-up at ${wi
   await page.getByRole("button",{name:"Save repeat schedule"}).click();
   await expect(page.getByText(/Daily · Every 1 day/)).toBeVisible();
   await page.getByRole("button",{name:"Close",exact:true}).click();
+  await page.request.post(`/api/items/${source.id}/lifecycle`,{headers,data:{action:"trash"}}).then(response=>expect(response.ok()).toBe(true));
+  await page.request.post(`/api/items/${source.id}/lifecycle`,{headers,data:{action:"purge"}}).then(response=>expect(response.ok()).toBe(true));
+  await task.locator(".todo-open").click();
+  await expect(page.getByText("Source unavailable",{exact:true})).toBeVisible();
+  await page.getByRole("button",{name:"Close",exact:true}).click();
   await page.locator(".todo-row").filter({hasText:"Follow up: A source worth revisiting"}).getByRole("button",{name:"Complete Follow up: A source worth revisiting"}).click();
   await expect(page.locator(".todo-row").filter({hasText:"Follow up: A source worth revisiting"})).toContainText("Planned");
   await expect(page.locator(".todo-row").filter({hasText:"Follow up: A source worth revisiting"})).toContainText("1 saved item");
@@ -48,6 +53,7 @@ for(const width of [1440,375])test(`Todos support saved-source follow-up at ${wi
 
   const project=(await (await page.request.post("/api/projects",{headers,data:{name:"Task integration"}})).json()).project;
   const list=(await (await page.request.post("/api/todo-lists",{headers,data:{name:"Read next",projectId:project.id}})).json()).list;
+  const beforeTodoActivity=(await (await page.request.get(`/api/projects/${project.id}`,{headers})).json()).project;
   await page.goto(`/projects/${project.id}?tab=tasks`);
   await expect(page.getByRole("button",{name:"Tasks",exact:true})).toHaveClass(/active/);
   await page.getByLabel("New task").fill("Project follow-up");
@@ -62,6 +68,12 @@ for(const width of [1440,375])test(`Todos support saved-source follow-up at ${wi
   await expect(page.locator(".todo-row").first()).toContainText("Another project task");
   const projectTask=await (await page.request.get("/api/todos?projectId="+project.id)).json();
   expect(projectTask.items).toHaveLength(2);
+  const afterTodoActivity=(await (await page.request.get(`/api/projects/${project.id}`,{headers})).json()).project;
+  expect(Date.parse(afterTodoActivity.updatedAt)).toBeGreaterThan(Date.parse(beforeTodoActivity.updatedAt));
+  expect(afterTodoActivity.revision).toBe(beforeTodoActivity.revision);
+  await page.goto("/projects");
+  const projectCard=page.locator(`.project-card[href="/projects/${project.id}"]`);
+  await expect(projectCard.locator("time")).toHaveAttribute("datetime",afterTodoActivity.updatedAt);
 });
 
 test("Creating a task from saved research returns through sign-in",async({page,browser})=>{

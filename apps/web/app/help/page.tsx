@@ -93,6 +93,21 @@ export default function Help() {
         saved in Projects stays separate from your main library unless you
         include it in a search.
       </p>
+      <h2>Manage follow-ups with your agent</h2>
+      <p>
+        Ask your agent to create a task only when you want it saved, for example
+        &quot;Add a task to compare these approaches next week.&quot; Tasks can
+        link back to saved research and appear in both your Todos and project
+        Tasks views. Ask the agent to find, update or complete a task later; it
+        uses the same private workspace as Stash. Read-only keys can retrieve
+        tasks. Changes require a read/write key or approved OAuth access.
+      </p>
+      <p>
+        Reminders are optional. In-app reminders appear in Stash; email reminders
+        require a verified address and an enabled email preference. Recurring
+        tasks keep their completion history and create one next occurrence at a
+        time.
+      </p>
       <p>
         Archive hides an item from default lists and keeps its content. Trash
         keeps it recoverable for 30 days; restoring keeps its earlier archive

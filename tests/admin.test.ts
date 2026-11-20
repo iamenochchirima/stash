@@ -252,6 +252,9 @@ test("Suspending an account cancels its pending Todo reminders before they can b
     const scheduledAt=new Date(Date.now()+60_000);
     const scheduled=await customerRequest("POST",`/api/todos/${task.id}/reminders`,{requestId:randomUUID(),scheduledAt:scheduledAt.toISOString(),channels:["in_app","email"]},customer.cookie);
     assert.equal(scheduled.statusCode,200,scheduled.body);assert.equal(scheduled.json().reminders.length,2);
+    await f.db.execute(sql`update todo_reminders set scheduled_at=now()-interval '30 seconds' where user_id=${customer.user.id}`);
+    const queueBefore=(await f.request("GET","/admin-api/overview",undefined,owner.cookie)).json().library;
+    assert.equal(queueBefore.todoReminderDue,2);assert.ok(queueBefore.todoReminderOldestLagSeconds>=30);assert.equal(queueBefore.todoReminderFailed,0);
     const suspended=await f.request("POST",`/admin-api/users/${customer.user.id}/actions`,{action:"suspend",confirmation:customer.email,reason:"Cancel queued private reminders",operationId:randomUUID()},owner.cookie);
     assert.equal(suspended.statusCode,200,suspended.body);
     const sent:any[]=[];
@@ -259,6 +262,8 @@ test("Suspending an account cancels its pending Todo reminders before they can b
     assert.equal(sent.length,0);
     const states=await f.db.execute(sql`select status from todo_reminders where user_id=${customer.user.id}`);
     assert.equal(states.rows.length,2);assert.ok(states.rows.every((row:any)=>row.status==="cancelled"));
+    const queueAfter=(await f.request("GET","/admin-api/overview",undefined,owner.cookie)).json().library;
+    assert.equal(queueAfter.todoReminderDue,0);assert.equal(queueAfter.todoReminderSending,0);
     assert.equal((await customerRequest("GET","/api/todo-reminders",undefined,customer.cookie)).statusCode,401);
   }finally{await f.close();}
 });
@@ -335,6 +340,9 @@ test("AT07 administrative deletion cascades and the durable journal removes rest
     const additional=(await call("POST","/api/collections",{name:"Restore collection"})).json().item;
     assert.equal((await call("POST","/api/resources",{url:"https://example.test/deletion-replay",title:"Restore fixture",notes:"Restore fixture private note",collectionIds:[inbox.id,additional.id]})).statusCode,200);
     await call("POST","/api/keys",{name:"Restore fixture key",scope:"read"});
+    const todo=(await call("POST","/api/todos",{title:"Administrative deletion Todo",requestId:randomUUID()})).json().todo;
+    await call("POST",`/api/todos/${todo.id}/subtasks`,{title:"Private child"});
+    await call("POST",`/api/todos/${todo.id}/reminders`,{requestId:randomUUID(),scheduledAt:new Date(Date.now()+60_000).toISOString(),channels:["in_app"]});
     const [snapshot]=await f.db.select().from(users).where(eq(users.id,customer.user.id));
     const oldCollections=await f.db.select().from(collections).where(eq(collections.userId,customer.user.id));
     const oldResources=await f.db.select().from(resources).where(eq(resources.userId,customer.user.id));
@@ -345,6 +353,8 @@ test("AT07 administrative deletion cascades and the durable journal removes rest
     assert.equal((await f.request("POST",`/admin-api/users/${customer.user.id}/actions`,input,owner.cookie)).statusCode,200);
     assert.equal((await f.db.select().from(users).where(eq(users.id,customer.user.id))).length,0);
     assert.equal((await f.db.select().from(apiKeys).where(eq(apiKeys.userId,customer.user.id))).length,0);
+    assert.equal((await f.db.execute(sql`select count(*)::int as count from todos where user_id=${customer.user.id}`)).rows[0].count,0);
+    assert.equal((await f.db.execute(sql`select count(*)::int as count from todo_reminders where user_id=${customer.user.id}`)).rows[0].count,0);
     const events=(await f.request("GET",`/admin-api/activity?targetId=${customer.user.id}`,undefined,owner.cookie)).json().items;
     assert.ok(events.some((e:any)=>e.action==="user.delete.requested"));assert.ok(events.some((e:any)=>e.action==="user.delete"));
     assert.equal((await f.request("POST",`/admin-api/users/${customer.user.id}/actions`,input,owner.cookie)).statusCode,200);

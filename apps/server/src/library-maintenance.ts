@@ -1,12 +1,16 @@
 import { and, or, eq, inArray, lt } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { resources, itemRequests, type Database } from "@stash/db";
+import { markTodoSourcesUnavailable } from "@stash/core";
 export async function maintainLibrary(db: Database, now = new Date()) {
   const cutoff = new Date(now.getTime() - 30 * 86400_000);
   const result = await db.transaction(async tx => {
-    const expired = await tx.select({ id: resources.id }).from(resources)
+    const expired = await tx.select({ id: resources.id, userId: resources.userId }).from(resources)
       .where(lt(resources.deletedAt, cutoff)).limit(100).for("update", { skipLocked: true });
-    if (expired.length) await tx.delete(resources).where(and(inArray(resources.id, expired.map(r => r.id)), lt(resources.deletedAt, cutoff)));
+    if (expired.length) {
+      await markTodoSourcesUnavailable(tx, expired.map(row => ({ userId: row.userId, resourceId: row.id })));
+      await tx.delete(resources).where(and(inArray(resources.id, expired.map(r => r.id)), lt(resources.deletedAt, cutoff)));
+    }
     const requests = await tx.select({ userId: itemRequests.userId, requestId: itemRequests.requestId }).from(itemRequests).where(lt(itemRequests.expiresAt, now)).limit(100);
     if (requests.length) await tx.delete(itemRequests).where(and(lt(itemRequests.expiresAt, now), or(...requests.map(request => and(eq(itemRequests.userId, request.userId), eq(itemRequests.requestId, request.requestId))))));
     return { purged: expired.length, expiredRequests: requests.length };

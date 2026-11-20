@@ -13,6 +13,7 @@ import {
   type ListInput,
 } from "@stash/shared";
 import { setOrganizationMembership, validateOrganization } from "./topics.js";
+import { markTodoSourcesUnavailable } from "./resource-deletion.js";
 export class AppError extends Error {
   constructor(
     public status: number,
@@ -172,11 +173,12 @@ export function library(db: Database, userId: string) {
       return get(id);
     },
     async remove(id: string) {
-      const rows = await db
-        .delete(resources)
-        .where(ownResource(id))
-        .returning({ id: resources.id });
-      if (!rows.length) throw new AppError(404, "Resource not found.");
+      await db.transaction(async tx => {
+        const [row] = await tx.select({ id: resources.id }).from(resources).where(ownResource(id)).for("update");
+        if (!row) throw new AppError(404, "Resource not found.");
+        await markTodoSourcesUnavailable(tx, [{ userId, resourceId: row.id }]);
+        await tx.delete(resources).where(ownResource(id));
+      });
       return { deleted: true };
     },
     async collections() {
@@ -242,3 +244,4 @@ export { topicService, setOrganizationMembership, validateOrganization } from ".
 export { todoService } from "./todos.js";
 export { todoReminderService } from "./todo-reminders.js";
 export { exportTodos, importTodos } from "./todo-portability.js";
+export { markTodoSourcesUnavailable } from "./resource-deletion.js";

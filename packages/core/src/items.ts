@@ -3,6 +3,7 @@ import { and, eq, desc, sql, inArray, isNull, isNotNull, gt } from "drizzle-orm"
 import { resources, attachments, collections, resourceCollections, itemRequests, users, type Database } from "@stash/db";
 import { LIMITS, type ItemInput, type ItemUpdate, type ItemListInput } from "@stash/shared";
 import { AppError, normalizeUrl } from "./index.js";
+import { markTodoSourcesUnavailable } from "./resource-deletion.js";
 import { requireProject, requireProjectTextCapacity, recordProjectRevision } from "./projects.js";
 import { setOrganizationMembership, validateOrganization } from "./topics.js";
 const retention = 30 * 86400_000;
@@ -131,6 +132,7 @@ export function items(db: Database, userId: string) {
         if (row.deletedAt && row.deletedAt.getTime() <= Date.now() - retention && action !== "purge") throw new AppError(404, "Item not found.");
         if (action === "purge") {
           if (!row.deletedAt) throw new AppError(409, "Move this item to Trash before permanently deleting it.");
+          await markTodoSourcesUnavailable(tx, [{ userId: row.userId, resourceId: row.id }]);
           await tx.delete(resources).where(owner(id));
           return { deleted: true };
         }

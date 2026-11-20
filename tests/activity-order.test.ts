@@ -66,3 +66,32 @@ test("Activity migration backfills existing research without resetting creation 
     assert.equal(result.revision,1);
   } finally { await f.close(); }
 });
+
+test("Todo changes update owning project activity and task moves touch both projects without revision bumps", async () => {
+  const f = await fixture();
+  try {
+    const account = await f.signup();
+    const first = (await f.request("POST", "/api/projects", { name: "First task project" }, account.cookie)).json().project;
+    const second = (await f.request("POST", "/api/projects", { name: "Second task project" }, account.cookie)).json().project;
+    const task = (await f.request("POST", "/api/todos", { title: "Project task", projectId: first.id, requestId: crypto.randomUUID() }, account.cookie)).json().todo;
+    await f.db.execute(sql`update projects set updated_at=now()-interval '2 days' where user_id=${account.user.id}`);
+    const baseline = (await f.request("GET", `/api/projects/${first.id}`, undefined, account.cookie)).json().project.updatedAt;
+    const edited = await f.request("PATCH", `/api/todos/${task.id}`, { revision: task.revision, title: "Updated project task" }, account.cookie);
+    assert.equal(edited.statusCode, 200, edited.body);
+    const afterEdit = (await f.request("GET", `/api/projects/${first.id}`, undefined, account.cookie)).json().project;
+    assert.ok(new Date(afterEdit.updatedAt) > new Date(baseline));
+    assert.equal(afterEdit.revision, first.revision);
+
+    await f.db.execute(sql`update projects set updated_at=now()-interval '2 days' where user_id=${account.user.id}`);
+    const beforeFirst = (await f.request("GET", `/api/projects/${first.id}`, undefined, account.cookie)).json().project.updatedAt;
+    const beforeSecond = (await f.request("GET", `/api/projects/${second.id}`, undefined, account.cookie)).json().project.updatedAt;
+    const moved = await f.request("POST", `/api/todos/${task.id}/move`, { revision: edited.json().todo.revision, projectId: second.id, listId: null }, account.cookie);
+    assert.equal(moved.statusCode, 200, moved.body);
+    const afterFirst = (await f.request("GET", `/api/projects/${first.id}`, undefined, account.cookie)).json().project;
+    const afterSecond = (await f.request("GET", `/api/projects/${second.id}`, undefined, account.cookie)).json().project;
+    assert.ok(new Date(afterFirst.updatedAt) > new Date(beforeFirst));
+    assert.ok(new Date(afterSecond.updatedAt) > new Date(beforeSecond));
+    assert.equal(afterFirst.revision, first.revision);
+    assert.equal(afterSecond.revision, second.revision);
+  } finally { await f.close(); }
+});
