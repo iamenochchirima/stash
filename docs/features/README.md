@@ -14,5 +14,5 @@ This map records current user behavior, not future features. Use the [verificati
 | [Installable apps](pwa.md) | Separate consumer/admin installation, public-only offline fallback and browser install actions |
 | [Projects](projects.md) | Latest project activity and live timestamps, separate research workspaces, MCP project CRUD, item moves, long documents, history restoration and library promotion |
 | [Topics](topics.md) | User-created ongoing research areas, multiple memberships, compact topic pages, scoped agent creation, and versioned backup round trips |
-| [Todos](todos.md) | Private follow-up tasks with saved sources, project lists, subtasks, dates, recurrence and optional reminders; implementation and release checks are in progress |
+| [Todos](todos.md) | Private follow-up tasks with saved sources, project lists, subtasks, dates, recurrence and optional reminders; live in production with hosted acceptance evidence |
 | [Appearance](appearance.md) | Light, dark and system themes across the signed-in workspace, reading and account screens |

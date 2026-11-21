@@ -98,6 +98,20 @@ try {
   report.mcpWrites = writerTools.filter(tool => tool.annotations?.readOnlyHint !== true).length;
   report.mcpReads = writerTools.filter(tool => tool.annotations?.readOnlyHint === true).length;
 
+  stage = "native-codex-mcp-refresh";
+  const nativeKey = await json(await owner.request.post(`${web}/api/keys`, { headers, data: { name: `Hosted native Codex acceptance ${label}`, scope: "write" } }));
+  const nativeTitle = `Hosted Codex native ${label}`, nativeRequestId = randomUUID();
+  const codexOutput = execFileSync("codex", [
+    "-c", `mcp_servers.stash_acceptance.url="${api}/mcp"`,
+    "-c", 'mcp_servers.stash_acceptance.bearer_token_env_var="STASH_TODO_NATIVE_ACCEPTANCE_KEY"',
+    "exec", "--json", "--ephemeral", "--approve-for-me", "-m", "gpt-6.2-sol", "--skip-git-repo-check",
+    `Use the Stash MCP tool create_todo to add one personal task with title ${JSON.stringify(nativeTitle)}, empty description, null projectId and listId, normal priority, null plannedDate, null deadlineDate, null deadlineAt, no sourceIds, and requestId ${nativeRequestId}. Do not use shell or other tools. After the tool succeeds, reply only with CREATED.`,
+  ], { encoding: "utf8", timeout: 180_000, env: { ...process.env, STASH_TODO_NATIVE_ACCEPTANCE_KEY: nativeKey.token } });
+  assert.match(codexOutput, /"text":"CREATED"/);
+  const nativeTask = (await json(await owner.request.get(`${web}/api/todos?view=all`, { headers }))).items.find((task: any) => task.title === nativeTitle);
+  assert.ok(nativeTask, "Codex native MCP tool call did not create the expected task");
+  report.nativeCodexMcpRefresh = true;
+
   stage = "recurrence";
   const recurring = (await json(await owner.request.post(`${web}/api/todos`, { headers, data: { title: "Hosted recurring follow-up", requestId: randomUUID() } }))).todo;
   const today = new Date().toISOString().slice(0, 10);

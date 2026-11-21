@@ -1,7 +1,7 @@
 {
-  "checkedAt": "2026-11-21T09:21:41.396Z",
+  "checkedAt": "2026-11-21T09:30:28.990Z",
   "fixture": "Synthetic tasks and labelled Resend test recipients",
-  "runLabel": "756a44d7-bd6",
+  "runLabel": "302d5388-9d0",
   "passed": true,
   "personalAndProjectTasks": true,
   "mobileLayout": true,
@@ -9,6 +9,7 @@
   "mcpDiscoveryAndScopes": true,
   "mcpWrites": 41,
   "mcpReads": 21,
+  "nativeCodexMcpRefresh": true,
   "recurrenceCompletion": true,
   "reminderPersisted": true,
   "emailProviderEvent": "delivered",
