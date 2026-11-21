@@ -1,12 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { sql } from "drizzle-orm";
 import { fixture } from "./helpers.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { createApp } from "../apps/server/src/app.js";
 import { createServer } from "node:net";
 import { once } from "node:events";
+import { maintainTodos } from "../apps/server/src/todo-maintenance.js";
 
 async function freePort(){const server=createServer().listen(0,"127.0.0.1");await once(server,"listening");const port=(server.address() as any).port;await new Promise<void>(resolve=>server.close(()=>resolve()));return port;}
 const data=(result:any)=>JSON.parse(result.content[0].text).data;
@@ -96,14 +98,63 @@ test("Todos are private task records with owned projects, lists, sources and ret
     assert.equal((await f.request("DELETE",`/api/todos/${todo.id}`,{revision:trashed.json().todo.revision,confirmation:"no"},a.cookie)).statusCode,400);
     const restored=await f.request("POST",`/api/todos/${todo.id}/restore`,{revision:trashed.json().todo.revision},a.cookie);
     assert.equal(restored.statusCode,200,restored.body);
+    const trashedForProjectDelete=await f.request("POST",`/api/todos/${todo.id}/trash`,{revision:restored.json().todo.revision},a.cookie);
+    assert.equal(trashedForProjectDelete.statusCode,200,trashedForProjectDelete.body);
 
     const archived=await f.request("PATCH",`/api/projects/${project.id}`,{revision:project.revision,archived:true},a.cookie);
     assert.equal(archived.statusCode,200,archived.body);
-    assert.equal((await f.request("PATCH",`/api/todos/${todo.id}`,{revision:restored.json().todo.revision,title:"Changed"},a.cookie)).statusCode,409);
+    assert.equal((await f.request("PATCH",`/api/todos/${todo.id}`,{revision:trashedForProjectDelete.json().todo.revision,title:"Changed"},a.cookie)).statusCode,409);
     const latestProject=(await f.request("GET",`/api/projects/${project.id}`,undefined,a.cookie)).json().project;
     const removed=await f.request("DELETE",`/api/projects/${project.id}`,{revision:latestProject.revision,confirmation:"DELETE"},a.cookie);
     assert.equal(removed.statusCode,409,"project tasks and lists continue to block project deletion");
   } finally { await f.close(); }
+});
+
+test("Concurrent project archive and source trash win before task moves or links",async()=>{
+  const f=await fixture();
+  try{
+    const account=await f.signup();
+    const first=(await f.request("POST","/api/projects",{name:"Current project"},account.cookie)).json().project;
+    const destination=(await f.request("POST","/api/projects",{name:"Archive race destination"},account.cookie)).json().project;
+    const task=(await f.request("POST","/api/todos",{title:"Move only into an open project",projectId:first.id,requestId:randomUUID()},account.cookie)).json().todo;
+    let archivePromise:Promise<any>|undefined,movePromise:Promise<any>|undefined;
+    await f.db.transaction(async tx=>{
+      await tx.execute(sql`select id from projects where id=${destination.id} for update`);
+      archivePromise=f.request("PATCH",`/api/projects/${destination.id}`,{revision:destination.revision,archived:true},account.cookie);
+      await new Promise(resolve=>setTimeout(resolve,40));
+      movePromise=f.request("POST",`/api/todos/${task.id}/move`,{revision:task.revision,projectId:destination.id,listId:null},account.cookie);
+      await new Promise(resolve=>setTimeout(resolve,40));
+    });
+    assert.equal((await archivePromise!).statusCode,200);
+    assert.equal((await movePromise!).statusCode,409,"a queued move rechecks the archived destination after acquiring its row lock");
+    assert.equal((await f.request("GET",`/api/todos/${task.id}`,undefined,account.cookie)).json().todo.projectId,first.id);
+
+    const source=(await f.request("POST","/api/items",{kind:"link",url:"https://example.test/source-race",title:"Source being trashed"},account.cookie)).json().item;
+    let trashPromise:Promise<any>|undefined,createPromise:Promise<any>|undefined;
+    await f.db.transaction(async tx=>{
+      await tx.execute(sql`select id from resources where id=${source.id} for update`);
+      trashPromise=f.request("POST",`/api/items/${source.id}/lifecycle`,{action:"trash"},account.cookie);
+      await new Promise(resolve=>setTimeout(resolve,40));
+      createPromise=f.request("POST","/api/todos",{title:"Link only an active source",sourceIds:[source.id],requestId:randomUUID()},account.cookie);
+      await new Promise(resolve=>setTimeout(resolve,40));
+    });
+    assert.equal((await trashPromise!).statusCode,200);
+    assert.equal((await createPromise!).statusCode,404,"a queued link rechecks source availability after the trash operation");
+    assert.equal((await f.request("GET","/api/todos?view=all&q=Link%20only%20an%20active%20source",undefined,account.cookie)).json().total,0);
+  }finally{await f.close();}
+});
+
+test("Task account limits include Trash and list creation stops at its account cap",async()=>{
+  const f=await fixture();
+  try{
+    const account=await f.signup();
+    await f.db.execute(sql`insert into todos(user_id,title,trashed_at) select ${account.user.id},'Trashed limit fixture',now() from generate_series(1,10000)`);
+    const task=await f.request("POST","/api/todos",{title:"One task over the limit",requestId:randomUUID()},account.cookie);
+    assert.equal(task.statusCode,409,task.body);
+    await f.db.execute(sql`insert into todo_lists(user_id,name) select ${account.user.id},'List '||n from generate_series(1,100) as n`);
+    const list=await f.request("POST","/api/todo-lists",{name:"One list over the limit"},account.cookie);
+    assert.equal(list.statusCode,409,list.body);
+  }finally{await f.close();}
 });
 
 test("Recurring tasks keep history, create one next occurrence and stop at their count",async()=>{
@@ -238,4 +289,44 @@ test("Todo MCP tools share records and preserve read-only and account boundaries
     const reminderReplay=data(await writer.callTool({name:"schedule_todo_reminder",arguments:reminderArgs}));
     assert.equal(reminder.reminders[0].id,reminderReplay.reminders[0].id,"MCP reminder retries preserve one scheduled delivery");
   }finally{for(const client of clients)await client.close();if(app)await app.close();await f.close();}
+});
+
+test("Todo maintenance purges expired Trash, preserves live history and removes only terminal bookkeeping",async()=>{
+  const f=await fixture();
+  try{
+    const account=await f.signup();
+    const task=(await f.request("POST","/api/todos",{title:"Expired repeating task",requestId:randomUUID()},account.cookie)).json().todo;
+    const schedule=await f.request("PUT",`/api/todos/${task.id}/recurrence`,{revision:task.revision,requestId:randomUUID(),rule:{frequency:"daily",interval:1},timezone:"UTC",anchorDate:"2026-11-21"},account.cookie);
+    assert.equal(schedule.statusCode,200,schedule.body);
+    const trashed=await f.request("POST",`/api/todos/${task.id}/trash`,{revision:schedule.json().todo.revision},account.cookie);
+    assert.equal(trashed.statusCode,200,trashed.body);
+    const reminderTask=(await f.request("POST","/api/todos",{title:"Keep this task",requestId:randomUUID()},account.cookie)).json().todo;
+    await f.db.execute(sql`update todos set trashed_at=now()-interval '31 days' where id=${task.id} and user_id=${account.user.id}`);
+    await f.db.execute(sql`insert into todo_reminders(user_id,todo_id,channel,status,scheduled_at,idempotency_key,updated_at) values
+      (${account.user.id},${task.id},'in_app','pending',now()-interval '40 days','expired-pending',now()-interval '40 days'),
+      (${account.user.id},${reminderTask.id},'in_app','read',now()-interval '100 days','expired-terminal',now()-interval '100 days')`);
+    await f.db.execute(sql`update todo_requests set created_at=now()-interval '100 days' where user_id=${account.user.id}`);
+
+    const historyTask=(await f.request("POST","/api/todos",{title:"Long running series",requestId:randomUUID()},account.cookie)).json().todo;
+    const historySchedule=await f.request("PUT",`/api/todos/${historyTask.id}/recurrence`,{revision:historyTask.revision,requestId:randomUUID(),rule:{frequency:"daily",interval:1},timezone:"UTC",anchorDate:"2026-11-21"},account.cookie);
+    assert.equal(historySchedule.statusCode,200,historySchedule.body);
+    const recurrenceId=historySchedule.json().recurrence.id;
+    await f.db.execute(sql`with inserted as (
+      insert into todos(user_id,recurrence_id,title,state,completed_at,position)
+      select ${account.user.id},${recurrenceId},'Old occurrence '||n,'done',now()-interval '400 days',n
+      from generate_series(1,102) n returning id,position
+    )
+    insert into todo_occurrences(user_id,recurrence_id,todo_id,occurrence_number,scheduled_date,completed_at)
+    select ${account.user.id},${recurrenceId},id,position+1,date '2020-01-01'+position,now()-interval '400 days' from inserted`);
+
+    const result=await maintainTodos(f.db);
+    assert.equal(result.purged,1);
+    assert.equal(result.terminalReminders,1);
+    assert.ok(result.requests>=1);
+    assert.equal(result.orphanedSeries,1,"an inactive recurrence with no remaining tasks or history is removed");
+    assert.equal(Number((await f.db.execute(sql`select count(*)::int as count from todo_recurrences where id=${schedule.json().recurrence.id}`)).rows[0].count),0,"purging the trashed current occurrence stops and removes its empty schedule");
+    assert.equal(Number((await f.db.execute(sql`select count(*)::int as count from todo_reminders where idempotency_key='expired-pending'`)).rows[0].count),0,"pending reminders cascade with purged tasks instead of becoming orphaned jobs");
+    assert.equal(Number((await f.db.execute(sql`select count(*)::int as count from todo_reminders where idempotency_key='expired-terminal'`)).rows[0].count),0);
+    assert.equal(Number((await f.db.execute(sql`select count(*)::int as count from todo_occurrences where recurrence_id=${recurrenceId} and completed_at is not null`)).rows[0].count),102,"old history remains available while its completed tasks are retained");
+  }finally{await f.close();}
 });

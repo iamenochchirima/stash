@@ -34,6 +34,7 @@ import { registerOAuth } from "./oauth.js";
 import { requestPath } from "./request-path.js";
 import { registerAdminRoutes } from "./admin-routes.js";
 import { registerLibraryMaintenance } from "./library-maintenance.js";
+import { registerTodoMaintenance } from "./todo-maintenance.js";
 import { registerSummaryRoutes } from "./summary-routes.js";
 import { registerSummaryWorker } from "./summary-worker.js";
 import type { SummaryProvider } from "./summary-provider.js";
@@ -232,6 +233,7 @@ export async function createApp(
       }),
   });
   registerLibraryMaintenance(app, db);
+  registerTodoMaintenance(app, db);
   if (options.summaryProvider) registerSummaryWorker(app, db, options.summaryProvider);
   registerSummaryRoutes(app, db, { production: options.production, available: !!options.summaryProvider && (options.itemsEnabled ?? !options.production) });
   if (options.fileStore) registerPdfWorker(app, db, options.fileStore);

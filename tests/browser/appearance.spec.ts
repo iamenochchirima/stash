@@ -3,6 +3,8 @@ import AxeBuilder from "@axe-core/playwright";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
 
+const webOrigin = `http://127.0.0.1:${process.env.VERIFY_WEB_PORT ?? 3100}`;
+
 async function expectAccessible(page: Page) {
   await page.waitForFunction(() =>
     document.getAnimations().every((animation) => animation.playState === "finished"),
@@ -17,7 +19,7 @@ test("theme preference persists and System follows the device", async ({
   page,
 }) => {
   test.setTimeout(120000);
-  const headers = { origin: "http://127.0.0.1:3100" };
+  const headers = { origin: webOrigin };
   const signup = await page.request.post("/api/auth/signup", {
     headers,
     data: {
@@ -262,7 +264,7 @@ test("styles and accents apply, persist and stay accessible", async ({
   page,
 }) => {
   test.setTimeout(180000);
-  const headers = { origin: "http://127.0.0.1:3100" };
+  const headers = { origin: webOrigin };
   const signup = await page.request.post("/api/auth/signup", {
     headers,
     data: {

@@ -2,7 +2,10 @@ import { test, expect } from "@playwright/test";
 import sharp from "sharp";
 import { mkdir } from "node:fs/promises";
 
-for (const [port, app, name] of [[3100, "web", "Stash"], [3101, "admin", "Stash Admin"]] as const) {
+const webPort = Number(process.env.VERIFY_WEB_PORT ?? 3100);
+const adminPort = Number(process.env.VERIFY_ADMIN_PORT ?? 3101);
+
+for (const [port, app, name] of [[webPort, "web", "Stash"], [adminPort, "admin", "Stash Admin"]] as const) {
   test(`${name} installs separately and keeps offline storage public`, async ({ page, context }) => {
     const origin = `http://127.0.0.1:${port}`;
     await page.goto(`${origin}/offline.html`);
@@ -67,7 +70,7 @@ for (const [port, app, name] of [[3100, "web", "Stash"], [3101, "admin", "Stash 
 }
 
 test("Signed-in library responses never enter offline storage", async ({ page, context }) => {
-  const headers = { origin: "http://127.0.0.1:3100" };
+  const headers = { origin: `http://127.0.0.1:${webPort}` };
   const signup = await page.request.post("/api/auth/signup", { headers, data: { name: "Offline researcher", email: `pwa-${crypto.randomUUID()}@example.test`, password: "Research123" } });
   expect(signup.status()).toBe(201);
   const saved = await page.request.post("/api/items", { headers, data: { kind: "note", title: "Private offline sentinel", body: "This content must stay out of CacheStorage." } });
@@ -78,11 +81,20 @@ test("Signed-in library responses never enter offline storage", async ({ page, c
   await page.getByRole("link", { name: "Private offline sentinel", exact: true }).click();
   await expect(page.getByText("This content must stay out of CacheStorage.", { exact: true })).toBeVisible();
   await page.reload();
+  await page.goto("/todos");
+  await page.getByLabel("New task").fill("Private Todo offline sentinel");
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Task details" })).toBeVisible();
+  await page.getByLabel("Notes", { exact: true }).fill("Private task notes must stay out of CacheStorage.");
+  await page.getByRole("button", { name: "Save task", exact: true }).click();
+  await expect(page.locator(".todo-row")).toContainText("Private Todo offline sentinel");
   const stored = await page.evaluate(async () => Promise.all((await caches.keys()).map(async name => {
     const cache = await caches.open(name);
     return Promise.all((await cache.keys()).map(async request => ({ url: request.url, body: request.url.endsWith(".html") ? await (await cache.match(request))!.text() : "" })));
   })));
   expect(JSON.stringify(stored)).not.toContain("Private offline sentinel");
+  expect(JSON.stringify(stored)).not.toContain("Private Todo offline sentinel");
+  expect(JSON.stringify(stored)).not.toContain("Private task notes must stay out of CacheStorage.");
   expect(stored.flat().every(entry => /^\/(icons\/[^/]+\.png|offline\.html)$/.test(new URL(entry.url).pathname))).toBe(true);
   await context.setOffline(true);
   await page.reload();
