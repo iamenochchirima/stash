@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-11-21T09:07:25.762Z",
+  "fixture": "Synthetic tasks and labelled Resend test recipients",
+  "runLabel": "708a8f6f-b57",
+  "passed": true,
+  "personalAndProjectTasks": true,
+  "mobileLayout": true,
+  "accountIsolation": true,
+  "mcpDiscoveryAndScopes": true,
+  "mcpWrites": 41,
+  "mcpReads": 21,
+  "recurrenceCompletion": true,
+  "reminderPersisted": true,
+  "reminderChannel": "in_app",
+  "disposableAccountsDeleted": true,
+  "cleanupStatuses": [
+    200,
+    200
+  ],
+  "disposableAccountCount": 2
+}
