@@ -1,7 +1,7 @@
 {
-  "checkedAt": "2026-11-21T09:07:25.762Z",
+  "checkedAt": "2026-11-21T09:21:41.396Z",
   "fixture": "Synthetic tasks and labelled Resend test recipients",
-  "runLabel": "708a8f6f-b57",
+  "runLabel": "756a44d7-bd6",
   "passed": true,
   "personalAndProjectTasks": true,
   "mobileLayout": true,
@@ -11,7 +11,12 @@
   "mcpReads": 21,
   "recurrenceCompletion": true,
   "reminderPersisted": true,
-  "reminderChannel": "in_app",
+  "emailProviderEvent": "delivered",
+  "emailReminderDelivered": true,
+  "reminderChannels": [
+    "in_app",
+    "email"
+  ],
   "disposableAccountsDeleted": true,
   "cleanupStatuses": [
     200,

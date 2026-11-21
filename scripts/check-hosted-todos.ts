@@ -110,22 +110,41 @@ try {
   report.recurrenceCompletion = true;
 
   stage = "real-in-app-reminder";
+  await json(await owner.request.put(`${web}/api/todo-preferences`, { headers, data: { timezone: "UTC", emailReminders: true } }));
   const preferences = await owner.request.get(`${web}/api/todo-preferences`, { headers });
   const pref = (await json(preferences)).preferences;
   assert.equal(pref.remindersEnabled, true, "hosted reminder gate must be deliberately enabled for this acceptance");
   const reminderTask = (await json(await owner.request.post(`${web}/api/todos`, { headers, data: { title: "Hosted reminder follow-up", requestId: randomUUID() } }))).todo;
   const scheduledAt = new Date(Date.now() + 70_000).toISOString();
-  const scheduled = await json(await owner.request.post(`${web}/api/todos/${reminderTask.id}/reminders`, { headers, data: { requestId: randomUUID(), scheduledAt, channels: ["in_app"] } }));
-  const reminderId = scheduled.reminders[0].id;
+  const scheduled = await json(await owner.request.post(`${web}/api/todos/${reminderTask.id}/reminders`, { headers, data: { requestId: randomUUID(), scheduledAt, channels: ["in_app", "email"] } }));
+  const inAppReminderId = scheduled.reminders.find((reminder: any) => reminder.channel === "in_app").id;
+  const emailReminderId = scheduled.reminders.find((reminder: any) => reminder.channel === "email").id;
   let delivered = false;
   for (let attempt = 0; attempt < 90 && !delivered; attempt++) {
     const inbox = await json(await owner.request.get(`${web}/api/todo-reminders?unreadOnly=true`, { headers }));
-    delivered = inbox.items.some((item: any) => item.id === reminderId && item.status === "sent");
+    delivered = inbox.items.some((item: any) => item.id === inAppReminderId && item.status === "sent");
     if (!delivered) await new Promise(resolve => setTimeout(resolve, 2000));
   }
   assert.equal(delivered, true, "hosted worker did not persist the in-app reminder");
   report.reminderPersisted = true;
-  report.reminderChannel = "in_app";
+  let emailDelivered = false;
+  for (let attempt = 0; attempt < 90 && !emailDelivered; attempt++) {
+    const list = await fetch("https://api.resend.com/emails", { headers: { authorization: `Bearer ${privateEnv.RESEND_API_KEY}` } });
+    assert.ok(list.ok);
+    const messages = await list.json() as any;
+    const match = messages.data?.find((message: any) => message.to?.includes(`delivered+stash-todo-${label}-owner@resend.dev`) && message.subject === "A Stash task reminder");
+    if (match) {
+      const response = await fetch(`https://api.resend.com/emails/${match.id}`, { headers: { authorization: `Bearer ${privateEnv.RESEND_API_KEY}` } });
+      assert.ok(response.ok);
+      const mail = await response.json() as any;
+      emailDelivered = mail.last_event === "delivered";
+      if (emailDelivered) report.emailProviderEvent = mail.last_event;
+    }
+    if (!emailDelivered) await new Promise(resolve => setTimeout(resolve, 2000));
+  }
+  assert.equal(emailDelivered, true, "Resend did not confirm delivery of the opted-in email reminder");
+  report.emailReminderDelivered = true;
+  report.reminderChannels = ["in_app", "email"];
 
   stage = "cleanup";
   report.passed = true;
