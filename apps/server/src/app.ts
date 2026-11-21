@@ -56,6 +56,7 @@ export async function createApp(
     publicApiUrl?: string;
     production?: boolean;
     emailDisabled?: boolean;
+    todoRemindersEnabled?: boolean;
     logger?: boolean;
     mailer?: Mailer;
     mailPath?: string;
@@ -242,8 +243,9 @@ export async function createApp(
   registerBackupRestoreRoutes(app,db,{production:options.production,enabled:options.itemsEnabled??!options.production,storageAvailable:!!options.fileStore,publicApiUrl});
   registerTopics(app,db,options);
   registerProjects(app,db,!!options.production);
-  registerTodos(app,db,!!options.production,!options.emailDisabled);
-  registerTodoReminderWorker(app,db,options.mailer||createMailer({directory:options.mailPath||".data/mail",production:!!options.production,disabled:options.emailDisabled}),{webOrigin:origin,emailEnabled:!options.emailDisabled});
+  const todoRemindersEnabled = options.todoRemindersEnabled ?? !options.production;
+  registerTodos(app,db,!!options.production,!options.emailDisabled,todoRemindersEnabled);
+  registerTodoReminderWorker(app,db,options.mailer||createMailer({directory:options.mailPath||".data/mail",production:!!options.production,disabled:options.emailDisabled}),{webOrigin:origin,emailEnabled:!options.emailDisabled,remindersEnabled:todoRemindersEnabled});
   registerItems(app, db, { production: options.production, enabled: options.itemsEnabled ?? !options.production });
   app.get("/api/resources", async (request) =>
     library(db, (await authentication.user(request)).id).list(
@@ -393,7 +395,7 @@ export async function createApp(
     return exportLibrary(db, user.id);
   });
   app.post("/mcp", async (request, reply) =>
-    handleMcp(db, await authentication.agent(request), request, reply, options.itemsEnabled ?? !options.production, !!options.summaryProvider,!options.emailDisabled),
+    handleMcp(db, await authentication.agent(request), request, reply, options.itemsEnabled ?? !options.production, !!options.summaryProvider,!options.emailDisabled,options.todoRemindersEnabled ?? !options.production),
   );
   app.route({
     method: ["GET", "DELETE"],

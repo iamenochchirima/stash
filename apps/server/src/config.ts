@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 export function config(env: NodeJS.ProcessEnv = process.env) {
   const production = env.NODE_ENV === "production";
   const emailDisabled = env.EMAIL_DISABLED === "true";
+  const todoRemindersEnabled = env.TODO_REMINDERS_ENABLED === "true" || (!production && env.TODO_REMINDERS_ENABLED !== "false");
   const origin = env.WEB_ORIGIN || "http://127.0.0.1:3000";
   const publicApiUrl = env.PUBLIC_API_URL || "http://127.0.0.1:4000";
   const adminOrigin = env.ADMIN_WEB_ORIGIN || "http://127.0.0.1:3001";
@@ -62,6 +63,7 @@ export function config(env: NodeJS.ProcessEnv = process.env) {
     adminEncryptionKey: env.ADMIN_ENCRYPTION_KEY,
     production,
     emailDisabled,
+    todoRemindersEnabled,
     origin,
     publicApiUrl,
     port,

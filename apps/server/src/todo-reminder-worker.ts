@@ -4,7 +4,8 @@ import type { Database } from "@stash/db";
 import type { Mailer } from "./mail.js";
 
 const DAY=24*60*60_000;
-export async function processTodoReminder(db:Database,mailer:Mailer,webOrigin:string,options:{emailEnabled:boolean;now?:Date}){
+export async function processTodoReminder(db:Database,mailer:Mailer,webOrigin:string,options:{emailEnabled:boolean;remindersEnabled?:boolean;now?:Date}){
+  if(options.remindersEnabled===false)return false;
   const now=options.now||new Date(),cutoff=new Date(now.getTime()-DAY),retryAt=new Date(now.getTime()+60_000);
   await db.execute(sql`update todo_reminders r set status='cancelled',lease_until=null,updated_at=now() where r.status in ('pending','sending') and (
     not exists(select 1 from users u where u.id=r.user_id and u.suspended_at is null)
@@ -31,7 +32,8 @@ export async function processTodoReminder(db:Database,mailer:Mailer,webOrigin:st
   return true;
 }
 
-export function registerTodoReminderWorker(app:FastifyInstance,db:Database,mailer:Mailer,options:{webOrigin:string;emailEnabled:boolean}){
+export function registerTodoReminderWorker(app:FastifyInstance,db:Database,mailer:Mailer,options:{webOrigin:string;emailEnabled:boolean;remindersEnabled?:boolean}){
+  if(options.remindersEnabled===false)return;
   let running:Promise<unknown>|undefined,closing=false;
   const run=()=>{if(closing||running)return;running=processTodoReminder(db,mailer,options.webOrigin,options).catch(()=>app.log.error("Todo reminder maintenance failed; due reminders will recover." )).finally(()=>{running=undefined;});};
   const timer=setInterval(run,30_000);timer.unref();app.addHook("onReady",async()=>run());app.addHook("onClose",async()=>{closing=true;clearInterval(timer);await running;});

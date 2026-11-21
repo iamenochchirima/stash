@@ -103,7 +103,7 @@ export const todoReminderActionInput=z.discriminatedUnion("action",[
 
 export type TodoState = z.infer<typeof todoState>;
 export type TodoPriority = z.infer<typeof todoPriority>;
-export type TodoPreferences = { timezone: string; emailReminders: boolean; inAppReminders: boolean; emailVerified?:boolean; emailConfigured?:boolean; configured: boolean };
+export type TodoPreferences = { timezone: string; emailReminders: boolean; inAppReminders: boolean; emailVerified?:boolean; emailConfigured?:boolean; remindersEnabled?:boolean; configured: boolean };
 export type Todo = {
   id: string; userId: string; projectId: string | null; listId: string | null; recurrenceId: string | null;
   title: string; description: string; state: TodoState; priority: TodoPriority; plannedDate: string | null; deadlineDate: string | null;

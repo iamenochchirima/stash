@@ -88,6 +88,9 @@ test("T01/T19 configuration validation and production cookie flags", async () =>
   const productionEnv = { NODE_ENV: "production", WEB_ORIGIN: "https://stash.example", PUBLIC_API_URL: "https://api.stash.example", DATABASE_URL: "postgresql://localhost/stash", DELETION_JOURNAL_DIR: "/data/deletions" };
   assert.throws(() => config(productionEnv), /SMTP_URL/);
   assert.equal(config({ ...productionEnv, EMAIL_DISABLED: "true" }).emailDisabled, true);
+  assert.equal(config({ ...productionEnv, EMAIL_DISABLED: "true" }).todoRemindersEnabled, false, "production reminders are off until explicitly enabled");
+  assert.equal(config({ ...productionEnv, EMAIL_DISABLED: "true", TODO_REMINDERS_ENABLED: "true" }).todoRemindersEnabled, true);
+  assert.equal(config({ NODE_ENV: "test" }).todoRemindersEnabled, true, "local reminders stay enabled by default");
   assert.equal(config({ ...productionEnv, RESEND_API_KEY: "test-key", MAIL_FROM: "Stash <noreply@example.test>" }).emailDisabled, false);
   assert.throws(() => config({ ...productionEnv, RESEND_API_KEY: "test-key" }), /MAIL_FROM/);
   const f = await fixture();

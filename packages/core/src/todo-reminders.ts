@@ -5,11 +5,12 @@ import { todoReminderActionInput, todoReminderScheduleInput } from "@stash/share
 import { AppError } from "./index.js";
 
 const stamp=(value:unknown)=>value instanceof Date?value.toISOString():value==null?null:String(value);
-export function todoReminderService(db:Database,userId:string,options:{emailEnabled:boolean}){
+export function todoReminderService(db:Database,userId:string,options:{emailEnabled:boolean;remindersEnabled?:boolean}){
   async function active(tx:Database){const result=await tx.execute(sql`select id from users where id=${userId} and suspended_at is null for update`);if(!result.rows.length)throw new AppError(403,"This account is unavailable.");}
   async function getPreferences(tx:Database=db){const result=await tx.execute(sql`select p.timezone,p.email_reminders as "emailReminders",p.in_app_reminders as "inAppReminders",u.email_verified_at as "emailVerifiedAt" from users u left join todo_preferences p on p.user_id=u.id where u.id=${userId}`);const row=result.rows[0];return{timezone:row?.timezone||"UTC",emailReminders:!!row?.emailReminders,inAppReminders:row?.inAppReminders!==false,emailVerified:!!row?.emailVerifiedAt};}
   return {
     async schedule(todoId:string,raw:unknown){
+      if(options.remindersEnabled===false)throw new AppError(503,"Task reminders are temporarily unavailable.");
       const input=todoReminderScheduleInput.parse(raw),scheduledAt=new Date(input.scheduledAt);
       if(scheduledAt.getTime()<=Date.now())throw new AppError(400,"Choose a reminder time in the future.");
       const fingerprint=createHash("sha256").update(JSON.stringify({todoId,scheduledAt:scheduledAt.toISOString(),channels:[...input.channels].sort()})).digest("hex");

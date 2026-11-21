@@ -42,6 +42,21 @@ test("Todo reminders deliver in-app, snooze/read/dismiss and send private verifi
   }finally{await f.close();}
 });
 
+test("disabled Todo reminders reject new schedules and skip worker processing",async()=>{
+  const f=await fixture({todoRemindersEnabled:false});
+  try{
+    const account=await f.signup(),task=(await f.request("POST","/api/todos",{title:"Schedule only when enabled",requestId:randomUUID()},account.cookie)).json().todo;
+    const preferences=await f.request("GET","/api/todo-preferences",undefined,account.cookie);
+    assert.equal(preferences.json().preferences.remindersEnabled,false);
+    const due=new Date(Date.now()+60_000);
+    const denied=await f.request("POST",`/api/todos/${task.id}/reminders`,{requestId:randomUUID(),scheduledAt:due.toISOString(),channels:["in_app"]},account.cookie);
+    assert.equal(denied.statusCode,503);
+    const count=await f.db.execute(sql`select count(*)::int as count from todo_reminders where user_id=${account.user.id}`);
+    assert.equal(count.rows[0].count,0);
+    assert.equal(await processTodoReminder(f.db,{async send(){throw new Error("worker must not deliver");}},"https://stash.example",{emailEnabled:true,remindersEnabled:false}),false);
+  }finally{await f.close();}
+});
+
 test("Todo reminder worker cancels ineligible tasks and marks old reminders missed",async()=>{
   const f=await fixture();
   try{
