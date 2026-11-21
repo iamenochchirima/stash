@@ -120,8 +120,10 @@ test("Account deletion removes Todo lists, recurrence, source links, history and
   try{
     const account=await f.signup();
     const source=(await f.request("POST","/api/items",{kind:"link",url:"https://example.test/delete-with-account",title:"Private source"},account.cookie)).json().item;
+    const project=(await f.request("POST","/api/projects",{name:"Project with private tasks"},account.cookie)).json().project;
     const list=(await f.request("POST","/api/todo-lists",{name:"Private list"},account.cookie)).json().list;
     const task=(await f.request("POST","/api/todos",{title:"Delete account with Todos",listId:list.id,sourceIds:[source.id],plannedDate:"2026-11-21",requestId:randomUUID()},account.cookie)).json().todo;
+    await f.request("POST","/api/todos",{title:"Project task removed with owner",projectId:project.id,requestId:randomUUID()},account.cookie);
     await f.request("POST",`/api/todos/${task.id}/subtasks`,{title:"Private subtask"},account.cookie);
     const latest=(await f.request("GET",`/api/todos/${task.id}`,undefined,account.cookie)).json().todo;
     await f.request("PUT",`/api/todos/${task.id}/recurrence`,{revision:latest.revision,requestId:randomUUID(),rule:{frequency:"daily",interval:1},timezone:"UTC",anchorDate:"2026-11-21",count:3},account.cookie);
