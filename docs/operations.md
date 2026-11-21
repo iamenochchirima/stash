@@ -188,3 +188,7 @@ The reminder worker runs with the API every 30 seconds and also checks once at s
 The Admin Overview Library details show aggregate due, sending, failed-in-24-hours and oldest-due-lag counts; they never expose task titles, notes, sources or reminder payloads. If counts rise, check API readiness and worker logs, then confirm email configuration and the affected account’s verified address and reminder preference. Logs intentionally omit task content and provider details. Expired claims recover automatically on the next worker pass; do not manually resend a reminder or alter its idempotency key.
 
 This describes the locally verified Todos behavior only. It is not evidence that the Todo worker or admin metrics are live on Railway, and no Todos release has been made.
+
+## Todos hosted release preflight, 21 November 2026
+
+Read-only checks confirm Railway `stash-api` is Online on deployment `92b4b2b0-609f-47ef-8e47-1f56f00973a1`; `/health` and `/ready` return 200. Its deployed schema is migration 0024. The live consumer root returns 200, while `/todos` and `/api/todos` return 404, so the Todo UI/API are not live. The local release source is commit `701149d`, ten commits ahead of the last fetched `origin/main`, with no incoming commits at that fetch. Todo migrations 0025–0028 must ship with the compatible API before the dependent Vercel clients. No database write, migration, deployment, email, account or provider setting was changed. Evidence: `docs/evidence/todos/hosted-preflight.json`.

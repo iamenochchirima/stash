@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-11-21T08:34:50Z",
+  "localSource": {
+    "commit": "701149d",
+    "branch": "main",
+    "aheadOfOriginMain": 10,
+    "incomingCommitsAtLastFetch": 0
+  },
+  "railway": {
+    "project": "Stash",
+    "service": "stash-api",
+    "deploymentId": "92b4b2b0-609f-47ef-8e47-1f56f00973a1",
+    "deploymentStatus": "SUCCESS",
+    "runtimeStatus": "Online",
+    "health": { "status": 200, "version": "0.1.0" },
+    "ready": { "status": 200 },
+    "currentlyDeployedMigration": "0024",
+    "todosApiRoute": { "path": "/api/todos", "status": 404 }
+  },
+  "vercel": {
+    "dashboard": "https://stash.kasitek.co.za",
+    "rootStatus": 200,
+    "todosRoute": { "path": "/todos", "status": 404 }
+  },
+  "todosReleaseRequires": {
+    "migrationRange": "0025-0028",
+    "order": ["compatible Railway API and migrations", "Vercel consumer and admin clients"],
+    "deployed": false
+  }
+}
